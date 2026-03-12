@@ -98,11 +98,7 @@ jobs:
           elif [ -f README.md ]; then
             cp README.md pages/README.md
           else
-            cat > pages/README.md <<'MD'
-            # README
-
-            README soubor nebyl v repozitáři nalezen.
-            MD
+            printf '%s\n' '# README' '' 'README soubor nebyl v repozitáři nalezen.' > pages/README.md
           fi
           cat > pages/pdf/index.html <<'HTML'
           <!doctype html>
