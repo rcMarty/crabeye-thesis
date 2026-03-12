@@ -91,25 +91,94 @@ jobs:
 
       - name: Build GitHub Pages site
         run: |
-          mkdir -p pages
+          mkdir -p pages/pdf
           cp src/main.pdf pages/main.pdf
-          cat > pages/index.html <<'HTML'
+          if [ -f readme.md ]; then
+            cp readme.md pages/README.md
+          elif [ -f README.md ]; then
+            cp README.md pages/README.md
+          else
+            cat > pages/README.md <<'MD'
+            # README
+
+            README soubor nebyl v repozitáři nalezen.
+            MD
+          fi
+          cat > pages/pdf/index.html <<'HTML'
           <!doctype html>
-          <html lang="en">
+          <html lang="cs">
           <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width,initial-scale=1" />
-            <title>Thesis PDF</title>
+            <title>RANAL Thesis PDF</title>
             <style>
-              html, body { margin: 0; height: 100%; background: #111; }
-              object { width: 100%; height: 100%; border: 0; }
+              html, body { margin: 0; height: 100%; background: #1f1f1f; }
+              body { display: flex; flex-direction: column; font-family: system-ui, sans-serif; }
+              header { padding: 0.75rem 1rem; background: #111; color: #fff; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+              header a { color: #fff; }
+              iframe { flex: 1; width: 100%; border: 0; background: #666; }
             </style>
           </head>
           <body>
-            <object data="main.pdf" type="application/pdf">
-              <p>Unable to display PDF in browser.
-              <a href="main.pdf">Download the thesis PDF</a>.</p>
-            </object>
+            <header>
+              <strong>PDF náhled diplomové práce</strong>
+              <a href="../">Zpět na hlavní stránku</a>
+              <a href="../main.pdf" target="_blank" rel="noopener noreferrer">Otevřít PDF v nové kartě</a>
+            </header>
+            <iframe src="../main.pdf#view=FitH" title="PDF náhled diplomové práce"></iframe>
+          </body>
+          </html>
+          HTML
+          cat > pages/index.html <<'HTML'
+          <!doctype html>
+          <html lang="cs">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>RANAL Thesis</title>
+            <style>
+              body { max-width: 960px; margin: 2rem auto; padding: 0 1rem 3rem; font-family: system-ui, sans-serif; line-height: 1.6; }
+              nav { margin-bottom: 1.5rem; }
+              nav a { margin-right: 1rem; }
+              #readme { border-top: 1px solid #ddd; padding-top: 1rem; }
+              .pdf-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
+              .pdf-toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+              .pdf-toolbar a { padding: 0.65rem 1rem; border-radius: 0.5rem; border: 1px solid #bbb; background: #f5f5f5; color: #111; text-decoration: none; cursor: pointer; font: inherit; }
+              .pdf-wrapper { width: 100%; height: min(60vh, 720px); border: 1px solid #ccc; border-radius: 0.75rem; overflow: hidden; background: #666; }
+              .pdf-wrapper iframe { width: 100%; height: 100%; border: 0; background: #666; }
+            </style>
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+          </head>
+          <body>
+            <h1>RANAL – diplomová práce</h1>
+            <nav>
+              <a href="pdf/">Otevřít plný PDF náhled</a>
+              <a href="main.pdf" target="_blank" rel="noopener noreferrer">Otevřít PDF v nové kartě</a>
+            </nav>
+
+            <section id="readme">Načítání README…</section>
+
+            <section class="pdf-section">
+              <h2>PDF náhled práce</h2>
+              <div class="pdf-toolbar">
+                <a href="pdf/">Otevřít plný náhled práce</a>
+                <a href="main.pdf" target="_blank" rel="noopener noreferrer">Stáhnout nebo otevřít PDF</a>
+              </div>
+              <div class="pdf-wrapper" id="pdf-wrapper">
+                <iframe src="main.pdf#view=FitH" title="PDF náhled diplomové práce"></iframe>
+              </div>
+            </section>
+
+            <script>
+              fetch('README.md')
+                .then(function(response) { return response.text(); })
+                .then(function(markdown) {
+                  document.getElementById('readme').innerHTML = marked.parse(markdown);
+                })
+                .catch(function() {
+                  document.getElementById('readme').innerHTML = '<p>README se nepodařilo načíst.</p>';
+                });
+            </script>
           </body>
           </html>
           HTML

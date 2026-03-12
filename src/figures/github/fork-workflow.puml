@@ -1,0 +1,39 @@
+@startuml fork-workflow
+skinparam rectangle {
+    BackgroundColor #FFFF00
+    BorderColor #000000
+    FontColor #000000
+    RoundCorner 8
+}
+skinparam package {
+    BackgroundColor #FAFAFA
+    BorderColor #000000
+    FontColor #000000
+    FontStyle bold
+}
+skinparam ArrowColor #4080C0
+skinparam ArrowFontColor #000000
+skinparam ArrowFontSize 10
+skinparam defaultTextAlignment center
+skinparam PackagePadding 20
+
+package "Vzdálené úložiště (GitHub servery)" as Remote {
+    rectangle "A\nHlavní repozitář\n(Main repository)" as A
+    rectangle "B\nMaster větev forku\nhlavního repozitáře" as B
+    rectangle "E\nVzdálená projektová větev\nvaší master větve" as E
+}
+
+package "Lokální úložiště (Váš stroj)" as Local {
+    rectangle "C\nMaster větev\nlokálního klonu forku" as C
+    rectangle "D\nLokální projektová větev\nvaší master větve" as D
+}
+
+A -right-> B : 1. Vytvoření forku\nhlavního repozitáře
+B -down-> C  : 2. Clone forku\nna lokální stroj
+C -left-> D  : 3. Vytvoření projektové větve\n    7. Přidání souborů (stage)\n    8. git commit
+B -down-> C  : 4. git fetch upstream\nz hlavního repozitáře
+A -right-> B : 5. Push sloučených změn\nz hlavního repozitáře
+D -up-> E    : 9. Push commitů\ndo vzdálené větve
+E -up-> A    : 10. Vytvoření Pull Requestu\nze vzdálené projektové větve
+
+@enduml
