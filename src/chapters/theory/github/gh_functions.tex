@@ -19,27 +19,32 @@
 %   - Projekty a milníky (GitHub Projects)
 
 \section{Základní funkce a model spolupráce}
-Tato sekce se zaměří na nejpoužívanější funkce GitHubu a modely interakce mezi vývojáři. \todo{Dát to tu? Pro ilustraci bude využit repozitář překladače Rust.}
+\label{sec:github:zakladni_funkce_model_spoluprace}
+V~této sekci jsou popsány nejpoužívanější funkce GitHubu a~modely interakce mezi vývojáři~\cite{github_docs}.
 
 \subsection{Repozitáře}
-Repozitář je základní prvek na GitHubu. Je to místo, kde se ukládá kód a jiné soubory projektu. Repozitáře jsou buď veřejné, nebo soukromé, a mohou mít více spolupracovníků.
+\label{subsec:github:repozitare}
+Repozitář představuje základní prvek na GitHubu. Jedná se o~místo, kde je ukládán zdrojový kód a~jiné soubory projektu. Repozitáře mohou být veřejné nebo soukromé a~mohou mít více spolupracovníků~\cite{github_docs}.
 
 \subsubsection*{Forky}
-Fork je nový repozitář u jiného uživatele, který sdílí kód a viditelnost původního repozitáře. Forky se využívají primárně pro přispívání do cizích projektů. Uživatel vytvoří fork, provede změny a poté vytvoří pull request do původního repozitáře. Možnost sloučení do původního projektu je hlavní rozdíl mezi klonem repozitáře a forkem. Chováním se tedy podobá nové větvi, ovšem bez nutnosti mít přístup k původnímu repozitáři. Tento způsob umožňuje větší svobodu při experimentování bez jakéhokoliv ovlivnění původního repozitáře.
+\label{subsubsec:github:forky}
+Fork je repozitář vytvořený pod jiným uživatelským účtem, který vychází z~původního repozitáře a~sdílí jeho historii. Forky jsou využívány primárně pro přispívání do cizích projektů. Nejčastěji je vytvořen fork, v~něm jsou provedeny změny a~následně je otevřen \PR do původního repozitáře. Možnost navrhnout sloučení změn do původního projektu je hlavním rozdílem mezi forkem a~klonem repozitáře. Fork se tedy částečně chová jako samostatná větev, avšak bez nutnosti mít přímý zápis do původního repozitáře. Tento způsob práce umožňuje bezpečně experimentovat bez přímého ovlivnění původního projektu~\cite{github_pull_requests_docs}.
 
-Každý fork je plně samostatný a má své vlastní větve, členy, issues, pull requesty, wiki a další funkce.
+Každý fork je plně samostatný a~má vlastní větve, členy, issues, pull requesty, wiki a~další funkce~\cite{github_docs}.
 
 \subsection{Issues}
-Issues (neboli problémy) jsou jednou ze základních a nejvyužívanějších sociálních funkcí GitHubu. Slouží ke sledování chyb, nápadů, požadavků na funkce a dalších prací spojených s projektem.
+\label{subsec:github:issues}
+Issues (neboli problémy) představují jednu ze základních a~nejvyužívanějších funkcí GitHubu. Jsou používány ke sledování chyb, nápadů, požadavků na funkce a~dalších úkolů spojených s~projektem~\cite{github_issues_docs}.
 
-Každá issue může mít sub-issues, aby bylo možné rozdělit větší úkol na více menších. Může se stát, že issue bude muset čekat na dokončení jiné issue. V takovém případě lze využít závislosti mezi issues a označit ji za zablokovanou. Lze přidávat metadata, například labely, typy issue, přiřazení, milníky a další. Je také možné přiřadit issue konkrétnímu uživateli, což je užitečné pro organizaci práce a sledování odpovědnosti.
+Jedna issue může mít sub-issues, aby mohl být větší úkol rozdělen na více menších částí. Pokud je issue závislá na dokončení jiné issue, lze tuto závislost explicitně vyjádřit a~označit úkol jako blokovaný. Současně mohou být přidávána metadata, například labely, typ issue, přiřazení nebo milníky. Issue může být přiřazena konkrétnímu uživateli, což usnadňuje organizaci práce i~sledování odpovědnosti~\cite{github_issues_docs}.
 
-Labely jsou jedním z klíčových nástrojů pro kategorizaci a prioritizaci nejen issues, ale i PR a diskuzí. Labely se vytvářejí v rámci repozitáře a poté se přiřazují k jednotlivým issues, PR a diskuzím v repozitáři. S každým repozitářem je vytvořena sada nejčastěji využívaných základních labelů, například bug, enhancement, question, help wanted a další. Tyto labely lze libovolně upravovat, přidávat či mazat.
+Labely představují klíčový nástroj pro kategorizaci a~prioritizaci nejen issues, ale také \PR a~diskuzí. Labely jsou vytvářeny v~rámci repozitáře a~následně přiřazovány jednotlivým issues, pull requestům a~diskuzím. V~ každém novém repozitáři je k~dispozici základní sada labelů, například \code{bug}, \code{enhancement}, \code{question} nebo \code{help wanted}. Tyto labely mohou být podle potřeby upravovány, přidávány i~odstraňovány~\cite{github_issues_docs}.
 
 \subsubsection*{Pull Requests}
-Pull requests (neboli PR) jsou mechanismem, jak může uživatel přispívat do projektu. Umožňují vytvořit požadavek na provedení změn v kódu. Poté může proběhnout kontrola změn a případná diskuze nad konkrétními částmi kódu. To umožňuje udržovat kvalitu kódu a včas odhalit případné chyby.
+\label{subsubsec:github:pull_requests}
+Pull requests (\PR{}) představují mechanismus, kterým může být navrženo začlenění změn do projektu. Umožňují vytvořit požadavek na provedení změn ve zdrojovém kódu. Následně může proběhnout kontrola změn a~diskuze nad konkrétními částmi kódu. Tím je podporováno udržení kvality kódu a~včasné odhalení chyb~\cite{github_pull_requests_docs}.
 
-Typický workflow zahrnuje vytvoření forku. Poté se může vytvořit nová větev, například pro konkrétní issue. Pokud se jedná o větší změnu, může být vytvořena vývojová větev.
+Typický workflow zahrnuje vytvoření forku a~založení nové větve, například pro konkrétní issue. Poté jsou provedeny změny a vytvořen \PR v rámci forku. Pokud je všechno vpořádku, je otevřen \PR v originálním repozitáři pro navržení začlenění změn.
 
 \begin{figure}[h]
   \centering
