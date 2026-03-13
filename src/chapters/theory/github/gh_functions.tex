@@ -38,17 +38,44 @@ Issues (neboli problémy) představují jednu ze základních a~nejvyužívaněj
 
 Jedna issue může mít sub-issues, aby mohl být větší úkol rozdělen na více menších částí. Pokud je issue závislá na dokončení jiné issue, lze tuto závislost explicitně vyjádřit a~označit úkol jako blokovaný. Současně mohou být přidávána metadata, například labely, typ issue, přiřazení nebo milníky. Issue může být přiřazena konkrétnímu uživateli, což usnadňuje organizaci práce i~sledování odpovědnosti~\cite{github_issues_docs}.
 
-Labely představují klíčový nástroj pro kategorizaci a~prioritizaci nejen issues, ale také \PR a~diskuzí. Labely jsou vytvářeny v~rámci repozitáře a~následně přiřazovány jednotlivým issues, pull requestům a~diskuzím. V~ každém novém repozitáři je k~dispozici základní sada labelů, například \code{bug}, \code{enhancement}, \code{question} nebo \code{help wanted}. Tyto labely mohou být podle potřeby upravovány, přidávány i~odstraňovány~\cite{github_issues_docs}.
+\subsection{Pull Requests}
+\label{subsec:github:pull_requests}
+Pull requests (\PR{}) představují mechanismus, kterým může být navrženo začlenění změn do projektu. Jde o speciální případ Issue takže všechny pr jsou i issues ale ne všechny issues jsou PR. Umožňují vytvořit požadavek na provedení změn ve zdrojovém kódu. Následně může proběhnout kontrola změn a~diskuze nad konkrétními částmi kódu. Tím je podporováno udržení kvality kódu a~včasné odhalení chyb~\cite{github_pull_requests_docs}.
 
-\subsubsection*{Pull Requests}
-\label{subsubsec:github:pull_requests}
-Pull requests (\PR{}) představují mechanismus, kterým může být navrženo začlenění změn do projektu. Umožňují vytvořit požadavek na provedení změn ve zdrojovém kódu. Následně může proběhnout kontrola změn a~diskuze nad konkrétními částmi kódu. Tím je podporováno udržení kvality kódu a~včasné odhalení chyb~\cite{github_pull_requests_docs}.
+Za zmínku stojí i dobrá provázanost mezi issues a \PR. Pokud \PR řeší konkrétní issue je možné tuto issue zavřít ve zprávě v commitu pomocí klíčových slov jako "Closes \#123", kde \#123 je číslo issue.
 
 Typický workflow zahrnuje vytvoření forku a~založení nové větve, například pro konkrétní issue. Poté jsou provedeny změny a vytvořen \PR v rámci forku. Pokud je všechno vpořádku, je otevřen \PR v originálním repozitáři pro navržení začlenění změn.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{figures/github/fork-workflow.pdf}
-  \caption{Průběh práce s forkem na GitHubu}
+  \caption{Tipický průběh práce s forkem na GitHubu~\cite{psl_git_tutorial_main}}
   \label{fig:github:fork-workflow}
 \end{figure}
+
+tipický přesný postup vytváření \PR je vyzobrazen na \customref{obrázku}{fig:github:fork-workflow}. V prvním kroku je vytvořen fork původního repozitáře. Následně je fork klonván na lokální stroj a je vytvořena nová větev pro práci na nové funkcionalitě nebo pro opravení chyby (2 a 3). V průběhu práce je pravidelně prováděn \code{git fetch upstream} pro synchronizaci s původním (4) repozitářem, změny jsou pushnuty do forku (5) a změny se taktéž spojí s aktivní vývojářskou větví (6). Při úpravě kódu se pravidelně přidvají změněné soubory do staged stavu (7) a tyto soubory jsou poté commitovány (8). Po dokončení práce jsou změny pushnuty do forku ve vytvořené větvi (9). Nakonec je vytvořen \PR z forku z feature branche do původního repozitáře (10)~\cite{psl_git_tutorial_main}.
+
+\subsection{Labels}
+\label{subsec:github:labels}
+Labely představují klíčový nástroj pro kategorizaci a~prioritizaci nejen issues, ale také \PR a~diskuzí. Labely jsou vytvářeny v~rámci repozitáře a~následně přiřazovány jednotlivým issues, pull requestům a~diskuzím. V~ každém novém repozitáři je k~dispozici základní sada labelů, například \code{bug}, \code{enhancement}, \code{question} nebo \code{help wanted}. Tyto labely mohou být podle potřeby upravovány, přidávány i~odstraňovány~\cite{github_issues_docs}.
+
+\subsection{Github Actions}
+\label{subsec:github:actions}
+Platforma github kromě hostování repozitářů poskytuje i řešení pro automatizaci procesů jako je \CI a \CD.
+Toto řešení se nazývá github actions a umožnuje pohodlně přímov prostředí githubu vytvářet a spouštět vlastní workflow.
+
+\subsubsection*{Triggery}
+Triggery jsou události, které spouští workflow. Mezi nejběžnější patří \code{push}, \code{pull\_request}, \code{schedule} (pro plánované spouštění) a \code{workflow\_dispatch} (pro manuální spuštění). Triggery umožňují flexibilně reagovat na různé události v repozitáři~\cite{github_actions_docs}.
+
+\subsubsection*{Workflow}
+Workflow je definován v souboru s příponou .yml umístěném v adresáři \code{.github/workflows/}. Jedná se o automatizované procesy s definicemi po sobě jdoucích kroků.
+V repozitáři může existovat více workflow, které se mohou spouštět na základě různých podmínek (triggerů) (např push pouze do hlavní větve).
+
+\subsubsection*{Jobs a Steps}
+Workfow se skládá z jednotlivých kroků kterým se říká jobs. každý job potom má své podůlohy kterým se říká steps. Jobs standartně běží paralelně ovšem lze je nakonfigurovat tak aby na sebe navazovaly. Každý step může být jak příkaz v shellu tak i použití předdefinované akce (action)~\cite{github_actions_docs}.
+
+\subsubsection*{Runners}
+Runners zajištují běh jednotlivých kroků workflow. Jde o virtuální servery, které mohou být hostovány buď githubem nebo si je uživatel může hostovat sám.
+
+Jedna z výhod github actions je integrace s PR. Když se vytvoří nový PR, můžou být automaticky spuštěné workflows a poté lze přehledně vidět přímo u PR jestli všechno prošlo vpořádku nebo se vyskytly nějaké chyby. Takové workflows nejčastěji obsahují testy, zda jsou splněny pravidla formátování kódu.
+Tím je zajištěna další vrstva kontroly kvality kódu a že se do hlavní větve nedostane kód který by narušoval funkčnost projektu~\cite{github_actions_docs}\cite{github_pull_requests_docs}.
