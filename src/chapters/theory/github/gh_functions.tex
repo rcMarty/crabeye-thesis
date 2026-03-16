@@ -79,4 +79,6 @@ Workflow se skládá z~jednotlivých úloh, které se označují jako jobs. Kaž
 \label{subsubsec:github:actions_runners}
 Runners zajišťují běh jednotlivých workflow a~jejich kroků. Jedná se o~virtuální~servery, které mohou být hostovány buď GitHubem, nebo si je může uživatel provozovat sám~\cite{github_actions_docs}.
 
+\subsubsection*{Integrace s \PR}
+\label{subsubsec:github:actions_pr}
 Jednou z~výhod GitHub Actions je integrace s~\PR. Při vytvoření nového \PR mohou být automaticky spuštěny workflows a~jejich výsledek je následně přehledně zobrazen přímo u~daného \PR. Takové workflows často obsahují testy, kontrolu sestavení nebo ověření pravidel formátování kódu. Tím je zajištěna další vrstva kontroly kvality a~je sníženo riziko, že se do hlavní větve dostane změna narušující funkčnost projektu~\cite{github_actions_docs,github_pull_requests_docs}.

@@ -19,8 +19,35 @@
 
 \section{GitHub API}
 \label{sec:github_api}
-Github má k dispozici dva typy API pro přístup jak k datům tak pro kompletní interakci s platformou github.
+Github má k dispozici dva typy API pro přístup jak k datům tak pro kompletní interakci s platformou github. Github api umožnuje uživatelům automatizovat procesy a integrovat své aplikace s platformou github.
 V této sekci jsouposány základní vlastnosti a možnosti obou API, stejně jako omezení, která je třeba mít na paměti při jejich využívání.
 
 \subsection{REST API}
-github rest api je og
+\label{subsec:github_api_rest}
+REST API umožnuje přístup k datům a funkcím GitHubu prostřednictvím HTTP požadavků. Každý požadavek na rest api obsajuje http metodu a cestu. Nicméně záleží na konkrétním endpointu jaké parametry musí být specifikovány. například další hlavičky, informaci o autentizaci, query parameters nebo tělo požadavku
+Využívá základní HTTP metody (GET, POST, PUT, DELETE) pro interakci s různými zdroji.
+\begin{itemize}
+  \item GET pro získání dat (např. seznam issues, detail PR)
+  \item POST pro vytvoření nových zdrojů (např. vytvoření issue)
+  \item PUT pro aktualizaci existujících zdrojů (např. přidání labelu k issue)
+  \item DELETE pro odstranění zdrojů (např. smazání komentáře)
+  \item PATCH pro aktualizaci properties (např. změna stavu issue)
+\end{itemize}
+Každý endpoint je definován cestou. Ta může obsahovat jak statické části tak dynamické části. například endpoint pro získání issues od repozitáře je \code{GET /repos/{owner}/{repo}/issues}, kde \code{owner} a \code{repo} jsou dynamické části, které musí být nahrazeny konkrétními hodnotami.
+
+Data jsou věwwtšinou zprostředkována za pomocí JSON formátu což zajištuje dobrou čitelnot jak pro lidi tak i stroje. Ovšem může se použít i jiný typ Media Type, například diff, patch, raw, full a další. Pro použití těchto typů se používá \code{application/vnd.github.PARAM+json} kde \code{PARAM} je nahrazeno konkrétním typem média. Například pro získání dat ve formátu diff se použije \code{application/vnd.github.diff+json}.
+
+github rest api je verzované a využívá kalendářní verzování. tato hlavička není vyžadována ale je silně doporučována. bez specifikace této hlavičky se automaticky dotazuje na verzi specifikovanou v dokumentaci (2022-11-28). Tedy dotazy na kterou verzi api se posílají jsou v hlavičce požadavku ve formátu \code{--header "X-GitHub-Api-Version:2026-03-10"}.tedy budoucí nová verze nezmění způsob fungování starších verzí. github také poskytuje seznam zpětně nekompatibilních změn mezi každou verzí,  návody a dokumentaci pro migrování na novější verze api.
+
+Ikdyž Některé endpointy jsou veřejné i bez autentizace, většina z nich vyžaduje autentizaci pomocí autentizačního tokenu v hlavičce. Existuje více možností jak získat token, například pomocí PAT (personal access token), github app nebo vestavěný \code{GITHUB\_TOKEN} v rámci github actions. Přihlašovánií za pomocí PAT podpruje jemně odstupnovaný přítup oprávnění, který je upřednosňován oproti klasickému kde tak jemně odstupnovaný přístup oprávnění není možný.
+
+\subsection{GraphQL API}
+\label{subsec:github_api_graphql}
+Github poskytuje i novější GraphQL API, které umožnuje kientům dotazovat se pouze přesně na to co vyžadují. jedná se o jiný způsob přístupu k datům. tento přístup umožnuje vysokou flexibilitu a menší přenosy dat. Rest api vrací předem definované objekty z mnoha endpointů zatímco u graphql je pouze jeden endpoint který umožnuje dotázat se přesně na ta data která jsou potřeba.
+
+Jedny z hlavních problémů rest api byl buď nadměrné stahování dat (over-fetching) a nnebo nedostatečné stahování dat (under-fetching).
+
+\begin{description}
+  \item[Over-fetching] nastává když klientská aplikace potřebuje získat například pouze dvě vlastnosti od objektu ale v rest api se vrací celýobjekt se svými mnoha vlastnostmi. To vede k neefektivnímu využidí dat
+  \item[under-fetching] nastává když
+\end{description}
