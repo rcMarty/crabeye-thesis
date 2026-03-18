@@ -19,6 +19,7 @@ jobs:
       - name: Compiling LaTeX documents
         uses: xu-cheng/latex-action@v4
         with:
+          texlive_version: 2023
           root_file: main.tex
           working_directory: src
           args: -pdf -halt-on-error -synctex=1 -interaction=nonstopmode --shell-escape --enable-write18
