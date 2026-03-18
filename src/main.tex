@@ -4,7 +4,6 @@
 \usepackage[backend=biber, style=iso-numeric, alldates=iso]{biblatex} % bibliografie
 \usepackage{dcolumn} % sloupce tabulky s ciselnymi hodnotami
 \usepackage{subfig} % makra pro "podobrazky" a "podtabulky"
-\usepackage[autostyle=true,czech=quotes]{csquotes} % korektni sazba uvozovek, podpora pro balik biblatex
 
 % Moje baliky
 \usepackage{float} % lepsi umistovani obrazku (H)
@@ -16,6 +15,7 @@
 \usepackage{array} % schovavani sloupcu v tabulkach
 \usepackage[linesnumbered,tworuled,vlined]{algorithm2e} % pseudokod
 \usepackage{acro} % balík pro lepší práci s akronymy
+\usepackage[autostyle=true,czech=quotes]{csquotes} % korektni sazba uvozovek, podpora pro balik biblatex
 
 % Pozadovane vstupy pro generovani titulnich stran.
 \ThesisAuthor{Martin Korotwitschka}
@@ -50,16 +50,8 @@
 \addbibresource{resources/bib/sauce.bib}
 
 
-% Minted things
-\let\NewCommand\newcommand{}
-% \immediate\write18{echo $ROAD > .ROAD.tex}
-% \immediate\write18{echo $ROAD "nejhorší hack by žožka"}
-% \input{.ROAD}
-% \immediate\write18{export TEXMF_OUTPUT_DIRECTORY=\ROAD}
-
-
-\usepackage[outputdir=.build]{minted} %
-\setminted{fontsize=\fontsize{9}{11}\selectfont, baselinestretch=1, frame=lines, framesep=8pt, linenos, breaklines}
+\usepackage{minted} %
+\setminted{fontsize=\fontsize{9}{11}\selectfont, baselinestretch=1, frame=lines, framesep=8pt, linenos, breaklines, cachedir=_minted-main}
 \renewcommand\listingscaption{Výpis}
 \renewcommand\listoflistingscaption{Seznam výpisů zdrojového kódu}
 
