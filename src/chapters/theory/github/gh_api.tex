@@ -39,11 +39,14 @@ Data jsou věwwtšinou zprostředkována za pomocí JSON formátu což zajištuj
 
 github rest api je verzované a využívá kalendářní verzování. tato hlavička není vyžadována ale je silně doporučována. bez specifikace této hlavičky se automaticky dotazuje na verzi specifikovanou v dokumentaci (2022-11-28). Tedy dotazy na kterou verzi api se posílají jsou v hlavičce požadavku ve formátu \code{--header "X-GitHub-Api-Version:2026-03-10"}.tedy budoucí nová verze nezmění způsob fungování starších verzí. github také poskytuje seznam zpětně nekompatibilních změn mezi každou verzí,  návody a dokumentaci pro migrování na novější verze api.
 
-Ikdyž Některé endpointy jsou veřejné i bez autentizace, většina z nich vyžaduje autentizaci pomocí autentizačního tokenu v hlavičce. Existuje více možností jak získat token, například pomocí PAT (personal access token), github app nebo vestavěný \code{GITHUB\_TOKEN} v rámci github actions. Přihlašovánií za pomocí PAT podpruje jemně odstupnovaný přítup oprávnění, který je upřednosňován oproti klasickému kde tak jemně odstupnovaný přístup oprávnění není možný.
+Ikdyž Některé endpointy jsou veřejné i bez autentizace, většina z nich vyžaduje autentizaci pomocí autentizačního tokenu v hlavičce. Existuje více možností jak získat token, například pomocí PAT (personal access token), github app nebo vestavěný \code{GITHUB\_TOKEN} v rámci github actions. Přihlašování za pomocí PAT podpruje jemně odstupnovaný přítup oprávnění, který je upřednosňován oproti klasickému kde tak jemně odstupnovaný přístup oprávnění není možný.
 
 \subsection{GraphQL API}
 \label{subsec:github_api_graphql}
 Github poskytuje i novější GraphQL API, které umožnuje kientům dotazovat se pouze přesně na to co vyžadují. jedná se o jiný způsob přístupu k datům. tento přístup umožnuje vysokou flexibilitu a menší přenosy dat. Rest api vrací předem definované objekty z mnoha endpointů zatímco u graphql je pouze jeden endpoint který umožnuje dotázat se přesně na ta data která jsou potřeba.
+
+Graphql datový dotazovací jazyk je:
+\paragraph{Specifikace}
 
 Jedny z hlavních problémů rest api byl buď nadměrné stahování dat (over-fetching) a nnebo nedostatečné stahování dat (under-fetching).
 
@@ -51,3 +54,69 @@ Jedny z hlavních problémů rest api byl buď nadměrné stahování dat (over-
   \item[Over-fetching] nastává když klientská aplikace potřebuje získat například pouze dvě vlastnosti od objektu ale v rest api se vrací celýobjekt se svými mnoha vlastnostmi. To vede k neefektivnímu využidí dat
   \item[under-fetching] nastává když
 \end{description}
+
+GraphQL API tyto problémy eliminuje tím že umožnuje uživateli získat pouze ta data co on skutečně potřebuje. To může vést k výrazně menšímu množství přenesených dat ovšem dotazy můžou být velice komplexní a náročné pro zpracování.
+
+\subsection{Specifika omezování a limity}
+\label{subsec:github_api_limits}
+Github omezuje počet dotazů, které mohou být provedeny za časové období. Tento limit pomáhá zajištovat stabilitu rpo všechny a slouží k ochraně před zneužitím nebo útokem. Některé endpointy mohou mít specifikcé limity z důvodu jejich náročnosti nebo odlišnostem oproti klaasické implementaci.
+
+Pro neautorizované uživatele je tento limit pro REST API 60 požadavků zaa hodinu. Toto omezení se zvyšuje s autentizcí. Autentizovaní uživatelé nebo aplikace mají limit 5000 dotazů za hodinu pro daný účet pokud se nejedná o aplikaci vlastněnou nebo oprávněnou GitHub Enterprise clud organizací. V takovém případě je limit 15000 dotazů za hodinu. Ovšem tyto dotazy se počítají do osobního limitu uživatele, který je vlastníkem nebo oprávněným uživatelem aplikace. Aktuální limit lze získat za pomcí endpointu \code{GET /rate\_limit}.
+
+Z důvodů odlišné architerktury je graphQL  API limitováo za pomocí bodového systému, Každý dotaz má příslušnou hodnotu (cost) podle jeho složitosti a náročnosti. Tato náročnost je počítána na základě tzv. uzlového limitu (node limit). Každý uzel který je spojovací musí mít nastaven limit od 1 do 100 buď prvních nebo posledních uzlů. Ovšem celkový počet navrácených uzlů pro jeden dotaz nesmí být větší než 500000. taktéž se omezuje čas na zpracování dotazů. pokud u graphql api se nezíská odpověď dotazu do 10 sekund, dotaz je zrušen a je vrácena chyba.
+
+GrqphQL API také poskytuje možnost získat informaci o celkové ceně dotazu (cost) za pomocí přidání \code{rateLimit} objektu do dotazu \listingref{}.
+
+\paragraph*{Příklad GraphQL dotazu a výpočet složitosti}
+V tomto dotazu si klient žádá o 50 repozitářů a pro každý z nich o 10 nejnovějších issues \listingref{lst:graphql_query}.
+
+%region GraphQL basic query and complexity calculation
+\begin{listing}[H]
+  \renewcommand{\fcolorbox}[4][]{#4} % hack pro pygments aby si nemyslel že tam je chyba
+  \inputminted[linenos,escapeinside=||]{graphql}{code/gh_correct_graphql.gql}
+  \caption{Ukázka korektního GraphQL dotazu }
+  \label{lst:graphql_query}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[escapeinside=||]{text}
+  |\hlrednum{50}|        = 50 repozitářů
+   +
+  |\hlrednum{50}| x |\hlgreennum{10}|  = 500 issues v repozitářích
+-----------------------------------------
+              = 550 celkových uzlů (nodes)
+\end{minted}
+  \caption{Výpočet celkové ceny dotazu (Node limit)}
+  \label{lst:graphql_calc}
+\end{listing}
+
+%endregion
+
+V tomto dalším komplexním dotazu se žádá prvních 50 repozitářů a pro každý z nich prvních 20 \PR a pro každý z těchto \PR získá prvních 10 komentářů. Dále k tomu pro každý repozitář získá prvních 20 issues a pro každý z nich prvních 10 komentářů \listingref{lst:graphql_complex_query}. Takovýto dotaz by tedy měl cenu 22050 bodů   \listingref{lst:graphql_complex_calc}.
+
+%region GraphQL complex query and complexity calculation
+\begin{listing}[H]
+  \renewcommand{\fcolorbox}[4][]{#4} % hack pro pygments aby si nemyslel že tam je chyba
+  \inputminted[linenos,escapeinside=||]{graphql}{code/gh_complex_query.gql}
+  \caption{Ukázka komplexního GraphQL dotazu}
+  \label{lst:graphql_complex_query}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[escapeinside=||]{text}
+  |\hlrednum{50}|           = 50 repositories
++
+  |\hlrednum{50}| x |\hlgreennum{20}|      = 1,000 pullRequests
++
+  |\hlrednum{50}| x |\hlgreennum{20}| x |\hlbluenum{10}| = 10,000 pullRequest comments
++
+  |\hlrednum{50}| x |\hlgreennum{20}|      = 1,000 issues
++
+  |\hlrednum{50}| x |\hlgreennum{20}| x |\hlbluenum{10}| = 10,000 issue comments
+
+               = 22,050 total nodes
+\end{minted}
+  \caption{Výpočet celkové ceny komplexního dotazu (Node limit)}
+  \label{lst:graphql_complex_calc}
+\end{listing}
+%endregion

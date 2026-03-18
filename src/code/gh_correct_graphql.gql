@@ -1,0 +1,21 @@
+query {
+  viewer {
+    repositories(first: |\hlrednum{50}| ) {
+      edges {
+        repository:node {
+          name
+
+          issues(first: |\hlgreennum{10}| ) {
+            totalCount
+            edges {
+              node {
+                title
+                bodyHTML
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

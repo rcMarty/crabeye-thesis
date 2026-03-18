@@ -1,0 +1,45 @@
+query {
+  viewer {
+    repositories(first: |\hlrednum{50}| ) {
+      edges {
+        repository:node {
+          name
+
+          pullRequests(first: |\hlgreennum{20}| ) {
+            edges {
+              pullRequest:node {
+                title
+
+                comments(first: |\hlbluenum{10}| ) {
+                  edges {
+                    comment:node {
+                      bodyHTML
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          issues(first: |\hlgreennum{20}| ) {
+            totalCount
+            edges {
+              issue:node {
+                title
+                bodyHTML
+
+                comments(first: |\hlbluenum{10}| ) {
+                  edges {
+                    comment:node {
+                      bodyHTML
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

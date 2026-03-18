@@ -12,7 +12,7 @@
 \usepackage{hyperref} % vkladani hypertextovych odkazu
 \usepackage{xurl} % zalomeni dlouhych URL
 \usepackage{tablefootnote} % poznámky pod tabulkou
-\usepackage{color} % barvickyy
+\usepackage{xcolor} % barvickyy
 \usepackage{array} % schovavani sloupcu v tabulkach
 \usepackage[linesnumbered,tworuled,vlined]{algorithm2e} % pseudokod
 \usepackage{acro} % balík pro lepší práci s akronymy
@@ -58,7 +58,7 @@
 % \immediate\write18{export TEXMF_OUTPUT_DIRECTORY=\ROAD}
 
 
-\usepackage{minted} %
+\usepackage[outputdir=.build]{minted} %
 \setminted{fontsize=\fontsize{9}{11}\selectfont, baselinestretch=1, frame=lines, framesep=8pt, linenos, breaklines}
 \renewcommand\listingscaption{Výpis}
 \renewcommand\listoflistingscaption{Seznam výpisů zdrojového kódu}
