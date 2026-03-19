@@ -112,7 +112,7 @@ jobs:
             echo '## TeXcount output'
             echo ''
             echo '```text'
-            texcount -inc -total src/main.tex
+            (cd src && texcount -inc -total main.tex)
             echo '```'
           } > pages/STATS.md
 
