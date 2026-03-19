@@ -22,14 +22,14 @@ jobs:
           texlive_version: 2023
           root_file: main.tex
           working_directory: src
-          args: -pdf -halt-on-error -synctex=1 -interaction=nonstopmode --shell-escape --enable-write18
+          args: -pdf -outdir=../.build -halt-on-error -synctex=1 -interaction=nonstopmode --shell-escape --enable-write18
           extra_system_packages: 'inkscape openjdk17 py3-pygments font-dejavu'
 
       - name: Upload LaTeX PDF artifact
         uses: actions/upload-artifact@v4
         with:
           name: thesis-pdf
-          path: src/main.pdf
+          path: .build/main.pdf
           if-no-files-found: error
 
   publish-release:
