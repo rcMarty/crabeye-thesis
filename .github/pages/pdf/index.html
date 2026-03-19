@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RANAL Thesis PDF</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: #1f1f1f;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: system-ui, sans-serif;
+        }
+
+        header {
+            padding: 0.75rem 1rem;
+            background: #111;
+            color: #fff;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        header a {
+            color: #fff;
+        }
+
+        iframe {
+            flex: 1;
+            width: 100%;
+            border: 0;
+            background: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <strong>PDF preview of the thesis</strong>
+        <a href="../">Back to main page</a>
+        <a href="../main.pdf" target="_blank" rel="noopener noreferrer">Open PDF in new tab</a>
+    </header>
+    <iframe src="../main.pdf#view=FitH" title="PDF preview of the thesis"></iframe>
+</body>
+
+</html>
