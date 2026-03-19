@@ -1,27 +1,27 @@
 \subsection{GraphQL API}
 \label{subsec:github_api_graphql}
-Github poskytuje i novější GraphQL API, které umožnuje kientům dotazovat se pouze přesně na to co vyžadují. jedná se o jiný způsob přístupu k datům. tento přístup umožnuje vysokou flexibilitu a menší přenosy dat. Rest api vrací předem definované objekty z mnoha endpointů zatímco u graphql je pouze jeden endpoint který umožnuje dotázat se přesně na ta data která jsou potřeba.
+GitHub poskytuje také GraphQL \API, které klientům umožňuje dotazovat se přesně na požadovaná data. Jedná se o~odlišný přístup k~získávání dat, který přináší vyšší flexibilitu a~často také menší objem přenášených dat. Zatímco \REST \API vrací předem definované objekty z~více endpointů, GraphQL využívá jeden endpoint, přes který je možné vyžádat přesně ta data, která jsou potřeba~\cite{github_graphql_api,github_rest_api}.
 
-Graphql datový dotazovací jazyk má následující vlastnosti:
+Datový dotazovací jazyk GraphQL má následující vlastnosti:
 \begin{description}
-  \item[Specifikace] určuje validní schéma na api serveru. Podle tohoto schéématu se poté validujjí klientské dotazy.
-  \item[Silně typovaný] systém exakně definuje typy a vazby mezi objekty ve schématu.
-  \item[Introspektivita] umožnuje aby byly získány další podrobnosti o schématu.
-  \item[Hierarchický] neboli tvar GRqphql dotazu zrcadlí tvar JSON dat která jsou navrácena.
-  \item[Funguje jako aplikační vrstva], není to pouze model uložení dat nebo databázový dotazovací jazyk. \textit{Graph} v názvu odkazuje na grafové struktury definované ve schématu, kde uzly definují objekty a hrany definují vztahy mezi nimi. API pracuje na základě definic schématu nezávisle na úložišti dat.
+  \item[Specifikace] -- na \API serveru je definováno schéma, podle kterého jsou validovány klientské dotazy.
+  \item[Silná typovost] -- ve schématu jsou přesně definovány typy a~vazby mezi objekty.
+  \item[Introspektivita] -- je možné získat podrobné informace o~schématu.
+  \item[Hierarchická struktura] -- tvar GraphQL dotazu odpovídá tvaru \JSON dat, která jsou vrácena.
+  \item[Aplikační vrstva] -- GraphQL není pouze modelem uložení dat ani databázovým dotazovacím jazykem. Označení \textit{Graph} odkazuje na grafové struktury definované ve schématu, kde uzly představují objekty a~hrany vztahy mezi nimi.
 \end{description}
 
-Jedny z hlavních problémů rest api byl buď nadměrné stahování dat (over-fetching) a nnebo nedostatečné stahování dat (under-fetching).
+Mezi časté problémy \REST \API patří nadměrné stahování dat (over-fetching) a~nedostatečné stahování dat (under-fetching)~\cite{github_graphql_api,github_rest_api}.
 
 \begin{description}
-  \item[Over-fetching] nastává když klientská aplikace potřebuje získat například pouze dvě vlastnosti od objektu ale v rest api se vrací celýobjekt se svými mnoha vlastnostmi. To vede k neefektivnímu využidí dat
-  \item[Under-fetching] nastává když klientská aplikace potřebuje získat více dat než je k dispozici v rest api a z toho důvodu se musí provést více dotazů na různé endpointy.
+  \item[Over-fetching] nastává, když klientská aplikace potřebuje pouze část vlastností objektu, ale v~\REST \API je vrácen celý objekt s~mnoha dalšími daty. To vede k~neefektivnímu přenosu dat.
+  \item[Under-fetching] nastává, když klientská aplikace potřebuje více dat, než je dostupné v~jedné odpovědi \REST \API, a~z~toho důvodu musí být provedeno více požadavků na různé endpointy.
 \end{description}
 
-GraphQL API tyto problémy eliminuje tím že umožnuje uživateli získat pouze ta data co on skutečně potřebuje. To může vést k výrazně menšímu množství přenesených dat ovšem dotazy můžou být velice komplexní a náročné pro zpracování.
+GraphQL \API tyto problémy omezuje tím, že umožňuje získat pouze ta data, která jsou skutečně potřebná. Tím může být dosaženo výrazného snížení přeneseného objemu dat. Současně je však třeba počítat s~tím, že dotazy mohou být velmi komplexní a~náročné na zpracování~\cite{github_graphql_api}.
 
-Dotazy se tvoří v graphql pouze za pomocí http metody post a odesílají se na jedinný endpoint. Operace co se mají stát a jaká mají být návratová data se definují v těle požadavku.
+Dotazy jsou v~GraphQL obvykle odesílány pomocí \HTTP metody \code{POST} na jediný endpoint. Operace, které mají být provedeny, i~požadovaná návratová data jsou definovány v~těle požadavku~\cite{github_graphql_api}.
 
-Jsou dva hlavní druhy pžadavků. \textit{Query} pro získávání dat a \textit{Mutation} pro modifikaci dat. Mutace se používají jak pro vytváření tak pro ůpravu a mazání dat. \textbf{Query} dotazy jsou operace výhradně pro získávání dat a umožnují získat komplexní strom informací v jednom dotazu. \textbf{Mutation} dotazy jsou operace určené pro jakoukoliv úpravu dat, včetně vytváření, aktualizace a mazání. Mutace se často používají pro operace, které mění stav systému, jako je například vytvoření nové issue, aktualizace stavu pull requestu nebo smazání komentáře. Mutace mohou být také použity na operace zahrnující více kroků, například vytvoření issue a následné přidání komentáře k této issue v jednom dotazu.
+Rozlišovány jsou dva hlavní typy operací: \textit{Query} pro získávání dat a~\textit{Mutation} pro změnu dat. Operace typu \textit{Query} jsou určeny výhradně pro čtení dat a~umožňují získat komplexní strom informací v~jednom dotazu. Operace typu \textit{Mutation} jsou určeny pro vytváření, úpravu i~mazání dat. Používány jsou například při vytvoření nové issue, změně stavu \PR nebo odstranění komentáře~\cite{github_graphql_api}.
 
-Autentizace pro GraphQL API funguje stejně jako pro REST API, tedy pomocí autentizačního tokenu v hlavičce dotazu. Ovšem u Grqphql nelze získat data anonymně, vždy musí být dotaz autentifikován z důvodu možnosti dotázání se neůmerně komplexním dotazem.
+Autentizace pro GraphQL \API funguje obdobně jako pro \REST \API, tedy pomocí autentizačního tokenu v~hlavičce požadavku~\cite{github_graphql_api,github_rest_api}. Na GitHubu je pro GraphQL endpoint vyžadována autentizace, protože musí být řízena náročnost dotazů a~spotřeba prostředků~\cite{github_graphql_api}.

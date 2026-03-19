@@ -1,0 +1,32 @@
+% Běžně tato sekce zabírá **2 až 4 normostrany**. Záleží na tom, do jakého detailu půjdeš. Ke každému nástroji bys měl uvést:
+% - K čemu primárně slouží a pro koho je určen
+% - **Jaké metriky a události sleduje** (např. CI/CD, review proces, bugy).
+% - **Jaká je jeho architektura/technologie** (pokud je známa – např. zda jde o staticky generovaný dashboard nebo real-time aplikaci).
+% - **Silné stránky** (co můžeme pochválit a případně se tím inspirovat).
+% - **Slabé stránky / Omezení** (co neumí, v čem je nepřehledný, proč by pro tvůj "komplexní repozitář" nestačil).
+
+% #### 1. Úvod do analýzy existujících nástrojů
+% * Krátký odstavec o tom, že open-source projekty si často musí psát vlastní monitorovací nástroje, protože standardní UI GitHubu pro obří repozitáře nestačí.
+% * Stanovení kritérií, podle kterých budeš nástroje hodnotit (např. přehlednost, sledování PR workflow, monitoring CI/CD, možnost customizace).
+
+% #### 2. Nástroj 1: Curl Dashboard (`curl.se/dashboard.html`)
+% * **Charakteristika:** Curl je masivní, desítky let starý projekt. Jejich dashboard je ultimátní ukázka "broad-spectrum" monitoringu.
+% * **Co to umí (Zaměření na kvantitu):** Sleduje úplně všechno od počtu commitů za měsíc, přes statistiky hlášení zranitelností (CVE), pokrytí kódu testy (code coverage), až po počet aktivních autorů.
+% * **Forma:** Je to obří agregátor grafů.
+% * **Zhodnocení:** * *Plusy:* Neuvěřitelně komplexní historická data, skvělé pro manažerský přehled o "zdraví" projektu v dlouhodobém horizontu.
+%     * *Mínusy:* Je to spíše statický report (statistiky) než interaktivní nástroj pro operativní řešení záseků (např. nepomůže ti zjistit, který PR právě teď blokuje CI pipelinu).
+
+% #### 3. Nástroj 2: Rustc PR Tracking (`rust-lang.github.io/rustc-pr-tracking/`)
+% * **Charakteristika:** Kompilátor Rustu (`rustc`) je jedním z nejkomplexnějších repozitářů na GitHubu. Jejich nástroj je pravý opak Curlu – je extrémně úzce zaměřený na procesní flow.
+% * **Co to umí (Zaměření na proces):** Sleduje frontu Pull Requestů (review queue). Dívá se, kdo má PR přiřazený (assignees), jaké PR čekají na review, jaké jsou schválené a čekají na "bors" (jejich merge queue bot), a jaké PR způsobily regresi ve výkonu kompilátoru.
+% * **Zhodnocení:**
+%     * *Plusy:* Perfektní pro operativní řízení týmu. Okamžitě vidíš, kde se proces zasekává a na koho se čeká. Výborná integrace na GitHub štítky (labels).
+%     * *Mínusy:* Zcela ignoruje celkové metriky repozitáře. Je to "jen" chytrá nadstavba nad seznamem GitHub Issues/PRs.
+
+% #### 4. Shrnutí analýzy a identifikace mezer (Zásadní část!)
+% * Tady to všechno spojíš dohromady.
+% * Napíšeš něco ve smyslu: *"Zatímco Curl Dashboard poskytuje výborná makro-data (dlouhodobé grafy) a Rustc Tracking exceluje v mikro-pohledu na konkrétní PR, chybí zde řešení, které by obě tyto roviny efektivně propojovalo pro potřeby moderního vývojového týmu..."*
+% * **Oslí můstek:** Tím si perfektně připravíš půdu pro další kapitolu, kde začneš navrhovat svůj vlastní nástroj v Rustu, který tyto nedostatky vyřeší.
+
+\section{Analýza existujících nástrojů}
+\label{sec:existing_tools}

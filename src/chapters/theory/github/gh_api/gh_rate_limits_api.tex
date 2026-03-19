@@ -1,21 +1,22 @@
 \subsection{Specifika omezování a limity}
 \label{subsec:github_api_limits}
-Github omezuje počet dotazů, které mohou být provedeny za časové období. Tento limit pomáhá zajištovat stabilitu rpo všechny a slouží k ochraně před zneužitím nebo útokem. Některé endpointy mohou mít specifikcé limity z důvodu jejich náročnosti nebo odlišnostem oproti klaasické implementaci.
+GitHub omezuje počet dotazů, které mohou být provedeny v~daném časovém období. Tyto limity pomáhají zajišťovat stabilitu služby pro všechny uživatele a~současně slouží jako ochrana před zneužitím. Některé endpointy mohou mít navíc specifické limity z~důvodu vyšší náročnosti nebo odlišné implementace~\cite{github_rest_api}.
 
-Pro neautorizované uživatele je tento limit pro REST API 60 požadavků zaa hodinu. Toto omezení se zvyšuje s autentizcí. Autentizovaní uživatelé nebo aplikace mají limit 5000 dotazů za hodinu pro daný účet pokud se nejedná o aplikaci vlastněnou nebo oprávněnou GitHub Enterprise clud organizací. V takovém případě je limit 15000 dotazů za hodinu. Ovšem tyto dotazy se počítají do osobního limitu uživatele, který je vlastníkem nebo oprávněným uživatelem aplikace. Aktuální limit lze získat za pomcí endpointu \code{GET /rate\_limit}.
+Pro neautentizované uživatele je limit \REST \API nastaven na 60 požadavků za hodinu. Toto omezení je vyšší při autentizaci. Autentizovaní uživatelé nebo aplikace mají limit 5~000 požadavků za hodinu pro daný účet. Pokud je aplikace vlastněna nebo schválena organizací GitHub Enterprise Cloud, může být limit zvýšen až na 15~000 požadavků za hodinu. Ovšem tyto dotazy se počítají do osobního limitu uživatele, který je vlastníkem nebo oprávněným uživatelem aplikace. Aktuální stav limitu je možné zjistit pomocí endpointu \code{GET /rate\_limit}~\cite{github_rest_api}.
 
-Z důvodů odlišné architerktury je graphQL  API limitováo za pomocí bodového systému. Každý dotaz má příslušnou hodnotu (cost) podle jeho složitosti a náročnosti. Tato náročnost je počítána na základě tzv. uzlového limitu (node limit). Každý uzel který je spojovací musí mít nastaven limit od 1 do 100 buď prvních nebo posledních uzlů. Ovšem celkový počet navrácených uzlů pro jeden dotaz nesmí být větší než 500000. taktéž se omezuje čas na zpracování dotazů. pokud u graphql api se nezíská odpověď dotazu do 10 sekund, dotaz je zrušen a je vrácena chyba.
+Z~důvodu odlišné architektury je GraphQL \API limitováno bodovým systémem. Každý dotaz má přiřazenu hodnotu \textit{cost} podle své složitosti. Náročnost dotazu je mimo jiné odvozena od počtu uzlů (\textit{node limit}). U~stránkovaných spojení musí být obvykle zadán limit v~rozsahu 1 až 100 položek pomocí parametrů \code{first} nebo \code{last}. Celkový počet vrácených uzlů v~jednom dotazu nesmí překročit 500~000. Omezen je také čas zpracování. Pokud dotaz není vyhodnocen v~časovém limitu 10 sekund, je ukončen a~je vrácena chyba~\cite{github_graphql_api}.
 
-GrqphQL API také poskytuje možnost získat informaci o celkové ceně dotazu (cost) za pomocí přidání \code{rateLimit\{cost\}} objektu do dotazu. Cena se může i odhadnout na základě počtu požadavků potřebných k naplnění každé z unikátních spojení v dotazu. Celkový výsledek se poté vydělí konstantou 100 a zaokrouhlí se.
+GraphQL \API také poskytuje možnost získat informaci o~celkové ceně dotazu (\textit{cost}) pomocí objektu \code{rateLimit \{ cost \}} přímo v~dotazu~\cite{github_graphql_api}. Cena může být odhadnuta na základě počtu požadavků potřebných k~naplnění jednotlivých unikátních spojení v~dotazu. Výsledná hodnota je následně vydělena konstantou 100 a~zaokrouhlena na celé číslo~\cite{github_graphql_api}.
 
 \paragraph*{Příklad GraphQL dotazu a výpočet složitosti}
-V tomto dotazu si klient žádá o 50 repozitářů a pro každý z nich o 10 nejnovějších issues \listingref{lst:graphql_query}.
+\label{par:github:graphql:priklad_slozitosti}
+V~tomto dotazu je požadováno 50 repozitářů a~pro každý z~nich 10 nejnovějších issues \listingref{lst:graphql_query}.
 
 %region GraphQL basic query and complexity calculation
 \begin{listing}[H]
   \renewcommand{\fcolorbox}[4][]{#4} % hack pro pygments aby si nemyslel že tam je chyba
   \inputminted[linenos,escapeinside=||]{graphql}{code/gh_correct_graphql.gql}
-  \caption{Ukázka korektního GraphQL dotazu }
+  \caption{Ukázka korektního GraphQL dotazu.}
   \label{lst:graphql_query}
 \end{listing}
 
@@ -33,9 +34,9 @@ V tomto dotazu si klient žádá o 50 repozitářů a pro každý z nich o 10 ne
 
 %endregion
 
-Odhad celkové ceny pokud budou všechny limity naplněny by byl 1 za získání všech repozitářů krát 10 za namapování 10 issues pro každý repozitář. Tedy celkvá cena bude $(1 + 50*10)/100 = 5$.
+Odhad celkové ceny při plném naplnění všech limitů lze vyjádřit jako 1 bod za získání repozitářů a~500 bodů za získání issues, tedy $(1 + 50 \times 10) / 100 = 5{,}01$. Po zaokrouhlení je výsledná cena 5 bodů. Detailní výpočet počtu uzlů pro tento dotaz je uveden v~\listingref{lst:graphql_calc}~\cite{github_graphql_api}.
 
-V tomto dalším komplexním dotazu se žádá prvních 50 repozitářů a pro každý z nich prvních 20 \PR a pro každý z těchto \PR získá prvních 10 komentářů. Dále k tomu pro každý repozitář získá prvních 20 issues a pro každý z nich prvních 10 komentářů \listingref{lst:graphql_complex_query}. Takovýto dotaz by tedy měl 22050 uzlů \listingref{lst:graphql_complex_calc} a celkovoou cenu $(1+20*50*10+20*50*10)/100 =200$
+V~dalším komplexním dotazu je požadováno prvních 50 repozitářů, pro každý z~nich prvních 20 \PR a~pro každý \PR prvních 10 komentářů. Současně je pro každý repozitář požadováno prvních 20 issues a~pro každou issue prvních 10 komentářů \listingref{lst:graphql_complex_query}. Takový dotaz má 22~050 uzlů \listingref{lst:graphql_complex_calc} a~odhadovanou cenu $(1 + 20 \times 50 \times 10 + 20 \times 50 \times 10) / 100 = 200{,}01$, tedy po zaokrouhlení 200 bodů~\cite{github_graphql_api}.
 
 %region GraphQL complex query and complexity calculation
 \begin{listing}[H]

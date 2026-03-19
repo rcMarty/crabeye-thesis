@@ -1,18 +1,19 @@
 \subsection{REST API}
 \label{subsec:github_api_rest}
-REST API umožnuje přístup k datům a funkcím GitHubu prostřednictvím HTTP požadavků. Každý požadavek na rest api obsajuje http metodu a cestu. Nicméně záleží na konkrétním endpointu jaké parametry musí být specifikovány. například další hlavičky, informaci o autentizaci, query parameters nebo tělo požadavku
-Využívá základní HTTP metody (GET, POST, PUT, DELETE) pro interakci s různými zdroji.
+\REST \API umožňuje přístup k~datům a~funkcím GitHubu prostřednictvím \HTTP požadavků. Každý požadavek na \REST \API obsahuje \HTTP metodu a~cestu. V~závislosti na konkrétním endpointu musí být specifikovány další parametry, například hlavičky, informace o~autentizaci, parametry dotazu nebo tělo požadavku~\cite{github_rest_api}.
+Pro interakci s~různými zdroji jsou využívány základní \HTTP metody~\cite{github_rest_api}:
 \begin{itemize}
-  \item GET pro získání dat (např. seznam issues, detail PR)
-  \item POST pro vytvoření nových zdrojů (např. vytvoření issue)
-  \item PUT pro aktualizaci existujících zdrojů (např. přidání labelu k issue)
-  \item DELETE pro odstranění zdrojů (např. smazání komentáře)
-  \item PATCH pro aktualizaci properties (např. změna stavu issue)
+  \item \code{GET} pro získání dat (např. seznam issues nebo detail \PR),
+  \item \code{POST} pro vytvoření nových zdrojů (např. vytvoření issue),
+  \item \code{PUT} pro aktualizaci existujících zdrojů,
+  \item \code{DELETE} pro odstranění zdrojů,
+  \item \code{PATCH} pro částečnou aktualizaci zdrojů (např. změna stavu issue).
 \end{itemize}
-Každý endpoint je definován cestou. Ta může obsahovat jak statické části tak dynamické části. například endpoint pro získání issues od repozitáře je \code{GET /repos/{owner}/{repo}/issues}, kde \code{owner} a \code{repo} jsou dynamické části, které musí být nahrazeny konkrétními hodnotami.
+Každý endpoint je definován cestou. Cesta může obsahovat statické i~dynamické části. Například endpoint pro získání issues repozitáře je \code{GET /repos/\{owner\}/\{repo\}/issues}, kde \code{owner} a~\code{repo} představují dynamické části, které musí být nahrazeny konkrétními hodnotami~\cite{github_rest_api}.
 
-Data jsou věwwtšinou zprostředkována za pomocí JSON formátu což zajištuje dobrou čitelnot jak pro lidi tak i stroje. Ovšem může se použít i jiný typ Media Type, například diff, patch, raw, full a další. Pro použití těchto typů se používá \code{application/vnd.github.PARAM+json} kde \code{PARAM} je nahrazeno konkrétním typem média. Například pro získání dat ve formátu diff se použije \code{application/vnd.github.diff+json}.
+Data jsou nejčastěji zprostředkována ve formátu \JSON, který zajišťuje dobrou čitelnost jak pro člověka, tak pro strojové zpracování. V~závislosti na endpointu lze využít také jiné media types, například \code{diff} nebo \code{patch}~\cite{github_rest_api}.
 
-github rest api je verzované a využívá kalendářní verzování. tato hlavička není vyžadována ale je silně doporučována. bez specifikace této hlavičky se automaticky dotazuje na verzi specifikovanou v dokumentaci (2022-11-28). Tedy dotazy na kterou verzi api se posílají jsou v hlavičce požadavku ve formátu \code{--header "X-GitHub-Api-Version:2026-03-10"}.tedy budoucí nová verze nezmění způsob fungování starších verzí. github také poskytuje seznam zpětně nekompatibilních změn mezi každou verzí,  návody a dokumentaci pro migrování na novější verze api.
+GitHub \REST \API je verzováno a~využívá kalendářní verzování. Hlavička GitHub \API verze \code{X-GitHub-Api-Version} není povinná, ale je silně doporučována. Pokud tato hlavička není uvedena, je použita výchozí verze definovaná v~dokumentaci, například \code{2022-11-28}. Verze \API se do požadavku zapisuje ve formátu \code{X-GitHub-Api-Version: 2022-11-28}. Tím je zajištěno, že novější verze nezmění chování integrace navázané na starší verzi~\cite{github_rest_api}.
+GitHub také poskytuje seznam zpětně nekompatibilních změn mezi verzemi, návody a dokumentaci pro migrování na novější verze \API pro jednodušší migraci.
 
-Ikdyž Některé endpointy jsou veřejné i bez autentizace, většina z nich vyžaduje autentizaci pomocí autentizačního tokenu v hlavičce. Existuje více možností jak získat token, například pomocí PAT (personal access token), github app nebo vestavěný \code{GITHUB\_TOKEN} v rámci github actions. Přihlašování za pomocí PAT podpruje jemně odstupnovaný přítup oprávnění, který je upřednosňován oproti klasickému kde tak jemně odstupnovaný přístup oprávnění není možný.
+I~když jsou některé endpointy veřejně dostupné bez autentizace, většina z~nich vyžaduje autentizaci pomocí tokenu v~hlavičce požadavku. Token lze získat více způsoby, například pomocí \PAT, prostřednictvím GitHub App nebo jako vestavěný \code{GITHUB\_TOKEN} v~rámci GitHub Actions~\cite{github_rest_api,github_actions_docs}. Přihlašování pomocí jemně odstupňovaného \PAT podporuje detailnější správu oprávnění a~je upřednostňováno oproti staršímu modelu tokenů~\cite{github_rest_api}.
