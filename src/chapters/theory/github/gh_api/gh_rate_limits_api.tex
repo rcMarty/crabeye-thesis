@@ -1,0 +1,65 @@
+\subsection{Specifika omezování a limity}
+\label{subsec:github_api_limits}
+Github omezuje počet dotazů, které mohou být provedeny za časové období. Tento limit pomáhá zajištovat stabilitu rpo všechny a slouží k ochraně před zneužitím nebo útokem. Některé endpointy mohou mít specifikcé limity z důvodu jejich náročnosti nebo odlišnostem oproti klaasické implementaci.
+
+Pro neautorizované uživatele je tento limit pro REST API 60 požadavků zaa hodinu. Toto omezení se zvyšuje s autentizcí. Autentizovaní uživatelé nebo aplikace mají limit 5000 dotazů za hodinu pro daný účet pokud se nejedná o aplikaci vlastněnou nebo oprávněnou GitHub Enterprise clud organizací. V takovém případě je limit 15000 dotazů za hodinu. Ovšem tyto dotazy se počítají do osobního limitu uživatele, který je vlastníkem nebo oprávněným uživatelem aplikace. Aktuální limit lze získat za pomcí endpointu \code{GET /rate\_limit}.
+
+Z důvodů odlišné architerktury je graphQL  API limitováo za pomocí bodového systému. Každý dotaz má příslušnou hodnotu (cost) podle jeho složitosti a náročnosti. Tato náročnost je počítána na základě tzv. uzlového limitu (node limit). Každý uzel který je spojovací musí mít nastaven limit od 1 do 100 buď prvních nebo posledních uzlů. Ovšem celkový počet navrácených uzlů pro jeden dotaz nesmí být větší než 500000. taktéž se omezuje čas na zpracování dotazů. pokud u graphql api se nezíská odpověď dotazu do 10 sekund, dotaz je zrušen a je vrácena chyba.
+
+GrqphQL API také poskytuje možnost získat informaci o celkové ceně dotazu (cost) za pomocí přidání \code{rateLimit\{cost\}} objektu do dotazu. Cena se může i odhadnout na základě počtu požadavků potřebných k naplnění každé z unikátních spojení v dotazu. Celkový výsledek se poté vydělí konstantou 100 a zaokrouhlí se.
+
+\paragraph*{Příklad GraphQL dotazu a výpočet složitosti}
+V tomto dotazu si klient žádá o 50 repozitářů a pro každý z nich o 10 nejnovějších issues \listingref{lst:graphql_query}.
+
+%region GraphQL basic query and complexity calculation
+\begin{listing}[H]
+  \renewcommand{\fcolorbox}[4][]{#4} % hack pro pygments aby si nemyslel že tam je chyba
+  \inputminted[linenos,escapeinside=||]{graphql}{code/gh_correct_graphql.gql}
+  \caption{Ukázka korektního GraphQL dotazu }
+  \label{lst:graphql_query}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[escapeinside=||]{text}
+  |\hlrednum{50}|        = 50 repozitářů
+   +
+  |\hlrednum{50}| x |\hlgreennum{10}|  = 500 issues v repozitářích
+-----------------------------------------
+              = 550 celkových uzlů (nodes)
+\end{minted}
+  \caption{Výpočet celkového limitu dotazu (Node limit)}
+  \label{lst:graphql_calc}
+\end{listing}
+
+%endregion
+
+Odhad celkové ceny pokud budou všechny limity naplněny by byl 1 za získání všech repozitářů krát 10 za namapování 10 issues pro každý repozitář. Tedy celkvá cena bude $(1 + 50*10)/100 = 5$.
+
+V tomto dalším komplexním dotazu se žádá prvních 50 repozitářů a pro každý z nich prvních 20 \PR a pro každý z těchto \PR získá prvních 10 komentářů. Dále k tomu pro každý repozitář získá prvních 20 issues a pro každý z nich prvních 10 komentářů \listingref{lst:graphql_complex_query}. Takovýto dotaz by tedy měl 22050 uzlů \listingref{lst:graphql_complex_calc} a celkovoou cenu $(1+20*50*10+20*50*10)/100 =200$
+
+%region GraphQL complex query and complexity calculation
+\begin{listing}[H]
+  \renewcommand{\fcolorbox}[4][]{#4} % hack pro pygments aby si nemyslel že tam je chyba
+  \inputminted[linenos,escapeinside=||]{graphql}{code/gh_complex_query.gql}
+  \caption{Ukázka komplexního GraphQL dotazu}
+  \label{lst:graphql_complex_query}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[escapeinside=||]{text}
+  |\hlrednum{50}|           = 50 repositories
++
+  |\hlrednum{50}| x |\hlgreennum{20}|      = 1,000 pullRequests
++
+  |\hlrednum{50}| x |\hlgreennum{20}| x |\hlbluenum{10}| = 10,000 pullRequest comments
++
+  |\hlrednum{50}| x |\hlgreennum{20}|      = 1,000 issues
++
+  |\hlrednum{50}| x |\hlgreennum{20}| x |\hlbluenum{10}| = 10,000 issue comments
+
+               = 22,050 total nodes
+\end{minted}
+  \caption{Výpočet celkového limitu komplexního dotazu (Node limit)}
+  \label{lst:graphql_complex_calc}
+\end{listing}
+%endregion

@@ -1,0 +1,27 @@
+\subsection{GraphQL API}
+\label{subsec:github_api_graphql}
+Github poskytuje i novější GraphQL API, které umožnuje kientům dotazovat se pouze přesně na to co vyžadují. jedná se o jiný způsob přístupu k datům. tento přístup umožnuje vysokou flexibilitu a menší přenosy dat. Rest api vrací předem definované objekty z mnoha endpointů zatímco u graphql je pouze jeden endpoint který umožnuje dotázat se přesně na ta data která jsou potřeba.
+
+Graphql datový dotazovací jazyk má následující vlastnosti:
+\begin{description}
+  \item[Specifikace] určuje validní schéma na api serveru. Podle tohoto schéématu se poté validujjí klientské dotazy.
+  \item[Silně typovaný] systém exakně definuje typy a vazby mezi objekty ve schématu.
+  \item[Introspektivita] umožnuje aby byly získány další podrobnosti o schématu.
+  \item[Hierarchický] neboli tvar GRqphql dotazu zrcadlí tvar JSON dat která jsou navrácena.
+  \item[Funguje jako aplikační vrstva], není to pouze model uložení dat nebo databázový dotazovací jazyk. \textit{Graph} v názvu odkazuje na grafové struktury definované ve schématu, kde uzly definují objekty a hrany definují vztahy mezi nimi. API pracuje na základě definic schématu nezávisle na úložišti dat.
+\end{description}
+
+Jedny z hlavních problémů rest api byl buď nadměrné stahování dat (over-fetching) a nnebo nedostatečné stahování dat (under-fetching).
+
+\begin{description}
+  \item[Over-fetching] nastává když klientská aplikace potřebuje získat například pouze dvě vlastnosti od objektu ale v rest api se vrací celýobjekt se svými mnoha vlastnostmi. To vede k neefektivnímu využidí dat
+  \item[Under-fetching] nastává když klientská aplikace potřebuje získat více dat než je k dispozici v rest api a z toho důvodu se musí provést více dotazů na různé endpointy.
+\end{description}
+
+GraphQL API tyto problémy eliminuje tím že umožnuje uživateli získat pouze ta data co on skutečně potřebuje. To může vést k výrazně menšímu množství přenesených dat ovšem dotazy můžou být velice komplexní a náročné pro zpracování.
+
+Dotazy se tvoří v graphql pouze za pomocí http metody post a odesílají se na jedinný endpoint. Operace co se mají stát a jaká mají být návratová data se definují v těle požadavku.
+
+Jsou dva hlavní druhy pžadavků. \textit{Query} pro získávání dat a \textit{Mutation} pro modifikaci dat. Mutace se používají jak pro vytváření tak pro ůpravu a mazání dat. \textbf{Query} dotazy jsou operace výhradně pro získávání dat a umožnují získat komplexní strom informací v jednom dotazu. \textbf{Mutation} dotazy jsou operace určené pro jakoukoliv úpravu
+
+Autentizace pro GraphQL API funguje stejně jako pro REST API, tedy pomocí autentizačního tokenu v hlavičce dotazu. Ovšem u Grqphql nelze získat data anonymně, vždy musí být dotaz autentifikován z důvodu možnosti dotázání se neůmerně komplexním dotazem.
