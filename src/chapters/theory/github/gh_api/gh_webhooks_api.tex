@@ -1,0 +1,17 @@
+\subsection{Webhooks API}
+\label{subsec:github_api_webhooks}
+Webhooky jsou způsob jak získávat data kdy komunikaci inicializuje server a ne klient. Webhooky umožnují přihlásit se k odběru událostí, ke kterým dochází v softwarovém sytému a automaticky přijímat data o těchto událostech v reálném čase.
+
+WEbhooky jsou alternativou k polling přístupu, kdy klient se pravidelně dotazuje na server ohledně nových událostí. S webhooky klient vyjádří pouze jenou svůj zájem dostávat notifikace o určitých událostech a server je pak posílá automaticky, když k těmto událostem dojde.
+
+\subsubsection*{Alternativa k přístupu Polling: Výhody a nevýhody}
+
+\paragraph*{Metoda pravidelného dotazování (Polling)}
+
+Tato metoda spočívá v tom že monitorovací služba se pravidelně dotazuje na api serveru zda se nějaká data nezměnila. Například každou minutu se dotáže zda na repozitáři nevznikl nový issue. Tento přístup nese dvě nevýhody. První je že data nejsou  získávána v reálném čase ale s určitým zpožděním, které je úměrné k deélce intervalu mezi dotazy. Druhou nevýhodou je neefektivní využití limitů API kdy se při velkém množství sledovaných entit může stát že většina limitu se využije pouze na dotazy které vrací prázdnou či nezměněnou odpověď.
+
+\paragraph*{Výhody a nevýhody Webhooků}
+
+Webhooky potřebují méně zdrojů a méně úsilí než polling přístup. Taktéž se lépe škálují než API volání. Pokud by bylo nutné sledovat mnoho zdrojů, u volání api pro každý zdroj by mohlo rychle spotřebovat dostupné limity api. Webhooky také umožnují získat informaci o změně téměř v reálném čase, protože webhooky jsou spuštěny hned když nastane daná událost.
+
+Ovšem webhooky mají i své nevýhody. jedna z největších nevýhod je že server musí být stále veřejně dostupný jinak se může dojít ke ztrátě dat, ikdyž github se snaží o opětovné doručení. Z tohoto důvodu se v praxi často používá hybridní přístup kdy webhooky jsou primární způsob zíkávání dat a polling slouží jako záloha pro synchronizaci ztracených událostí.
