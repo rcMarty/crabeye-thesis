@@ -96,6 +96,26 @@ jobs:
         run: |
           mkdir -p pages/pdf
           cp src/main.pdf pages/main.pdf
+
+          if ! command -v texcount >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y texlive-extra-utils
+          fi
+
+          {
+            echo '# Build statistics'
+            echo ''
+            echo "- Branch: ${GITHUB_REF_NAME}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- Built at (UTC): $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo ''
+            echo '## TeXcount output'
+            echo ''
+            echo '```text'
+            texcount -inc -total src/main.tex
+            echo '```'
+          } > pages/STATS.md
+
           if [ -f readme.md ]; then
             cp readme.md pages/README.md
           elif [ -f README.md ]; then
@@ -140,6 +160,7 @@ jobs:
               nav { margin-bottom: 1.5rem; }
               nav a { margin-right: 1rem; }
               #readme { border-top: 1px solid #ddd; padding-top: 1rem; }
+              #stats { border-top: 1px solid #ddd; padding-top: 1rem; margin-top: 1.5rem; }
               .pdf-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
               .pdf-toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
               .pdf-toolbar a { padding: 0.65rem 1rem; border-radius: 0.5rem; border: 1px solid #bbb; background: #f5f5f5; color: #111; text-decoration: none; cursor: pointer; font: inherit; }
@@ -152,6 +173,7 @@ jobs:
             <h1>RANAL – diploma thesis</h1>
 
             <section id="readme">Loading README…</section>
+            <section id="stats">Loading statistics…</section>
 
             <section class="pdf-section">
               <h2>PDF preview of the thesis</h2>
@@ -172,6 +194,15 @@ jobs:
                 })
                 .catch(function() {
                   document.getElementById('readme').innerHTML = '<p>README could not be loaded.</p>';
+                });
+
+              fetch('STATS.md')
+                .then(function(response) { return response.text(); })
+                .then(function(markdown) {
+                  document.getElementById('stats').innerHTML = marked.parse(markdown);
+                })
+                .catch(function() {
+                  document.getElementById('stats').innerHTML = '<p>Statistics could not be loaded.</p>';
                 });
             </script>
           </body>
