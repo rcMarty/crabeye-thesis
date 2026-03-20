@@ -1,0 +1,20 @@
+% #### 3. Nástroj 2: Rustc PR Tracking (`rust-lang.github.io/rustc-pr-tracking/`)
+% * **Charakteristika:** Kompilátor Rustu (`rustc`) je jedním z nejkomplexnějších repozitářů na GitHubu. Jejich nástroj je pravý opak Curlu – je extrémně úzce zaměřený na procesní flow.
+% * **Co to umí (Zaměření na proces):** Sleduje frontu Pull Requestů (review queue). Dívá se, kdo má PR přiřazený (assignees), jaké PR čekají na review, jaké jsou schválené a čekají na "bors" (jejich merge queue bot), a jaké PR způsobily regresi ve výkonu kompilátoru.
+% * **Zhodnocení:**
+%     * *Plusy:* Perfektní pro operativní řízení týmu. Okamžitě vidíš, kde se proces zasekává a na koho se čeká. Výborná integrace na GitHub štítky (labels).
+%     * *Mínusy:* Zcela ignoruje celkové metriky repozitáře. Je to "jen" chytrá nadstavba nad seznamem GitHub Issues/PRs.
+
+\section{Rustc PR Tracking}
+\label{sec:rustc_pr_tracking}
+nástroj rustc pr traackiign je statická stránka která zobrazuje pouze základní informace o pr z rust repozitáře. ovšem jsou to informace specifické pro rust repozitář a spoléhá na jeho specifické štítky a workflow.
+
+\subsection{Obsah a funkcionalita}
+
+nástroj je primárně zaměřen na sledování statusu pull requestů a aktivity v nich.
+kormě sgrafů u rust překladače také monitoruje jiné repozitáře organizace "rust-lang.". konkrétně crates.io, rust-analyzer a clippy. Crates.io je repozitář pro správu balíčků rustu.
+poskytuje rozsha k aktuálnímu dni a jde do historie podle dní definovaných uživatelem. nejméně poslední den a nejvíce 999 dní zpět.
+
+\subsection{Zhodnocení}
+jedná se o jednoduchý statický web který se aktualizuje denně, je jednoduchý na pochopení a je přehledný. poskytuje větší vhled pro pr hlavně pro stavy jako například "waiting for review" nebo "waiting for bors".
+jeho nevýhoda je že neposkytuje detailní popis co se kde děje v jaké části rustu

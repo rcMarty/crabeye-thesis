@@ -1,0 +1,22 @@
+
+% #### 2. Nástroj 1: Curl Dashboard (`curl.se/dashboard.html`)
+% * **Charakteristika:** Curl je masivní, desítky let starý projekt. Jejich dashboard je ultimátní ukázka "broad-spectrum" monitoringu.
+% * **Co to umí (Zaměření na kvantitu):** Sleduje úplně všechno od počtu commitů za měsíc, přes statistiky hlášení zranitelností (CVE), pokrytí kódu testy (code coverage), až po počet aktivních autorů.
+% * **Forma:** Je to obří agregátor grafů.
+% * **Zhodnocení:** * *Plusy:* Neuvěřitelně komplexní historická data, skvělé pro manažerský přehled o "zdraví" projektu v dlouhodobém horizontu.
+%     * *Mínusy:* Je to spíše statický report (statistiky) než interaktivní nástroj pro operativní řešení záseků (např. nepomůže ti zjistit, který PR právě teď blokuje CI pipelinu).
+
+\section{Curl Dashboard}
+\label{sec:curl_dashboard}
+Curl dashboard je statický nástroj pro zobrazení různých statistik o projektu curl za jeho existenci. Jeho primární účel není pro operativní řízení vývoje nýbrž slouží jen jako zdroj informací z dlozuhodobého hlediska pro sledování jeho zdraví a trendů.
+
+\subsection{Obsah a funkcionalita}
+\label{sec:curl_dashboard_content}
+jedná se o statickou stránku která zobrazuje denně generované grafy a statistiky o projektu curl. tyto grafy jsou ve formátu obrázku a jsou generovány pomocí skriptů které analyzují data z git repozitáře a github api projektu curl.
+
+není zde interaktivní přístup k datům nebo rozsahu historie jako je tomu u github insights \chapterref{sec:github_stats} ale jsou zde zobrazeny kormě veškerých dat na githubu i mnoho dalších dat jako například tzv bug bounty, počty chyb a zranitelností ale například i distribuce commitů v rámci z jakých timezone byly provedeny a počet todo k počtu chyb o kterých se ví.
+
+\subsection{Zhodnocení}
+curl dashboard poskytuje velmi komplexní a detailní pohled na dlouhodobý stav a zdraví projektu curl. jeho hlavní výhodou je nespočet grafů a statistik které jsou k dispozici a které pokrývají širokou škálu aspektů projektu. taktéž samotné grafy jsou jednoduché, přehledné a srozumitelné.
+
+ovšem u takového nástroje chybí interaktivita a množství grafů na jedné stránce může být pro někoho až příliš mnoho informací a může být těžké se v nich orientovat a najít zde to co je žádáno. Tím že to je čistě statická stránka která jen zobrazuje grafy zde není možnost získat detailní informace o konkrétním měsíci nebo dni pokud je zde něějaký spike  na grafu tak se nedozvíme co se stalo a proč.
