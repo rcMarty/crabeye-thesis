@@ -1,0 +1,66 @@
+\section{Požadavky na systém}
+\label{sec:requirements}
+\todo{korektura}
+Při návrhu projektu je důležité nejprve určit co projekt bude dělat neboli funkční požadavky a jak to bude dělat neboli nefunkkční požadavky. Nyní se představí tyto požaadavky na tento projekt pro monitorování velkých repozitářů a konkrétně repozitáře Rust překladače. Tyto požadavky budou sloužit jako základ pro návrh a implementaci tohoto nástroje.
+
+\subsection{Funkční požadavky}
+\label{sec:functional_requirements}
+\todo{dopiš to celé} \todo{korektura}
+
+\begin{enumerate}
+  \item \textbf{Integrace zdrojů dat}
+    \begin{itemize}
+      \item prostě integruju tři zdroje dat
+    \end{itemize}
+  \item \textbf{Sledování pull requestů a issues v čase}
+    \begin{itemize}
+      \item sledovat všechny pull requesty a issues v čase a jejich stavy
+      \item sledovat zásadní změny v čase v daném PR nebo issue
+    \end{itemize}
+  \item \textbf{Znovunačítání dat}
+    \begin{itemize}
+      \item znovunačítat data z team api pro získání aktuálních informací o týmech a jejich členech
+      \item znovunačítat data z github api pro získání aktuálních informací o PR a issues
+      \item znovunačítat data z git repozitáře pro získání aktuálních informací o commitech a jejich autorech
+    \end{itemize}
+  \item \textbf{Zobrazování dat}
+    \begin{itemize}
+      \item zobrazovat data o PR a issues v přehledné formě
+      \item umožnit procházení a filtrování dat podle různých kritérií
+      \item zobrazovat historické trendy a změny v čase
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Nefunkční požadavky}
+\label{sec:nonfunctional_requirements}
+\todo{dopiš to celé} \todo{korektura}
+
+\begin{enumerate}
+  \item \textbf{Výkon a škálovatelnost}
+    \begin{itemize}
+      \item systém musí být schopen zpracovat velké množství dat z repozitáře Rust překladače
+      \item systém musí být schopen rychle načítat a zobrazovat data
+    \end{itemize}
+  \item \textbf{Spolehlivost a dostupnost}
+    \begin{itemize}
+      \item systém musí být spolehlivý a dostupný pro uživatele
+      \item systém musí být schopen zotavit se z chyb a výpadků
+      \item systém musí být schopen zpracovat neúplná nebo nekonzistentní data
+    \end{itemize}
+  \item \textbf{Backfilling dat}
+    \begin{itemize}
+      \item systém musí být schopen načítat historická data pro analýzu trendů a změn v čase
+      \item systém musí být schopen zpracovat velké množství historických dat
+    \end{itemize}
+  \item \textbf{Jednoduchost nasazení}
+    \begin{itemize}
+      \item systém musí být snadno nasaditelný a konfigurovateln
+      \item systém musí být schopen běžet na různých platformách a prostředích
+    \end{itemize}
+  \item \textbf{Možnost použití jako knihovna}
+    \begin{itemize}
+      \item systém musí být navržen tak, aby jeho funkce mohly být použity jako knihovna pro jiné projekty
+      \item systém musí poskytovat dobře definované API pro přístup k jeho funkcím
+    \end{itemize}
+
+\end{enumerate}
