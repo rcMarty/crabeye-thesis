@@ -1,0 +1,43 @@
+@startuml name
+title RANAL - Architektura systemu (zobecnena verze)
+
+left to right direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+actor "Uzivatel" as user
+component "Frontend\n(SPA / dashboard)" as fe
+
+cloud "GitHub API" as gh
+database "PostgreSQL" as db
+folder "Lokalni git mirror" as repo
+artifact "Logy / monitoring data" as logs
+
+package "RANAL Backend (Rust, modularni monolit)" as be {
+  component "Vstupni vrstva\n(ingest, sync trigger, validace)" as input
+  component "Agregacni vrstva\n(transformace, business pravidla, backfill)" as agg
+  component "Ulozna vrstva\n(repozitare, transakce, SQL dotazy)" as store
+  component "Prezentacni vrstva\n(REST API + OpenAPI docs)" as api
+}
+
+' Frontend flow
+user --> fe : prace s aplikaci
+fe --> api : HTTP REST (dotazy na data)
+api --> store : cteni/agregovane dotazy
+store --> db : SELECT/INSERT/UPDATE
+
+' Sync/ingest flow
+input --> gh : nacteni PR/issues/users
+input --> repo : analyza zmenenych souboru
+input --> agg : predani surovych dat
+agg --> store : ulozeni normalizovanych udalosti
+agg --> logs : metriky + chyby + trvani
+api --> logs : request/error logy
+
+note right of be
+  Backend je jeden deployable celek
+  s internim delenim do vrstev.
+end note
+
+@enduml
