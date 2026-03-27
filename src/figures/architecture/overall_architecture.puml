@@ -1,43 +1,65 @@
-@startuml name
-title RANAL - Architektura systemu (zobecnena verze)
+@startuml overall_architecture
+title RANAL - Architektura systému (zobecněná verze)
 
-left to right direction
 skinparam shadowing false
 skinparam componentStyle rectangle
 skinparam linetype ortho
 
-actor "Uzivatel" as user
+' Větší mezery pro lepší prodyšnost diagramu
+skinparam nodesep 60
+skinparam ranksep 80
+
+actor "Uživatel" as user
+
+' Externí zdroje nad backendem
+cloud "GitHub API" as gh
+folder "Lokální git mirror" as repo
 component "Frontend\n(SPA / dashboard)" as fe
 
-cloud "GitHub API" as gh
-database "PostgreSQL" as db
-folder "Lokalni git mirror" as repo
-artifact "Logy / monitoring data" as logs
-
-package "RANAL Backend (Rust, modularni monolit)" as be {
-  component "Vstupni vrstva\n(ingest, sync trigger, validace)" as input
-  component "Agregacni vrstva\n(transformace, business pravidla, backfill)" as agg
-  component "Ulozna vrstva\n(repozitare, transakce, SQL dotazy)" as store
-  component "Prezentacni vrstva\n(REST API + OpenAPI docs)" as api
+package "RANAL Backend (Rust, modulární monolit)" as be {
+  
+  component "Prezentační vrstva\n(REST API + OpenAPI docs)" as api
+  component "Vstupní vrstva\n(ingest, sync trigger, validace)" as input
+  
+  component "Agregační vrstva\n(transformace, business pravidla, backfill)" as agg
+  component "Úložná vrstva\n(repozitáře, transakce, SQL dotazy)" as store
+  
+  ' Skryté vazby pro uspořádání vrstev pod sebou
+  api -[hidden]down-> agg
+  input -[hidden]down-> agg
+  agg -[hidden]down-> store
 }
 
-' Frontend flow
-user --> fe : prace s aplikaci
-fe --> api : HTTP REST (dotazy na data)
-api --> store : cteni/agregovane dotazy
-store --> db : SELECT/INSERT/UPDATE
+database "PostgreSQL" as db
+artifact "Logy / monitoring" as logs
 
-' Sync/ingest flow
-input --> gh : nacteni PR/issues/users
-input --> repo : analyza zmenenych souboru
-input --> agg : predani surovych dat
-agg --> store : ulozeni normalizovanych udalosti
-agg --> logs : metriky + chyby + trvani
-api --> logs : request/error logy
+' ==========================================
+' Vazby a tok dat (s upravenými texty)
+' ==========================================
 
-note right of be
+user --> fe : práce s aplikací
+
+' Použití ---> pro delší čáru a \n pro zalomení textu, aby se vyhnul rámečku
+fe ---> api : HTTP REST\n(dotazy na data)
+
+gh ---> input : poskytuje\nPR/issues/users
+repo ---> input : poskytuje\nhistorii a diffy
+
+input --> agg : předání\nsurových dat
+api ---> store : čtení /\nagregované dotazy
+
+agg --> store : uložení\nnormalizovaných událostí
+
+' Prodloužená šipka směrem do DB
+store ---> db : SELECT / INSERT / UPDATE
+
+' Šipky pro logy směřované více do strany
+agg ----> logs : metriky + chyby\n+ trvání
+api ---> logs : request /\nerror logy
+
+note top of be
   Backend je jeden deployable celek
-  s internim delenim do vrstev.
+  s interním dělením do vrstev.
 end note
 
 @enduml
