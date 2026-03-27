@@ -34,12 +34,11 @@ database "PostgreSQL" as db
 artifact "Logy / monitoring" as logs
 
 ' ==========================================
-' Vazby a tok dat (s upravenými texty)
+' Vazby a tok dat 
 ' ==========================================
 
 user --> fe : práce s aplikací
 
-' Použití ---> pro delší čáru a \n pro zalomení textu, aby se vyhnul rámečku
 fe ---> api : HTTP REST\n(dotazy na data)
 
 gh ---> input : poskytuje\nPR/issues/users
@@ -50,10 +49,10 @@ api ---> store : čtení /\nagregované dotazy
 
 agg --> store : uložení\nnormalizovaných událostí
 
-' Prodloužená šipka směrem do DB
+
 store ---> db : SELECT / INSERT / UPDATE
 
-' Šipky pro logy směřované více do strany
+
 agg ----> logs : metriky + chyby\n+ trvání
 api ---> logs : request /\nerror logy
 

@@ -1,14 +1,16 @@
-@startuml name
+@startuml detailed_architecture
 title RANAL - Detailní architektura systému (modulární monolit)
 
 ' === Základní nastavení vzhledu ===
-' Používáme shora-dolů (Top-Down) přístup pro lepší čitelnost vrstvené architektury
 skinparam shadowing false
 skinparam componentStyle rectangle
 skinparam defaultFontName Monospace
 skinparam linetype ortho
+
+' Výrazné zvětšení mezer pro velký diagram v příloze
 skinparam nodesep 40
-skinparam ranksep 40
+skinparam ranksep 60
+skinparam padding 2
 
 ' === Barvy ===
 skinparam rectangle {
@@ -36,7 +38,6 @@ skinparam folder {
 actor "Uživatel" as user
 node "Frontend klient\n(Web SPA / Vue dashboard)" as fe
 
-' Poznámka k frontendu
 note right of fe
   Tenký klient:
   - volá REST API
@@ -48,25 +49,41 @@ end note
 package "RANAL Backend (Rust)" as backend {
   
   package "Vstup a Konfigurace" as config_layer {
-    component "Entry point\n`src/main.rs`" as main
     component "Config\n`src/config.rs`" as config
+    component "Entry point\n`src/main.rs`" as main
     component "Commands / režimy\n`src/commands.rs`" as commands
+    
+    config -[hidden]right-> main
+    main -down-> commands
+    config -down-> commands
   }
 
   package "API vrstva (`src/api/*`)" as api_layer {
     component "Router\n`src/api/mod.rs`" as api_router
-    component "AppState\n`src/api/app_state.rs`" as app_state
+    component "OpenAPI/Docs\n`src/api/docs.rs`" as api_docs
     
     component "Issues endpointy\n`src/api/issues.rs`" as api_issues
     component "PR/Review endpointy\n`src/api/review.rs`" as api_review
-    component "OpenAPI/Docs\n`src/api/docs.rs`" as api_docs
+    component "AppState\n`src/api/app_state.rs`" as app_state
+    
+    api_router -down-> api_issues
+    api_router -down-> api_review
+    api_router -right-> api_docs
+    api_router -down-> app_state : " sdílený stav"
+    
+    api_issues -down-> app_state
+    api_review -down-> app_state
   }
 
   package "Agregační / integrační vrstva (`src/git/*`)" as agg_layer {
+    component "StateMonitor\n`src/monitoring/state_tracker.rs`" as state_monitor
     component "SyncHandler\n`src/git/mod.rs`" as sync_handler
     component "GitHubApi klient\n`src/git/github.rs`" as github_client
     component "Repo adaptér (git2)\n`src/git/git.rs`" as repo_adapter
-    component "StateMonitor\n`src/monitoring/state_tracker.rs`" as state_monitor
+    
+    state_monitor -down-> sync_handler : periodický\nsync/backfill
+    sync_handler -down-> github_client
+    sync_handler -down-> repo_adapter
   }
 
   package "Úložná vrstva (`src/db/*`)" as db_layer {
@@ -74,55 +91,36 @@ package "RANAL Backend (Rust)" as backend {
     component "Queries (Čtení)\n`src/db/queries.rs`" as db_queries
     component "Inserts (Zápis)\n`src/db/inserts.rs`" as db_inserts
     component "Modely\n`src/db/model/*`" as db_models
+    
+    db_facade -down-> db_queries
+    db_facade -down-> db_inserts
+    db_queries -down-> db_models
+    db_inserts -down-> db_models
   }
 }
 
 ' === Infrastruktura a Externí zdroje ===
 cloud "GitHub REST API" as gh
 folder "Lokální mirror repozitáře\n`./test_repos/<repo>`" as local_repo
-database "SQL Databáze\n(schéma + indexy)" as sql_db
 
-' Skupina pro infrastrukturu nasazení
+database "SQL Databáze\n(schéma + indexy)" as sql_db
+artifact "Aplikační logy\n`*.log`" as logs
+
 together {
   node "Docker Compose runtime" as compose
   folder "Migrace\n`migrations/*.sql`" as migrations
-  artifact "Aplikační logy\n`*.log`" as logs
 }
 
 ' === VAZBY A ŠIPKY ===
 
-' 1. Uživatelská interakce
-user --> fe : interakce v UI
-fe --> api_router : HTTP(S) REST/JSON
+user -down-> fe : interakce v UI
+fe -down-> api_router : HTTP(S) REST/JSON
 
-' 2. Rozpad API vrstvy
-api_router --> api_issues
-api_router --> api_review
-api_router --> app_state
-api_router --> api_docs
+' Vazba mezi vrstvami v backendu
+app_state -down-> db_facade : volání\nmetod nad DB
+commands -down-> sync_handler : spuštění\nsync režimu
+sync_handler -down-> db_facade : insert\nPR/issues/history
 
-api_issues --> app_state
-api_review --> app_state
-
-' 3. Propojení do DB (z API)
-app_state --> db_facade : volání metod nad DB
-
-' 4. Konfigurace a běh
-main --> commands
-config --> commands
-commands --> sync_handler : spuštění sync režimu
-state_monitor --> sync_handler : periodický sync/backfill
-
-' 5. Agregace dat (jádro logiky)
-sync_handler --> github_client
-github_client --> gh : fetch users/PR/issues
-
-sync_handler --> repo_adapter
-repo_adapter --> local_repo : čtení commitů/stromů
-
-sync_handler --> db_facade : insert PR/issues/history
-
-' Poznámka k orchestraci
 note right of sync_handler
   Orchestrace:
   1) users -> upsert_team_members
@@ -131,26 +129,26 @@ note right of sync_handler
   4) backfill chybějící historie
 end note
 
-' 6. Databázová vrstva
-db_facade --> db_queries
-db_facade --> db_inserts
-db_queries --> db_models
-db_inserts --> db_models
+' Externí data
+github_client -down-> gh : fetch\nusers/PR/issues
+repo_adapter -down-> local_repo : čtení\ncommitů/stromů
 
-db_queries --> sql_db : SELECT / JOIN / GROUP BY
-db_inserts --> sql_db : INSERT / UPSERT / TX
+' DB vazby
+db_queries -down-> sql_db : SELECT / JOIN\n/ GROUP BY
+db_inserts -down-> sql_db : INSERT / UPSERT\n/ TX
 
-' 7. Infrastruktura a logování
-sync_handler --> logs : info/error + trvání
-api_router --> logs
-compose --> main : orchestruje službu
-compose --> sql_db : orchestruje DB
-migrations --> sql_db : aplikace schématu
+' Logování (vedeno mimo hlavní osu)
+sync_handler -right-> logs : info/error\n+ trvání
+api_router -left-> logs : request logs
 
-' === Pomocné skryté vazby pro vynucení layoutu pod sebou ===
+' Infrastruktura
+compose -up-> main : orchestruje\nslužbu
+compose -right-> sql_db : orchestruje DB
+migrations ----left---> sql_db : aplikace\nschématu
+
+' Pomocné skryté vazby pro layout
 config_layer -[hidden]down-> api_layer
 api_layer -[hidden]down-> agg_layer
 agg_layer -[hidden]down-> db_layer
-db_layer -[hidden]down-> sql_db
 
 @enduml

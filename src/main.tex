@@ -17,6 +17,8 @@
 \usepackage{acro} % balík pro lepší práci s akronymy
 \usepackage{xspace} % pro správné mezery po zkratkách
 \usepackage{microtype} % pro lepší sazbu textu
+\usepackage{pdflscape} % pro sazbu na šířku
+\usepackage{graphicx} % pro vkládání obrázků
 \usepackage[autostyle=true,czech=quotes]{csquotes} % korektni sazba uvozovek, podpora pro balik biblatex
 
 
@@ -81,7 +83,7 @@
 
 % Zacatek dokumentu
 \begin{document}
-
+\pagenumbering{roman}
 % Titulni strany
 \MakeTitlePages
 
@@ -103,8 +105,8 @@
 \clearpage
 
 % Text
+\pagenumbering{arabic}
 \input{./chapters/introduction.tex}
-
 
 \input{./chapters/theory/versioning.tex}
 \input{./chapters/theory/github.tex}
@@ -124,5 +126,7 @@
 
 % Přílohy
 \appendix
+
+\input{./chapters/appendix/architecture_appendix.tex}
 
 \end{document}
