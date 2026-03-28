@@ -1,68 +1,69 @@
-@startuml overall_database
-title RANAL - ER diagram (zjednodusena verze)
+@startuml er_diagram_simplified
+title RANAL - Zjednodušený konceptuální model
 
-hide methods
-hide stereotypes
+' Skrytí zbytečných ikon a prázdných částí pro čistší vzhled
+hide circle
+hide empty members
 skinparam linetype ortho
 
+' Kompaktní mezery ideální pro vložení do textu
+skinparam nodesep 40
+skinparam ranksep 50
+
+' Definice entit pouze s klíčovými byznys atributy
 entity "teams" as teams {
-  * team : TEXT <<PK>>
+  * team_name (PK)
+}
+
+entity "contributors_teams" as ct {
+  * team (FK)
+  * contributor_id (FK)
 }
 
 entity "contributors" as contributors {
-  * github_id : BIGINT <<PK>>
+  * github_id (PK)
   --
-  github_name : TEXT
-}
-
-entity "contributors_teams" as contributors_teams {
-  * team : TEXT <<PK, FK>>
-  * contributor_id : BIGINT <<PK>>
+  github_name
 }
 
 entity "issues" as issues {
-  * repository : TEXT <<PK>>
-  * issue : BIGINT <<PK>>
+  * repository (PK)
+  * issue_id (PK)
   --
-  is_pr : BOOLEAN
-  contributor_id : BIGINT <<FK>>
-  current_state : TEXT
-  timestamp : TIMESTAMP
+  is_pr
+  current_state
 }
 
-entity "issue_event_history" as issue_event_history {
-  * id : SERIAL <<PK>>
+entity "issue_labels_history" as labels {
+  * issue_id (FK)
   --
-  repository : TEXT <<FK>>
-  issue : BIGINT <<FK>>
-  event : TEXT
-  timestamp : TIMESTAMP
+  label_name
+  action
 }
 
-entity "issue_labels_history" as issue_labels_history {
-  * id : SERIAL <<PK>>
+entity "issue_event_history" as events {
+  * issue_id (FK)
   --
-  repository : TEXT <<FK>>
-  issue : BIGINT <<FK>>
-  label : TEXT
-  action : TEXT
-  timestamp : TIMESTAMP
+  event_type
 }
 
-entity "file_activity" as file_activity {
-  * id : SERIAL <<PK>>
+entity "file_activity" as files {
+  * issue_id (FK)
   --
-  repository : TEXT <<FK>>
-  issue : BIGINT <<FK>>
-  file_path : TEXT
-  contributor_id : BIGINT
-  timestamp : TIMESTAMP
+  file_path
 }
 
-teams ||--o{ contributors_teams
-contributors ||--o{ issues
-issues ||--o{ issue_event_history
-issues ||--o{ issue_labels_history
-issues ||--o{ file_activity
+' ---- Vazby a layout ----
+' Horní patro: Týmy a uživatelé vedle sebe
+teams ||-up-o{ ct
+contributors ||-left-o{ ct
+
+' Střední patro: Užívatelé tvoří issues
+contributors ||-down-o{ issues : " autor"
+
+' Spodní patro: Issue se větví do historie
+issues ||-down-o{ events
+issues ||-down-o{ labels
+issues ||-down-o{ files
 
 @enduml
