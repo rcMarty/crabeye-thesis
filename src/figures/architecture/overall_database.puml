@@ -1,0 +1,68 @@
+@startuml overall_database
+title RANAL - ER diagram (zjednodusena verze)
+
+hide methods
+hide stereotypes
+skinparam linetype ortho
+
+entity "teams" as teams {
+  * team : TEXT <<PK>>
+}
+
+entity "contributors" as contributors {
+  * github_id : BIGINT <<PK>>
+  --
+  github_name : TEXT
+}
+
+entity "contributors_teams" as contributors_teams {
+  * team : TEXT <<PK, FK>>
+  * contributor_id : BIGINT <<PK>>
+}
+
+entity "issues" as issues {
+  * repository : TEXT <<PK>>
+  * issue : BIGINT <<PK>>
+  --
+  is_pr : BOOLEAN
+  contributor_id : BIGINT <<FK>>
+  current_state : TEXT
+  timestamp : TIMESTAMP
+}
+
+entity "issue_event_history" as issue_event_history {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  event : TEXT
+  timestamp : TIMESTAMP
+}
+
+entity "issue_labels_history" as issue_labels_history {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  label : TEXT
+  action : TEXT
+  timestamp : TIMESTAMP
+}
+
+entity "file_activity" as file_activity {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  file_path : TEXT
+  contributor_id : BIGINT
+  timestamp : TIMESTAMP
+}
+
+teams ||--o{ contributors_teams
+contributors ||--o{ issues
+issues ||--o{ issue_event_history
+issues ||--o{ issue_labels_history
+issues ||--o{ file_activity
+
+@enduml

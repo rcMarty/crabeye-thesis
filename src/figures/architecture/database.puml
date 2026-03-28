@@ -1,0 +1,110 @@
+@startuml database
+title RANAL - ER diagram databáze
+
+hide methods
+hide stereotypes
+skinparam linetype ortho
+
+' Větší mezery pro přehlednost
+skinparam nodesep 60
+skinparam ranksep 60
+
+' Definice entit
+entity "teams" as teams {
+  * team : TEXT <<PK>>
+  --
+  subteam_of : TEXT
+  kind : TEXT
+}
+
+entity "contributors" as contributors {
+  * github_id : BIGINT <<PK>>
+  --
+  github_name : TEXT
+  name : TEXT
+}
+
+entity "contributors_teams" as contributors_teams {
+  * team : TEXT <<PK, FK>>
+  * contributor_id : BIGINT <<PK>>
+}
+
+entity "issues" as issues {
+  * repository : TEXT <<PK>>
+  * issue : BIGINT <<PK>>
+  --
+  is_pr : BOOLEAN
+  contributor_id : BIGINT <<FK>>
+  current_state : TEXT
+  timestamp : TIMESTAMP
+  merge_sha : TEXT
+  --
+  (repository, issue) : <<UNIQUE>>
+}
+
+entity "issue_event_history" as issue_event_history {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  is_pr : BOOLEAN
+  event : TEXT
+  timestamp : TIMESTAMP
+  --
+  (repository, issue, timestamp, event) : <<UNIQUE>>
+}
+
+entity "issue_labels_history" as issue_labels_history {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  is_pr : BOOLEAN
+  label : TEXT
+  timestamp : TIMESTAMP
+  action : TEXT (ADDED|REMOVED)
+  --
+  (repository, issue, timestamp, label) : <<UNIQUE>>
+}
+
+entity "file_activity" as file_activity {
+  * id : SERIAL <<PK>>
+  --
+  repository : TEXT <<FK>>
+  issue : BIGINT <<FK>>
+  file_path : TEXT
+  contributor_id : BIGINT
+  activity_type : TEXT
+  timestamp : TIMESTAMP
+  --
+  (repository, issue, timestamp, file_path) : <<UNIQUE>>
+}
+
+' ---- Vynucení rozložení pomocí skrytých vazeb ----
+' Chceme teams a contributors nahoře vedle sebe
+teams -[hidden]right- contributors
+
+' Chceme issues uprostřed pod contributors
+contributors -[hidden]down- issues
+
+' ---- Fyzické relace (plná čára) ----
+teams ||-down-o{ contributors_teams
+contributors ||-down-o{ issues
+
+' Rozpad historie pod issues
+issues ||-down-o{ issue_event_history
+issues ||-down-o{ issue_labels_history
+issues ||-right-o{ file_activity
+
+' ---- Logické relace (přerušovaná čára) ----
+' Odstraněny zbytečné dlouhé texty, typ vazby je jasný z legendy a názvů sloupců
+contributors ||..left..o{ contributors_teams
+contributors ||..right..o{ file_activity
+teams ||..right..o{ teams : " subteam_of"
+
+legend right
+  Plná čára   = Fyzický FK constraint v DB
+  Přerušovaná = Logická vazba (bez FK omezení)
+endlegend
+
+@enduml
