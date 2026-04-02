@@ -1,5 +1,5 @@
 @startuml database
-title RANAL - ER diagram databáze
+title ER diagram databáze
 
 hide methods
 hide stereotypes
@@ -13,8 +13,10 @@ skinparam ranksep 60
 entity "teams" as teams {
   * team : TEXT <<PK>>
   --
-  subteam_of : TEXT
+  subteam_of : TEXT <<FK>>
   kind : TEXT
+  --
+  check_no_self_parent : team != subteam_of
 }
 
 entity "contributors" as contributors {
@@ -25,9 +27,10 @@ entity "contributors" as contributors {
 }
 
 entity "contributors_teams" as contributors_teams {
-  * team : TEXT <<PK, FK>>
-  * contributor_id : BIGINT <<PK>>
+  * team : TEXT <<PK, FK >>
+  * contributor_id : BIGINT <<PK, FK >>
 }
+
 
 entity "issues" as issues {
   * repository : TEXT <<PK>>
@@ -81,11 +84,10 @@ entity "file_activity" as file_activity {
 }
 
 ' ---- Vynucení rozložení pomocí skrytých vazeb ----
-' Chceme teams a contributors nahoře vedle sebe
-teams -[hidden]right- contributors
-
-' Chceme issues uprostřed pod contributors
-contributors -[hidden]down- issues
+teams -[hidden]down- contributors
+contributors -[hidden]down- file_activity
+issue_labels_history -[hidden]up- file_activity 
+issues -[hidden]up- contributors_teams
 
 ' ---- Fyzické relace (plná čára) ----
 teams ||-down-o{ contributors_teams
@@ -98,13 +100,9 @@ issues ||-right-o{ file_activity
 
 ' ---- Logické relace (přerušovaná čára) ----
 ' Odstraněny zbytečné dlouhé texty, typ vazby je jasný z legendy a názvů sloupců
-contributors ||..left..o{ contributors_teams
-contributors ||..right..o{ file_activity
-teams ||..right..o{ teams : " subteam_of"
+contributors ||--left--o{ contributors_teams
+contributors ||--right--o{ file_activity
+teams ||--right--o{ teams : " subteam_of"
 
-legend right
-  Plná čára   = Fyzický FK constraint v DB
-  Přerušovaná = Logická vazba (bez FK omezení)
-endlegend
 
 @enduml

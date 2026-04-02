@@ -1,5 +1,5 @@
-@startuml er_diagram_simplified
-title RANAL - Zjednodušený konceptuální model
+@startuml overall_databaserm 
+title Zjednodušený ER diagram
 
 ' Skrytí zbytečných ikon a prázdných částí pro čistší vzhled
 hide circle
@@ -39,12 +39,14 @@ entity "issue_labels_history" as labels {
   --
   label_name
   action
+  is_pr
 }
 
 entity "issue_event_history" as events {
   * issue_id (FK)
   --
   event_type
+  is_pr
 }
 
 entity "file_activity" as files {
@@ -54,14 +56,11 @@ entity "file_activity" as files {
 }
 
 ' ---- Vazby a layout ----
-' Horní patro: Týmy a uživatelé vedle sebe
 teams ||-up-o{ ct
 contributors ||-left-o{ ct
 
-' Střední patro: Užívatelé tvoří issues
 contributors ||-down-o{ issues : " autor"
 
-' Spodní patro: Issue se větví do historie
 issues ||-down-o{ events
 issues ||-down-o{ labels
 issues ||-down-o{ files

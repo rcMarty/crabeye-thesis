@@ -1,12 +1,29 @@
 \section{Struktura databáze}
 \label{sec:database}
 
-%prostě popis databáze vysvětlení bude pak v té implementaci
+při návrhu databáze bylo klíčové rozhodnout jak bude databáze vypadat, tak aby efektivně pojmula velké množství dat a zároven aby umožýnovala rychlé provádění analytických dotazů.
 
-% učel a rozdělení
+\subsection{Realční vs dokumentová}
+\label{subsec:database:relational_vs_document}
+první věc o které muselo být rozhodnuto je zda vybrat dokumentovnou nebo relační databázi. Ikdyž dokumentová databáze nabízí vetší flexibilitu dat a umožnuje ukládat celé json odpovědi bez striktní struktury bylo rozhodnuto pro relační databázi
+
+z analytické povahy dotazů a potřeby agregovat data přes více entit. Relační databáze umožnuje efektivní spojování tabulek, seskupování a další analytické operace, které jsou optimalizovány v relačních databáízích
+
+taktéž relační databáze zajištuje díky primárním a cizím klíčům integritu dat a je předem definovaná struktura což umožnuje validaci a konzistenci dat a to zjednodušuje logiku na straně aplikace.
 
 % odděleníá labels a events
 
-% porovnání jestli relační nebo dokumentová
+\subsection{Rozdělení labelů a eventů}
+labely a eventy jsou rozděleny z důvodu málo protínajících se atributů na to aby byly vyřešeny podobně jako u tabulky issues kde jediná změna mezi issue a pr je příznak toho zda se jedná o pr nebo issue. labely a eventy mají řadu odlišných atributů a proto je lepší je rozdělit do dvou tabulek.
 
-% tabulky a jejich vztahy (ER diagram)
+\subsection{Diagram databáze}
+
+schéma má tři hlavní logické části. první je struktura kontributorů a do jakého týmu patří pokud patří, druhá část je aktuální stav pr a issues a třetí část je historie změn od issues a to jaké eventy se staly a jaké labely byly přidány nebo odebrány a taktéž jaké soubory se změnily v daném pr pokud už je pr merged nebo closed.
+
+centrem schématu je tabulka issues která obsahuje aktuální stav issue a pr. tato tabulka je společná jak pro issue tak pro pr z důvodu že i na straně githubu je každý pr i issue a pravděpodobně se rozděluje pouze za pomocí příznaku. například u endpointu pro získání issues se rozdíl mezi pr a issue pozná primárně pomocí přítomnosti pole \code{pull\_request} v objektu entity v odpovědi. kvůli této jediné změně je implementován podmíněný index na této tabulce. konkrétně dva jeden kde pr = true a druhý kde ispr = false. tento index effektivně rozděluje hledání v tabulce na dvvě "poloviny"a tím zmenšuje index a urychluje vyhledávání.
+
+do historických entit se pouze přidávají události a nikdy se nemění. ostatní záznamy v tabulkách jsou aktualizovány podle posledního známého stavu.
+
+vztah mezi týmem a kontributorem je realizován jako m:n přes spojovací tabulku contributors\_teams protože každý člen může být ve více týmech a samozřejmě tým má více členů.
+
+ohledně souborů je logováno pouze kdo upravil daný soubor neloguje se jaké změny byly provedeny. to je dostačující protože stačí nám na jaké části projektu se daný kontributor podílel a nejde nám o konkrétní funkcionalitu kterou upravil.
