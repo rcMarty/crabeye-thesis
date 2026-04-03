@@ -16,30 +16,32 @@
 %    * *Actions:* Nativní výpis běhu CI/CD pipelin. Zelené/červené ikonky ukazující, zda build prošel.
 %    * *Security:* Integrovaný Dependabot a Code Scanning upozorňující na zranitelnosti v kódu a zastaralé závislosti.
 
-\section{Nativní GitHub statistiky}
+\section{Nativní statistiky GitHubu}
 \label{sec:github_stats}
-\todo{korektura}
-github nabízí i zíákladní nativní statistiky které jsou dostupné přímo  u projektu. Tyto statistiky jsou v záložce \textit{Insights} a obsahují počet otevřených / zavřených pr, počet kontributorů a jejich aktivitu a další.
 
-\subsection{Obsah a funkce}
-\todo{korektura}
-Hlavní bod kde je možno získat obecné statistiky a grafy je záložka insights kde nejdůležitější části zahrnují Pulse, Contributors a commits.
-u všech statistik lze získat data za určité období které je nejčastěji den, týden, měsíc nebo rok. U některých statistik z důvodu velkého množství dat je toto období omezené například pouze na maximálně poslední měsíc.
+GitHub nabízí základní nativní statistiky dostupné přímo u~každého projektu. Tyto statistiky jsou k~dispozici v~záložce \textit{Insights} a~zahrnují přehled otevřených a~zavřených \PR, aktivitu přispěvatelů a~další údaje.
+
+\subsection{Obsah a~funkce}
+\label{subsec:github_stats:content}
+
+Hlavním místem pro získání obecných statistik a~grafů je záložka Insights. Nejdůležitější části zahrnují pohledy Pulse, Contributors a~Commits. U~všech statistik lze vybrat časové období, nejčastěji den, týden, měsíc nebo rok. U~některých statistik je z~důvodu velkého množství dat toto období omezeno, například na maximálně poslední měsíc.
+
 \begin{description}
-  \item[Pulse] poskytuje rychlý přehled  o aktivních a uzavřených pr, otevřených a uzavřených issues, nejaktivnějších autorech a základní sumarizaci o aktivitách a přidaných a odebraných řádcích kodu. Poskytuje i seznam uzavřených pr za vybrané časové období. Statistiky jsou k dispozici za poslední den, 3 dny, týden a měsíc.
-  \item[Contributions] záložka poskytuje informace o nejčastěji přispívajících uživatelích včetně automatizovaných účtů (botů). zobrazuje počet commitů jak celkových tak od každého uživatele zvlášť. počet commitů je dynamicky agregován podle zvoleného časového období ovšem minimálně 1 týden. časové období ,může být vybráno uživatelem od podleních 2 týdnů po celé časové období existence repozitáře. pokud repozitář obsahuje méně než 10~000 commitů tak tento nástroj zobrazuje i počet změněných řádků pro každého uživatele.
-  \item[Commits] záložk obsahuje pouze graf celkového počtu commitů za poslední rok kdy počet commitů je agregován podle týdne.
+  \item[Pulse] Poskytuje rychlý přehled o~aktivních a~uzavřených \PR, otevřených a~uzavřených issues, nejaktivnějších autorech a~základní sumarizaci aktivit včetně přidaných a~odebraných řádků kódu. Obsahuje i~seznam uzavřených \PR za zvolené časové období. Statistiky jsou k~dispozici za poslední den, 3 dny, týden a~měsíc.
+  \item[Contributors] Záložka poskytuje informace o~nejaktivnějších přispěvatelích, včetně automatizovaných účtů (botů). Zobrazuje počet commitů jak celkový, tak za každého přispěvatele zvlášť. Počet commitů je dynamicky agregován podle zvoleného časového období (minimálně 1 týden). Časový rozsah lze vybrat od posledních dvou týdnů po celou dobu existence repozitáře. Pokud repozitář obsahuje méně než 10~000 commitů, zobrazí tento pohled i~počet změněných řádků pro každého přispěvatele.
+  \item[Commits] Záložka obsahuje graf celkového počtu commitů za poslední rok, přičemž počet commitů je agregován po týdnech.
 \end{description}
 
-přehledný způsobu detailnějšího zobrazení pr nebo issues v jednom grafu není ale je možné filtrovt v záložce issues podle různých kritérií za pomocí pokročilých filtrů. Tyto filtry umožnují spojovat podmínky pomocí booleanovských operaci a umožnují zanořování zaa pomocí uzávorkování. U tkového filtru dostneme seznam issues nebo prs s celkovým počtem otevřených a zavřených položek.
+Přehledný způsob zobrazení většího množství \PR nebo issues v~jednom grafu zde chybí. V~záložce Issues je však možné filtrovat pomocí pokročilých filtrů, které umožňují kombinovat podmínky pomocí booleovských operátorů a~závorek. Výsledkem je seznam issues nebo \PR s~celkovým počtem otevřených a~zavřených položek.
 
-Dalšíé nástroj je github projects kde ke každé velké funkcionalitě jsou rozdělena issues do stavů určených vlastníkem jako například TODO nebo IN PROGRESS. Tento nástroj ale neposkytuje žádné statistiky a je spíše nástrojem pro organizaci práce než pro získávání informací o projektu.
+Dalším nástrojem jsou GitHub Projects, kde jsou issues k~jednotlivým funkcionalitám rozděleny do stavů definovaných vlastníkem repozitáře (například TODO nebo IN PROGRESS). Tento nástroj však neposkytuje žádné statistiky a~slouží spíše k~organizaci práce než k~získávání informací o~projektu.
 
 \subsection{Zhodnocení}
-\todo{korektura}
-nativní statistiky githubu poskytují pouze základní přehled o celkovém projektu. jejich hlavní výhodou je že existují nativně a není třeba cokoliv tvořit pro jejich získání.
+\label{subsec:github_stats:evaluation}
 
-ovšem statistiky ohledně pr nebo issues jsou těžko získatelné a je třeba znát daný repozitář pro získání požadovaných informací. oproti tomu to má výhodu že přesně víme jaké issues nebo prs jsou v tomto stavu a můžou se rovnou zobrazit.
+Nativní statistiky GitHubu poskytují pouze základní přehled o~celkovém projektu. Jejich hlavní výhodou je nativní dostupnost bez nutnosti cokoliv nasazovat nebo udržovat.
+
+Statistiky ohledně \PR nebo issues jsou zde obtížněji dostupné a~pro jejich získání je nutné sledovaný repozitář dobře znát. Na druhou stranu, k~nalezeným \PR nebo issues lze přejít přímo z~výsledků filtrování.
 
 % **Jak GitHub kriticky zhodnotit (Zásadní pro tvou obhajobu):**
 

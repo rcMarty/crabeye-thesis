@@ -4,36 +4,40 @@
 
 \chapter{Repozitář Rust překladače}
 \label{chap:rust_repository}
-Tato kapitola se zaměří na specifika a charakteristiku repozitáře Rust překladače. Z důvodu jeho komplexity a inerního workflow je tento repozitář ideálním kandidátem pro analýzu a zhodnocení nástrojů pro monitorování a správu vývoje.Denně jsou zde otevárány a zavírány desítky pull requestů a issues s různými návhry a úpravami. V této kapitole budou popsány specifika implementace pro co nejefektivnější a nejdrobnější vhled do stavu a vývoje projektu.
 
-\section{Rust team API}
+Tato kapitola se zaměřuje na specifika a~charakteristiku repozitáře Rust překladače. Z~důvodu jeho komplexity a~interního workflow je tento repozitář ideálním kandidátem pro analýzu a~sledování vývoje. Denně jsou zde otevírány a~uzavírány desítky \PR a~issues s~různými návrhy a~úpravami. Jsou zde rovněž popsána specifika relevantní pro co nejefektivnější vhled do stavu a~průběhu vývoje projektu.
+
+\section{Rust Team \API}
 \label{sec:rust_team_api}
-Rust organizace spravuje práva uživeatelů za pomocí speciálního repozitáře \texttt{rust-lang/team}, který obsahuje seznam týmů, jejich členů a jejich přidělené role. Funguje jako "single source of truth" (jediný zdroj pravdy) pro informace o tom, kdo má jaká práva a jaké týmy existují.
-Struktura týmů a jejich uživatelů je definována za pomoci .toml souborů, které jsou spravovány pomocí pull requestů. Na základě tohoto repozitáře je generováno veřejné team api využívané boty v ostatních repozitářích.
 
-Takovéto řešení umožnuje chod automatizačních botů jako je bors nebo triage v repozitáři rust překladače pro přidělování kontroly PR a issues podle interních algoritmů. Taktéž jsou poté automaticky přidělovány štítky se stavy daného issue nebo PR.
+Organizace rust-lang spravuje přístupová práva uživatelů prostřednictvím speciálního repozitáře \texttt{rust-lang/team}\footnote{\url{https://github.com/rust-lang/team}}, který obsahuje seznam týmů, jejich členů a~přidělených rolí. Tento repozitář funguje jako jediný zdroj pravdy (\textit{single source of truth}) pro informace o~tom, kdo má jaká oprávnění a~jaké týmy v~organizaci existují.
 
-Bezpečnost zajištuje několik pravidel a prevencí před útoky. první opatření je zabránení získání neoprávněného přístupu prsotředníctvím spuštění škdlivého kodu v CI kdy úšpěšný útok by vyústil v plným právům k celé infrastruktuře organizace. Opatření proti tomuto útoku jsou taková že nikdo včetně běžných správců (maintainerů) kromě hlavních administrátorů nemá přistup k tajným tokenům, modifikovat soubory pipelin dělat merge neschváleného kodu a zvyšovat svá vlastní oprávnění.
+Struktura týmů a~jejich přiřazení uživatelů je definována pomocí souborů ve formátu TOML, které jsou spravovány prostřednictvím \PR. Na základě tohoto repozitáře je generováno veřejné Team \API využívané automatizačními boty v~repozitářích organizace.
 
-Další bezpečnostiní opatření jsou proti hrozbám manipulace s obsahem (content attacks) kdy útočník spoléhá čistě na práci s repozitářem a jeho obsahem (toml soubory). Takovýto útok může být provést maintainerem a obnáší například změnu URL domovské stránky na falešnou, eskalace osobních práv a práv napříč více týmy, nebo smazání ostatních uživatelů. Opatření proti takovýmto útokům jsou že ostatní maintainers musí schválit změny a navíc by se měly zavést kontroly v CI kde by se ověřovalo zda změny v souborech TOML nevedly k podezřelé aktivitě.
+Toto řešení umožňuje provoz automatizačních botů, jako je bors nebo triage, v~repozitáři překladače Rustu. Tito boti zajišťují přidělování kontroly \PR a~issues podle interních algoritmů a~automaticky přiřazují štítky označující aktuální stav daného \PR nebo issue.
 
-\section{Labely}
+\subsection{Bezpečnost}
+\label{subsec:rust_team_api:security}
+
+Bezpečnost Team \API zajišťuje několik opatření. Prvním z~nich je zabránění neoprávněnému přístupu prostřednictvím spuštění škodlivého kódu v~\CI. Úspěšný útok by mohl vést k~získání plných práv k~celé infrastruktuře organizace. Ochrana spočívá v~tom, že nikdo kromě hlavních administrátorů, ani běžní správci (maintaineři), nemá přístup k~tajným tokenům, nemůže upravovat soubory pipeline, provádět sloučení neschváleného kódu ani si zvyšovat vlastní oprávnění.
+
+Druhá skupina bezpečnostních opatření chrání před hrozbami manipulace s~obsahem repozitáře. Takový útok by mohl provést maintainer a~mohl by zahrnovat například změnu \URL domovské stránky za falešnou, eskalaci vlastních práv nebo práv napříč více týmy, případně smazání ostatních uživatelů. Ochranou proti těmto útokům je povinnost schválení změn ostatními maintainery a~zavedení kontrol v~\CI, které ověřují, zda změny v~souborech TOML nevedly k~podezřelé aktivitě \cite{rust_team_docs}.
+
+\section{Štítky}
 \label{sec:rust_labels}
-Výchozí stavy co poskytuje github je pro mnoho malých projektů dostačující ale v repozitáři jako je rust překladač stavy otevřeno zavřeno a sloučeno jsou nedostačující.
-Proto jsou zde automaticky přidělovány různé druhy štítků jako například S-waiting-for-author nebo S-waiting-for-review, díky kterým je zřetelně poznat v jakém stavu se zrovna daný pr nebo issue nachází.
 
-štítky by se daly primárně rozdělit do těchtoo kategorií
+Výchozí stavy, které poskytuje GitHub (otevřeno, zavřeno, sloučeno), jsou pro mnoho malých projektů dostačující, avšak v~repozitáři překladače Rustu jsou nedostatečné. Proto jsou zde automaticky přiřazovány různé druhy štítků, jako například \code{S-waiting-for-author} nebo \code{S-waiting-for-review}, díky nimž je zřetelně patrné, v~jakém stavu se daný \PR nebo issue právě nachází.
+
+Štítky lze primárně rozdělit do následujících kategorií:
+
 \begin{itemize}
-  \item \code{S-*} - stavy ve kterých se právě nachází daný PR nebo issue. Například S-waiting-for-author pro PR, které čeká na úpravy od autora, S-waiting-for-review pro PR, které čeká na review od ostatních a podobně. Tyto štítky jsou zásadní pro  sledování stavu v průběhu vývoje.
-  \item \code{T-*} - štítky pro označení týmu kterého se daný PR nebo issue týká apříklad T-lang pro jazykový tým, T-compiler pro tým pracující na překladači atd.
-  \item \code{A-*} - štítky pro oblasti které se daný PR nebo issue týká například A-macros pro makra, A-diagnostics pro zprávy ohledně chyb, upozornění a podobně.
-  \item \code{E-*} - označení issue nebo pr u kterého je výzva k účsti nějakého experta nebo týmu
+  \item \code{S-*} --- stavy, ve kterých se právě nachází daný \PR nebo issue. Například \code{S-waiting-for-author} označuje \PR čekající na úpravy od autora, \code{S-waiting-for-review} označuje \PR čekající na přezkoumání. Tyto štítky jsou zásadní pro sledování stavu v~průběhu vývoje.
+  \item \code{T-*} --- štítky označující tým, jehož se daný \PR nebo issue týká. Například \code{T-lang} pro jazykový tým nebo \code{T-compiler} pro tým pracující na překladači.
+  \item \code{A-*} --- štítky pro oblasti, kterých se daný \PR nebo issue dotýká. Například \code{A-macros} pro makra nebo \code{A-diagnostics} pro zprávy o~chybách a~upozorněních.
+  \item \code{E-*} --- označení issue nebo \PR, u~kterého je vyžadována účast konkrétního odborníka nebo týmu.
 \end{itemize}
 
-Samozřejmě typů štítků je mnohem více ale tyhle jsou základní pro pochopení jak funguje systém štítků v repozitáři rust překladače a jaké jsou jeho možnosti pro sledování stavu a kategorizaci jednotlivých PR a issues.
+Typů štítků je v~repozitáři výrazně více, avšak výše uvedené kategorie jsou základní pro pochopení fungování systému štítků a~jeho možností pro sledování stavu a~kategorizaci jednotlivých \PR a~issues \cite{rust_team_docs}.
 
-\section{Ostatní specifika}
-\todo{idk jestli actually budou yet}
-
-aaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-nefunguje mi shift tak jak by měl
+% \section{Ostatní specifika}
+% \todo{idk jestli actually budou yet}

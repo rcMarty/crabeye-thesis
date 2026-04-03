@@ -15,18 +15,18 @@
 
 \chapter{Analýza existujících nástrojů}
 \label{chap:existing_tools}
-\todo{korektura}
-V této kapitole budou analyzovány existující nástroje pro monitorování a statistiky. Cílem je identifikovat silné a slabé stránky těchto nástrojů.
 
-Mnoho velkých open-source projektů, jako je napříkald překladač rustu si nevystačí s obecnými řešeními pro monitorování které nabízí github. Proto si tvoří vlastní monitorovací nástroje, které jsou přizpůsobené jejich specifickým potřebám.
+V~této kapitole jsou analyzovány existující nástroje pro monitorování a~sledování statistik vývoje softwaru. Cílem je identifikovat jejich silné a~slabé stránky a~na základě toho vymezit prostor pro vlastní řešení.
 
-\todo{nevím co tu napsat jak začit a co tu vůbec dělám :)}
+Mnoho velkých open-source projektů, jako je například překladač jazyka Rust, si nevystačí s~obecnými nástroji pro monitorování, které nabízí GitHub. Proto si tvoří vlastní nástroje přizpůsobené jejich specifickým potřebám a~workflow.
 
 \input{chapters/theory/existing_tools/github.tex}
 \input{chapters/theory/existing_tools/curl.tex}
 \input{chapters/theory/existing_tools/rustc_pr_tracking.tex}
 
-\section{Shrnutí analýzy a identifikace mezer}
-\label{sec:summary}
-\todo{korektura}
-github isnisghts poskytuje pouze základní statistiky ohledně pr a issues a je třeba znát daný repozitář pro získání požadovaných informací. oproti tomu to má výhodu že přesně víme jaké issues nebo prs jsou v tomto stavu a můžou se rovnou zobrazit. u curl dashboardu máme kompetní vhled do celkové historie projektu i s informacemi co nutně nesouvisí s kodem a jeho trackováním ale nabízí to širší globálnější pohled na projekt ovšem chybí detailní informace o pr nebo issues. u rustc je zde přehledný vhled an stav pr ale nic zde není o issues. taktéž ani jeden nástroj přímo nepomáhá s vývojem a jsou spíše nástroji pro získávání informací než pro operativní řešení problémů.
+\section{Shrnutí analýzy a~identifikace mezer}
+\label{sec:existing_tools:summary}
+
+GitHub Insights poskytuje pouze základní statistiky ohledně \PR a~issues. Pro detailní zobrazení je nutné znát sledovaný repozitář a~aktivně využívat pokročilé filtry. Výhodou oproti ostatním nástrojům je přímý přístup k~jednotlivým \PR a~issues přímo z~výsledků filtrování. Curl Dashboard nabízí komplexní vhled do celkové historie projektu, včetně dat, která přímo nesouvisejí s~kódem (distribuce commitů podle časových pásem, počty bezpečnostních zranitelností), a~poskytuje tak širší pohled na projekt. Chybí zde však detailní informace o~konkrétních \PR nebo issues. Rustc PR Tracking nabízí přehledný pohled na stav \PR ve frontě ke schválení, ale zcela opomíjí issues a~celkové metriky projektu.
+
+Žádný z~analyzovaných nástrojů přímo nepomáhá s~operativním vývojem --- jedná se spíše o~nástroje pro získávání informací než pro řešení konkrétních problémů. Rovněž chybí řešení, které by propojovalo detailní pohled na \PR a~issues s~historickými daty a~aktivitou nad soubory v~repozitáři. Tato mezera je hlavní motivací pro vytvoření vlastního nástroje.

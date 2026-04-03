@@ -1,43 +1,45 @@
 \section{Požadavky na systém}
 \label{sec:requirements}
 
-Před návrhem a implementací systému je nutné vymezit, \emph{co} má systém poskytovat (funkční požadavky) a~\emph{jaké vlastnosti} má při provozu splňovat (nefunkční požadavky). Níže uvedené požadavky vycházejí z~cíle projektu: průběžně získávat, ukládat a~zpřístupňovat data o~vývoji velkého repozitáře, zejména data o~\PR, issues a~související aktivitě nad soubory.
+Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém poskytovat (funkční požadavky) a~\emph{jaké vlastnosti} má při provozu splňovat (nefunkční požadavky). Níže uvedené požadavky vycházejí z~cíle projektu: průběžně získávat, ukládat a~zpřístupňovat data o~vývoji velkého repozitáře, zejména data o~\PR, issues a~související aktivitě nad soubory.
 
 \subsection{Funkční požadavky}
 \label{subsec:requirements:functional}
 
 \begin{enumerate}
-  \item \textbf{Integrace dat z více zdrojů}
+  \item \textbf{Integrace dat z~více zdrojů}
     \begin{itemize}
-      \item Systém musí načítat data o~\PR a~issues z~GitHub \API.
+      \item Systém musí načítat data o~\PR a~issues z~\API GitHubu.
       \item Systém musí načítat informace o~změněných souborech z~historie git repozitáře.
-      \item Systém musí načítat informace o~členech týmů a~kontributorech, které jsou potřebné pro analytické dotazy.
+      \item Systém musí načítat informace o~členech týmů a~přispěvatelích, které jsou potřebné pro analytické dotazy.
+      \item Systém musí korektně zpracovávat omezení počtu požadavků (\emph{rate limiting}) při komunikaci s~\API GitHubu.
     \end{itemize}
 
   \item \textbf{Průběžná synchronizace dat}
     \begin{itemize}
       \item Systém musí umožnit opakované spouštění synchronizace bez ztráty konzistence dat.
-      \item Systém musí aktualizovat již uložené záznamy (např. změny stavu \PR nebo issue) a~doplňovat nové události.
+      \item Systém musí aktualizovat již uložené záznamy (např.\ změny stavu \PR nebo issue) a~doplňovat nové události.
+      \item Systém musí podporovat přírůstkovou synchronizaci, aby nedocházelo ke zbytečnému opakovanému načítání již zpracovaných dat.
     \end{itemize}
 
-  \item \textbf{Historizace změn v čase}
+  \item \textbf{Historizace změn v~čase}
     \begin{itemize}
-      \item Systém musí ukládat časový vývoj stavů a~atributů \PR a~issues (např. změny stavů a~štítků).
+      \item Systém musí ukládat časový vývoj stavů a~atributů \PR a~issues (např.\ změny stavů a~štítků).
       \item Systém musí podporovat doplnění chybějící historie (\emph{backfill}) pro již uložené záznamy.
     \end{itemize}
 
   \item \textbf{Analytické zpracování}
     \begin{itemize}
-      \item Systém musí poskytovat agregované pohledy nad daty (např. aktivita nad soubory, přehledy podle týmů).
-      \item Systém musí podporovat filtrování podle repozitáře, času a dalších parametrů dotazu.
-      \item Systém musí podporovat stránkování výsledků pro práci s většími datovými sadami.
+      \item Systém musí poskytovat agregované pohledy nad daty (např.\ aktivita nad soubory, přehledy podle týmů).
+      \item Systém musí podporovat filtrování podle repozitáře, časového rozsahu a~dalších parametrů dotazu.
+      \item Systém musí podporovat stránkování výsledků pro práci s~většími datovými sadami.
     \end{itemize}
 
-  \item \textbf{Zpřístupnění dat přes API}
+  \item \textbf{Zpřístupnění dat přes \API}
     \begin{itemize}
       \item Systém musí poskytovat \REST \API endpointy pro dotazy nad \PR a~issues.
-      \item Systém musí vracet odpovídající \HTTP kódy pro běžné i~chybové stavy (např. 200, 400, 404, 500).
-      \item Systém musí poskytovat strojově čitelnou dokumentaci \API (OpenAPI/Swagger).
+      \item Systém musí vracet odpovídající \HTTP stavové kódy pro běžné i~chybové stavy (např.\ 200, 400, 404, 500).
+      \item Systém musí poskytovat strojově čitelnou dokumentaci \API ve formátu OpenAPI/Swagger.
     \end{itemize}
 \end{enumerate}
 
@@ -47,40 +49,40 @@ Před návrhem a implementací systému je nutné vymezit, \emph{co} má systém
 \begin{enumerate}
   \item \textbf{Výkon}
     \begin{itemize}
-      \item Systém musí efektivně zpracovávat data z velkého repozitáře.
-      \item Systém musí omezovat objem vracených dat pomocí stránkování a limitů.
-      \item Databázová vrstva musí využívat vhodné indexy pro často používané dotazy.
+      \item Systém musí efektivně zpracovávat data z~rozsáhlého repozitáře s~velkým množstvím \PR a~issues.
+      \item Systém musí omezovat objem vracených dat pomocí stránkování a~limitů.
+      \item Databázová vrstva musí využívat vhodné indexy pro často prováděné dotazy.
     \end{itemize}
 
-  \item \textbf{Spolehlivost a odolnost}
+  \item \textbf{Spolehlivost a~odolnost}
     \begin{itemize}
-      \item Systém musí korektně zpracovat i neúplná data z externích zdrojů.
+      \item Systém musí korektně zpracovat i~neúplná data z~externích zdrojů.
       \item Zápisy do databáze musí probíhat transakčně tam, kde je vyžadována konzistence.
-      \item Při dílčích chybách musí systém chybu zalogovat a umožnit opětovné spuštění synchronizace.
+      \item Při dílčích chybách musí systém chybu zaznamenat a~umožnit opětovné spuštění synchronizace.
     \end{itemize}
 
-  \item \textbf{Konzistence a kvalita dat}
+  \item \textbf{Konzistence a~kvalita dat}
     \begin{itemize}
-      \item Systém musí minimalizovat duplicitní záznamy (např. pomocí upsert logiky).
+      \item Systém musí minimalizovat duplicitní záznamy (např.\ pomocí logiky upsert).
       \item Systém musí uchovávat časové souvislosti událostí pro pozdější analýzu trendů.
     \end{itemize}
 
   \item \textbf{Provozovatelnost}
     \begin{itemize}
       \item Systém musí být konfigurovatelný pomocí externí konfigurace (repozitář, tokeny, připojení k~databázi).
-      \item Systém musí poskytovat logování pro diagnostiku běhu a chyb.
-      \item Systém musí být jednoduše spustitelný v~lokálním i~serverovém prostředí (např. pomocí Docker Compose).
+      \item Systém musí poskytovat logování pro diagnostiku běhu a~chyb.
+      \item Systém musí být jednoduše spustitelný v~lokálním i~serverovém prostředí (např.\ pomocí Docker Compose).
     \end{itemize}
 
-  \item \textbf{Udržovatelnost a rozšiřitelnost}
+  \item \textbf{Udržovatelnost a~rozšiřitelnost}
     \begin{itemize}
       \item Systém musí být členěn do jasných modulů (\API, agregační logika, databázová vrstva, monitoring).
-      \item Rozhraní mezi vrstvami musí být navržena tak, aby bylo možné doplňovat nové endpointy a dotazy bez zásahu do celého systému.
+      \item Rozhraní mezi vrstvami musí být navržena tak, aby bylo možné doplňovat nové endpointy a~dotazy bez zásahu do celého systému.
     \end{itemize}
 
   \item \textbf{Bezpečnost}
     \begin{itemize}
-      \item Přístupové tokeny k externím službám nesmí být pevně zapsány v kódu.
+      \item Přístupové tokeny k~externím službám nesmí být pevně zapsány v~kódu.
       \item Systém musí validovat vstupní parametry \API a~bezpečně zpracovávat chybové stavy.
     \end{itemize}
 \end{enumerate}

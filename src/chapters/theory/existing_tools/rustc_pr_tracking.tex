@@ -7,16 +7,19 @@
 
 \section{Rustc PR Tracking}
 \label{sec:rustc_pr_tracking}
-\todo{korektura + ještě něco vymyslet}
-nástroj rustc pr traackiign je statická stránka která zobrazuje pouze základní informace o pr z rust repozitáře. ovšem jsou to informace specifické pro rust repozitář a spoléhá na jeho specifické štítky a workflow.
 
-\subsection{Obsah a funkcionalita}
-\todo{korektura + ještě něco vymyslet}
-nástroj je primárně zaměřen na sledování statusu pull requestů a aktivity v nich.
-kormě sgrafů u rust překladače také monitoruje jiné repozitáře organizace "rust-lang.". konkrétně crates.io, rust-analyzer a clippy. Crates.io je repozitář pro správu balíčků rustu.
-poskytuje rozsha k aktuálnímu dni a jde do historie podle dní definovaných uživatelem. nejméně poslední den a nejvíce 999 dní zpět.
+Rustc PR Tracking\footnote{\url{https://rust-lang.github.io/rustc-pr-tracking/}} je statická stránka zobrazující informace o~\PR z~repozitáře překladače Rustu. Nástroj je specifický pro repozitář rust-lang/rust a~závisí na jeho konkrétních štítcích a~procesním workflow.
+
+\subsection{Obsah a~funkcionalita}
+\label{subsec:rustc_pr_tracking:content}
+
+Nástroj je primárně zaměřen na sledování stavu \PR a~aktivity v~nich. Kromě překladače Rustu monitoruje i~další repozitáře organizace rust-lang, konkrétně crates.io, rust-analyzer a~clippy. Crates.io je registr balíčků pro ekosystém jazyka Rust.
+
+Zobrazovaná data lze filtrovat podle časového rozsahu, nejméně za poslední den, nejvýše za posledních 999 dní. Stránka se aktualizuje denně.
 
 \subsection{Zhodnocení}
-\todo{korektura + ještě něco vymyslet}
-jedná se o jednoduchý statický web který se aktualizuje denně, je jednoduchý na pochopení a je přehledný. poskytuje větší vhled pro pr hlavně pro stavy jako například "waiting for review" nebo "waiting for bors".
-jeho nevýhoda je že neposkytuje detailní popis co se kde děje v jaké části rustu
+\label{subsec:rustc_pr_tracking:evaluation}
+
+Jedná se o~jednoduchý statický web s~denní aktualizací dat. Nástroj je snadno pochopitelný a~přehledný. Poskytuje detailní vhled do stavu \PR, zejména co se týče čekání na code review nebo na sloučení.
+
+Nevýhodou je úzké zaměření výhradně na \PR --- issues ani celkové metriky repozitáře nejsou sledovány.

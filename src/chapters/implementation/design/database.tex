@@ -1,29 +1,38 @@
 \section{Struktura databáze}
 \label{sec:database}
 
-při návrhu databáze bylo klíčové rozhodnout jak bude databáze vypadat, tak aby efektivně pojmula velké množství dat a zároven aby umožýnovala rychlé provádění analytických dotazů.
+Při návrhu databáze bylo klíčové rozhodnout, jak bude databáze navržena tak, aby efektivně pojmula velké množství dat a~zároveň umožňovala rychlé provádění analytických dotazů.
 
-\subsection{Realční vs dokumentová}
+\subsection{Relační vs.\ dokumentová}
 \label{subsec:database:relational_vs_document}
-první věc o které muselo být rozhodnuto je zda vybrat dokumentovnou nebo relační databázi. Ikdyž dokumentová databáze nabízí vetší flexibilitu dat a umožnuje ukládat celé json odpovědi bez striktní struktury bylo rozhodnuto pro relační databázi
 
-z analytické povahy dotazů a potřeby agregovat data přes více entit. Relační databáze umožnuje efektivní spojování tabulek, seskupování a další analytické operace, které jsou optimalizovány v relačních databáízích
+První věcí, o~které muselo být rozhodnuto, je výběr mezi dokumentovou a~relační databází. I~když dokumentová databáze nabízí větší flexibilitu dat a~umožňuje ukládat celé \JSON odpovědi bez striktní struktury, bylo rozhodnuto pro relační databázi.
 
-taktéž relační databáze zajištuje díky primárním a cizím klíčům integritu dat a je předem definovaná struktura což umožnuje validaci a konzistenci dat a to zjednodušuje logiku na straně aplikace.
+Důvodem je analytická povaha dotazů a~potřeba agregovat data přes více entit. Relační databáze umožňuje efektivní spojování tabulek, seskupování a~další analytické operace, které jsou v~relačních databázích dobře optimalizovány.
 
-% odděleníá labels a events
+Relační databáze navíc díky primárním a~cizím klíčům zajišťuje integritu dat. Předem definovaná struktura umožňuje validaci a~konzistenci dat, což zjednodušuje logiku na straně aplikace.
 
-\subsection{Rozdělení labelů a eventů}
-labely a eventy jsou rozděleny z důvodu málo protínajících se atributů na to aby byly vyřešeny podobně jako u tabulky issues kde jediná změna mezi issue a pr je příznak toho zda se jedná o pr nebo issue. labely a eventy mají řadu odlišných atributů a proto je lepší je rozdělit do dvou tabulek.
+\subsection{Rozdělení labelů a~eventů}
+\label{subsec:database:labels_and_events}
+
+Labely a~eventy jsou rozděleny do oddělených tabulek z~důvodu malého průniku jejich atributů. Řešení je obdobné jako u~tabulky issues, kde jediným rozdílem mezi issue a~\PR je příznak určující typ záznamu. Labely a~eventy mají řadu odlišných atributů, a~proto je vhodnější je uchovávat ve dvou samostatných tabulkách.
 
 \subsection{Diagram databáze}
+\label{subsec:database:database_diagram}
 
-schéma má tři hlavní logické části. první je struktura kontributorů a do jakého týmu patří pokud patří, druhá část je aktuální stav pr a issues a třetí část je historie změn od issues a to jaké eventy se staly a jaké labely byly přidány nebo odebrány a taktéž jaké soubory se změnily v daném pr pokud už je pr merged nebo closed.
+Celková struktura databáze je znázorněna na \customref{obrázku}{fig:database:overall_database}. Schéma má tři hlavní logické části: strukturu přispěvatelů a~přiřazení do týmů, aktuální stav \PR a~issues a~historii změn issues zahrnující zaznamenané události, změny labelů a~soubory upravené v~rámci sloučených nebo uzavřených \PR.
 
-centrem schématu je tabulka issues která obsahuje aktuální stav issue a pr. tato tabulka je společná jak pro issue tak pro pr z důvodu že i na straně githubu je každý pr i issue a pravděpodobně se rozděluje pouze za pomocí příznaku. například u endpointu pro získání issues se rozdíl mezi pr a issue pozná primárně pomocí přítomnosti pole \code{pull\_request} v objektu entity v odpovědi. kvůli této jediné změně je implementován podmíněný index na této tabulce. konkrétně dva jeden kde pr = true a druhý kde ispr = false. tento index effektivně rozděluje hledání v tabulce na dvvě "poloviny"a tím zmenšuje index a urychluje vyhledávání.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/architecture/overall_database.pdf}
+  \caption{Celkový přehled databázového schématu}
+  \label{fig:database:overall_database}
+\end{figure}
 
-do historických entit se pouze přidávají události a nikdy se nemění. ostatní záznamy v tabulkách jsou aktualizovány podle posledního známého stavu.
+Podrobnější ER diagram databáze je uveden v~příloze \imageref{fig:appendix:database}. Centrem schématu je tabulka issues, která obsahuje aktuální stav issue i~\PR. Tato tabulka je společná pro oba typy záznamů, protože i~na straně GitHubu je každý \PR zároveň issue a~rozlišení probíhá pouze pomocí příznaku. Například u~endpointu pro získání issues se rozdíl mezi \PR a~issue pozná primárně pomocí přítomnosti pole \code{pull\_request} v~objektu entity v~odpovědi. Kvůli tomuto jedinému rozdílu je na tabulce implementován podmíněný index, konkrétně dva: jeden pro záznamy, kde \code{is\_pr = true}, a~druhý, kde \code{is\_pr = false}. Tento index efektivně rozděluje prohledávání tabulky na dvě části, čímž zmenšuje jeho velikost a~urychluje vyhledávání.
 
-vztah mezi týmem a kontributorem je realizován jako m:n přes spojovací tabulku contributors\_teams protože každý člen může být ve více týmech a samozřejmě tým má více členů.
+Do historických entit jsou pouze přidávány nové události a~záznamy jsou neměnné. Ostatní záznamy v~tabulkách jsou aktualizovány podle posledního známého stavu.
 
-ohledně souborů je logováno pouze kdo upravil daný soubor neloguje se jaké změny byly provedeny. to je dostačující protože stačí nám na jaké části projektu se daný kontributor podílel a nejde nám o konkrétní funkcionalitu kterou upravil.
+Vztah mezi týmem a~přispěvatelem je realizován jako vazba m:n přes spojovací tabulku \\ \code{contributors\_teams}, protože každý člen může být ve více týmech a~každý tým má více členů.
+
+Ohledně souborů je zaznamenáváno pouze to, kdo daný soubor upravil, konkrétní provedené změny se neukládají. To je dostačující, protože cílem je zjistit, na jakých částech projektu se daný přispěvatel podílel, nikoli sledovat konkrétní upravené funkcionality.
