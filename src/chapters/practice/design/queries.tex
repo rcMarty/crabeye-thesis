@@ -1,0 +1,30 @@
+% - Popis dotazů - vyjmenovat několik základních dotazů, a popsat, z jakých zdrojů dat budou čerpat
+
+\chapter{Popis dotazů}
+\label{chap:queries}
+
+Systém zpřístupňuje nasbíraná data z~mnoha zdrojů prostřednictvím \REST \API. \API tohoto systému zpřístupňuje endpointy, které odpovídají na dotazy, jež si uživatelé mohou klást při sledování velkého repozitáře. Rozsah pokrytých dotazů sahá od stavu konkrétního~\PR po přehled souborů upravovaných konkrétním týmem.
+
+\section{Přehled implementovaných dotazů}
+Následující část detailně specifikuje kompletní sadu analytických pohledů, které byly v rámci návrhu definovány a následně implementovány. Pro každý dotaz je níže popsán jeho hlavní účel, potřebné vstupy a způsob agregace dat ze zdrojových dat.
+
+\begin{description}
+  \item[Historický stav \PR k~danému datu:] Prvním z~dotazů je rekonstrukce stavu~\PR v~časovém období. Dotaz přijímá identifikátor~\PR, datum, od nějž se mají záznamy hledat, a~počet dní do historie od tohoto data (tzv.\ \emph{lookback} vzor), a~vrací seznam stavů~\PR v~tomto časovém rozmezí. U~každého záznamu je přiloženo časové razítko. Tato data jsou čerpána z~\API GitHubu \chapterref{subsec:github_api_rest}, konkrétně z~endpointů pro~\PR a~Timeline \API, kde jsou zaznamenávány stavové štítky začínající prefixem \code{S-*} \chapterref{sec:rust_labels} a~události. Výsledek tak umožňuje přesně určit, v~jakém stavu se daný~\PR nacházel v~libovolném časovém okamžiku.
+
+  \item[Počet \PR v~konkrétním stavu:] Druhý z~dotazů se zaměřuje na to, kolik~\PR bylo v~daném stavu v~konkrétní den. Dotaz přijímá výčtový typ stavu (\emph{enum}) a~časové razítko, k~němuž má být počet~\PR v~tomto stavu vypočítán, a~vrátí pouze počet takových~\PR. Výsledky slouží ke sledování trendů počtu~\PR v~konkrétních stavech v~čase a~identifikaci vývojových vzorců v~procesu revize kódu. Informace jsou čerpány z~Timeline \API GitHubu a~\API pro~\PR \chapterref{subsec:github_api_rest}.
+
+  \item[\PR čekající na review:] Třetí dotaz je podobný předchozímu, avšak identifikuje~\PR, která čekají na zpracování. Tento dotaz nepracuje s~historickými daty, ale s~aktuálním stavem všech~\PR v~systému. Jsou vybrána ta, která se nacházejí v~jednom ze tří stavů: \code{S-waiting-on-review}, \code{S-waiting-on-bors} nebo \code{S-waiting-on-author} \chapterref{sec:rust_labels}, přičemž výsledkem je seřazený stránkovaný seznam těchto~\PR. Informace jsou čerpány z~Timeline \API GitHubu a~\API pro~\PR \chapterref{subsec:github_api_rest}. Tento dotaz pomáhá identifikovat nejstarší~\PR čekající na zpracování a~zaměřit na ně pozornost.
+
+  \item[Události konkrétní issue k~danému datu:] Další z~dotazů se zaměřuje na události týkající se výhradně issues bez přidruženého~\PR. Dotaz přijímá identifikátor issue a~datum \todo{tohle je nepraktické a~v~\API se to musí změnit na lookback} a~vrací všechny události dané issue k~tomuto datu. Data pro tyto záznamy pocházejí z~Timeline \API GitHubu \chapterref{subsec:github_api_rest}, které zprostředkovává záznamy o~uzavření, znovuotevření, komentářích a~dalších interakcích. Pokud issue s~daným číslem v~databázi neexistuje, je vrácena prázdná odpověď s~\HTTP stavovým kódem 404.
+
+  \item[Top N souborů upravených konkrétním přispěvatelem:] Tento dotaz odpovídá na otázku, které soubory daný vývojář nejčastěji upravoval v~posledních N~dnech. Vstupem je jméno uživatele podle záznamu v~databázi přispěvatelů \chapterref{sec:database} a~časové okno definované počtem dní zpětně od aktuálního data. Data do tabulky aktivity souborů plynou z~git repozitáře prostřednictvím lokální analýzy commitů \chapterref{sec:git}: pro každý merge commit spojený s~\PR jsou extrahovány dotčené soubory a~uloženy spolu s~identifikátorem přispěvatele. Výsledkem je seřazený seznam souborů s~přiřazenými metadaty přispěvatele.
+
+  \item[Přispěvatelé, kteří upravili daný soubor nebo složku:] Tento dotaz nabízí inverzní perspektivu, která k~zadané cestě souboru nebo prefixu složky vrátí seznam přispěvatelů, kteří ji v~daném časovém okně modifikovali. Cesta je vyhledávána jako prefix, takže dotaz pokrývá jak konkrétní soubor, tak celý adresář a~všechny jeho podadresáře. Odpověď je stránkovaná a~obsahuje celkový počet přispěvatelů a~jejich metadata. Data pocházejí ze všech tří hlavních zdrojů: lokálního git repozitáře \chapterref{sec:git}, \API GitHubu \chapterref{subsec:github_api_rest} a~Team \API \chapterref{sec:rust_team_api}.
+
+  \item[Soubory upravené členy daného týmu:] Posledním z~implementovaných dotazů je přehled souborů, které v~zadaném časovém okně upravili členové konkrétního týmu. Na vstupu je název týmu \chapterref{sec:rust_team_api}, časové okno a~počet úrovní adresářové hierarchie pro seskupení výsledku. Data jsou čerpána ze všech tří hlavních zdrojů a~výsledek lze získat třemi způsoby: buď jako plochý seznam souborů seřazených sestupně podle počtu úprav, jako stromovou strukturu seskupenou do zvoleného počtu úrovní adresářové hierarchie, nebo jako úplný adresářový strom. Tato flexibilita umožňuje prezentační vrstvě \chapterref{subsec:architecture:presentation_layer} přizpůsobit vizualizaci jak detailním grafům na úrovni jednotlivých souborů, tak přehledovým heatmapám celých modulů.
+
+\end{description}
+
+\section{Souhrn}
+\label{sec:queries:souhrn}
+Všechny dotazy sdílí jednotný přístup: jsou striktně čtecí (neprovádějí žádné modifikace dat), jsou parametrizovány identifikátorem repozitáře a~pracují s~daty uloženými při sběru v~databázi \chapterref{sec:database}, nikoli přímo s~externími \API v~době požadavku. Tím je zaručena nízká latence odpovědí i~při analytických dotazech nad velkým množstvím historických záznamů. Každý endpoint deklaruje možné \HTTP stavové kódy včetně 404 (nenalezeno) a~500 (vnitřní chyba), což usnadňuje integraci s~libovolnou prezentační vrstvou nebo dalším nástrojem pro vizualizaci dat.

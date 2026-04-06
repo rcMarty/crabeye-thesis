@@ -1,0 +1,14 @@
+% - Návrh
+%     - Seznam požadavků (kombinovat git + github + team API data, inkrementalita, vizualizace, dotazy v DB), zvládat velké repozitáře, sledovat repozitáře v průběhu času, jednoduché nasazení, backfilling, možnost použití jako knihovny, znovunačítání dat (team API), sledování stavu pull requestů v čase
+%     - Diagram architektury
+%     - Popis dotazů - vyjmenovat několik základních dotazů, a popsat, z jakých zdrojů dat budou čerpat
+%     - Struktura databáze - diagram
+
+\chapter{Návrh systému}
+\label{chap:design}
+Tato kapitola se zaměří na návrh a implementaci nástroje pro monitorování velkých repozitářů, konkrétně se zaměříme na repozitář Rust překladače.
+
+\input{chapters/implementation/design/requirements.tex}
+\input{chapters/implementation/design/architecture.tex}
+\input{chapters/implementation/design/database.tex}
+\input{chapters/implementation/design/queries.tex}
