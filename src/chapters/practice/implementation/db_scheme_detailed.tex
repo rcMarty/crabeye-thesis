@@ -1,0 +1,58 @@
+\section{Implementace databázového schématu}
+\label{sec:implementation:db_scheme}
+
+Tato sekce popisuje konkrétní implementační rozhodnutí při tvorbě databázového schématu. Navazuje na návrh popsaný v~kapitole~\ref{sec:database} a~rozvádí detaily, které se týkají volby primárních klíčů, unikátních omezení, indexů a~dalších databázových entit.
+
+\subsection{Primární klíče}
+\label{subsec:implementation:db_scheme:primary_keys}
+
+Tabulka \code{issues} používá složený přirozený klíč \code{(repository, issue)}, protože číslo issue je unikátní pouze v~rámci jednoho repozitáře. Zahrnutí sloupce \code{repository} do primárního klíče umožňuje, aby systém od začátku podporoval sledování více repozitářů bez nutnosti změny schématu.
+
+Historické tabulky \code{issue\_event\_history}, \code{issue\_labels\_history} a~\code{file\_activity} oproti tomu používají umělý klíč \code{id} typu \code{SERIAL}. Přirozený klíč by zde nebyl efektivní. Umělý klíč zjednodušuje cizí klíče v~případných navazujících tabulkách a~zrychluje interní operace databáze s~řádky.
+
+\subsection{Unikátní omezení na historických tabulkách}
+\label{subsec:implementation:db_scheme:unique_constraints}
+
+I~přes použití umělého klíče jsou na historických tabulkách definována unikátní omezení podle přirozeného klíče záznamu. Konkrétně:
+
+\begin{itemize}
+  \item \code{issue\_event\_history}: \code{(repository, issue, timestamp, event)}
+  \item \code{issue\_labels\_history}: \code{(repository, issue, timestamp, label)}
+  \item \code{file\_activity}: \code{(repository, issue, timestamp, file\_path)}
+\end{itemize}
+
+Tato omezení zabraňují vzniku duplicitních záznamů při opakovaném spuštění synchronizace. Pro vkládání dat je využíván mechanismus \emph{upsert} (\code{INSERT ... ON CONFLICT DO NOTHING}), který při konfliktu unikátního omezení záznam přeskočí bez chyby. Za druhé omezení slouží jako přirozené indexy pro dotazy filtrující podle uvedených sloupců.
+
+\subsection{Denormalizace sloupce \texttt{is\_pr}}
+\label{subsec:implementation:db_scheme:is_pr_denormalization}
+
+Sloupec \code{is\_pr} je přítomen nejen v~tabulce \code{issues}, ale také ve všech historických tabulkách. Jde o~záměrnou denormalizaci. Při analytických dotazech, které pracují pouze s~historickými událostmi nebo změnami labelů, je tak možné filtrovat záznamy podle typu (issue vs.\ \PR) bez nutnosti provádět \code{JOIN} s~tabulkou \code{issues}. Tento přístup snižuje složitost dotazů a~zlepšuje jejich výkon pro časté dotazy.
+
+\subsection{Volitelné sloupce (Nullable)}
+\label{subsec:implementation:db_scheme:nullable}
+
+Některá data nemusí být z GitHubu vždy dostupná, schéma proto v tabulce \code{issues} využívá volitelné sloupce:
+
+\begin{itemize}
+  \item \textbf{\code{contributor\_id}:} Může být prázdný (\code{NULL}), pokud autor svůj GitHub účet smazal nebo anonymizoval. Systém tak dokáže uložit záznam i bez známého autora.
+  \item \textbf{\code{merge\_sha}:} Obsahuje hash commitu pouze u úspěšně sloučených (merged) pull requestů. Pokud je \PR stále otevřený nebo byl zahozen, zůstává hodnota \code{NULL}.
+\end{itemize}
+
+\subsection{Hierarchie týmů}
+\label{subsec:implementation:db_scheme:team_hierarchy}
+
+Tabulka \code{teams} obsahuje sloupec \code{subteam\_of}, který je cizím klíčem odkazujícím na stejnou tabulku. Tímto způsobem je implementována stromová hierarchie týmů, kdy jeden tým může být podtýmem jiného. Aby nedošlo k~nevalidnímu stavu, kdy by tým byl sám sobě nadřazeným týmem, je na tabulce definováno \code{CHECK} omezení \code{team != subteam\_of}.
+
+\subsection{Indexy pro analytické dotazy}
+\label{subsec:implementation:db_scheme:indexes}
+
+Kromě podmíněných indexů nad sloupcem \code{is\_pr} v~tabulce \code{issues}, popsaných v~kapitole~\ref{sec:database}, jsou definovány další indexy optimalizující analytické dotazy.
+
+Na historických tabulkách jsou indexovány sloupce \code{timestamp} a~\code{repository}, protože analytické dotazy téměř vždy filtrují záznamy podle časového rozsahu nebo konkrétního repozitáře. Bez těchto indexů by databáze musela provádět sekvenční průchod celých tabulek.
+
+Na tabulce \code{file\_activity} je navíc definován index nad sloupcem \code{file\_path}, protože dotazy identifikující přispěvatele podle konkrétního souboru nebo skupiny souborů patří mezi nejčastěji prováděné analytické operace.
+
+\subsection{Absence ORM}
+\label{subsec:implementation:db_scheme:no_orm}
+
+Schéma bylo vytvořeno a~je spravováno přímo pomocí \SQL skriptů bez použití \ORM vrstvy. Tento přístup byl zvolen záměrně, protože analytické dotazy jsou v~mnoha případech příliš komplexní a specifické pro abstrakce, které \ORM poskytuje. Přímé \SQL umožňuje plně využít specifické funkce PostgreSQL, jako jsou podmíněné indexy, \code{INSERT ... ON CONFLICT} nebo agregační \emph{window functions}, které by v~\ORM vyžadovaly nestandardní rozšíření nebo ruční psaní  \SQL.

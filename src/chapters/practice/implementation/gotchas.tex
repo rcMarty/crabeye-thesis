@@ -1,0 +1,45 @@
+\section{Specifika synchronizace dat}
+\label{sec:implementation:gotchas}
+
+Tato sekce popisuje konkrétní implementační přístupy a úskalí při synchronizaci dat z~GitHubu a~z~lokálního git repozitáře.
+
+\subsection{Inkrementální načítání}
+\label{subsec:implementation:gotchas:incremental}
+
+Při prvním spuštění synchronizace je nutné načíst historická data. Repozitář \code{rust-lang/rust} v~době psaní této práce obsahuje přibližně 92~000 \PR a~61~000 issues. Opakovat takový plný průchod při každém obnovení dat by bylo jak časově nákladné, tak zbytečně zatěžující z~pohledu počtu požadavků na \API GitHubu.
+
+Z~tohoto důvodu systém rozlišuje dva režimy synchronizace (\code{SyncMode}):
+
+\begin{itemize}
+  \item \textbf{Last(N)} — načte posledních $N$ stránek výsledků (\PR nebo issues), seřazených sestupně podle data vytvoření. Slouží pro rychlé doplnění nejnovějších záznamů nebo při prvotním spuštění.
+  \item \textbf{Since(datum)} — načítá záznamy seřazené sestupně podle časového razítka a~ukončí se ve chvíli, kdy narazí na záznamy starší než zadané datum. Tento režim je využíván při průběžné synchronizaci v~pozadí.
+\end{itemize}
+
+V~rámci serveru běží na pozadí smyčka (\code{StateMonitor}), která se každých 60 sekund spustí a~zavolá synchronizaci v~režimu \code{Since(last\_known\_event\_timestamp)}, kde jako počáteční datum slouží časová značka posledního záznamu v~tabulce \code{issue\_event\_history}. Tím je zajištěno, že jsou průběžně doplňovány pouze záznamy, které se od posledního spuštění změnily.
+
+Pro případ, že od počátečního naplnění databáze chybí historické záznamy (například protože při prvním synchronizaci nebyla volána možnost \code{--full-history}), je k~dispozici příkaz \code{backfill}. Ten vyhledá záznamy v~tabulce \code{issues}, ke kterým dosud v~tabulce \code{issue\_event\_history} neexistují žádné řádky, a~pro každý takový záznam zpětně načte celou historii událostí z~GitHub \API.
+
+\subsection{Limity GitHub \API a jejich vliv na návrh}
+\label{subsec:implementation:gotchas:rate_limits}
+
+GitHub \REST \API pro autentizované uživatele umožňuje 5~000 požadavků za hodinu\cite{github_rest_api}. V~kontextu průběžné synchronizace, kdy jsou každých 60 sekund zasílány pouze požadavky pro záznamy s~nedávnou aktivitou, je reálné zatížení výrazně pod tímto limitem, a~to v~řádu desítek až stovek požadavků za hodinu. Limity tedy nejsou při normálním provozu překračovány.
+
+Přesto je v~implementaci přítomna ochrana pro případ rozsáhlé počáteční synchronizace nebo zpětného doplnění (\code{backfill}), kdy se může počet požadavků přiblížit limitům. Pro každý požadavek na \API GitHubu je použita funkce \code{retry\_on\_rate\_limit}, která detekuje chyby odpovídající překročení limitu (HTTP status 429, řetězce \code{"rate limit"}, \code{"too many requests"} nebo \code{"secondary rate"} v~chybové zprávě)\cite{github_rest_api} a~automaticky opakuje požadavek s~exponenciálním zpožděním. Počáteční čekání je 30 sekund, maximální prodleva je 15 minut a~celková maximální doba opakování je 45 minut. Pokud se požadavek nezdaří ani po uplynutí této doby, chyba se propaguje dál a~synchronizace je přerušena. Tento mechanismus slouží jako pojistka, nikoli jako primární strategie pro správu limitu.
+
+\subsection{Timeline events vs.\ webhooky}
+\label{subsec:implementation:gotchas:timeline_vs_webhooks}
+
+GitHub nabízí dva přístupy k~získání průběžné historie změn \PR a~issues: webhooky a~timeline events \API.
+
+Webhooky fungují jako push notifikace — GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint. Tento přístup je vhodný pro aplikace, které potřebují reagovat na události v~reálném čase\cite{github_webhooks}. Pro účely této práce je však nevhodný ze dvou důvodů. Za prvé, webhook vyžaduje veřejně dostupný endpoint, což komplikuje lokální vývoj a~testování. Za druhé, webhooky neposkytují historická data, takže jimi nelze zpětně získat události, ke kterým došlo před registrací webhooku.
+
+Systém proto používá timeline events \API, které pro každý \PR nebo issue vrátí seznam všech zaznamenaných událostí v~chronologickém pořadí. Tím je možné jak zpětně naplnit historii, tak průběžně doplňovat nové události. Načítání je optimalizováno tak, že pro každý záznam je kontrolována časová značka posledního uloženého záznamu v~databázi.  Pokud načtená stránka událostí obsahuje záznamy s~časovou značkou starší než tato hodnota, načítání je ukončeno.
+
+\subsection{Kombinace GitHub \API a~git repozitáře}
+\label{subsec:implementation:gotchas:api_vs_git}
+
+Informace o~souborech změněných v~rámci sloučeného \PR jsou dostupné přes \API GitHubu prostřednictvím endpointů pro výpis souborů daného \PR\cite{github_rest_api}. Použití tohoto endpointu by však při zpracování tisíců \PR přineslo výrazné navýšení počtu požadavků na \API, a taktéž by bylo pomalé kvůli síťové latenci.
+
+Z~tohoto důvodu jsou informace o~změněných souborech získávány přímo z~lokální kopie git repozitáře pomocí knihovny \code{git2}. Pro každý sloučený \PR je znám \SHA merge commitu, který je uložen v~tabulce \code{issues}. Pomocí funkce \code{diff} je tento commit porovnán s~jeho prvním rodičovským commitem, čímž vzniká seznam souborů změněných v~rámci daného \PR. Tento přístup nevyžaduje žádné síťové požadavky na \API GitHubu a~je výrazně rychlejší, protože git repozitář je k~dispozici lokálně.
+
+Nevýhodou lokálního přístupu je nutnost mít k~dispozici naklonovaný repozitář \code{rust-lang/rust}, který má v~době psaní této práce velikost přibližně 6~GB (samotná git historie bez zdrojových souborů). Systém repozitář při prvním spuštění automaticky naklonuje a~při každé synchronizaci stáhne nejnovější změny pomocí \code{git fetch}.
