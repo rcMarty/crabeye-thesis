@@ -1,2 +1,86 @@
-% - Evaluace
-%     - Začnu s prázdnými daty, chci načíst `rust-lang/rust` - jak dlouho to trvá? Kolik GH API requestů spotřebuju? Když dojde ke změně, za jak dlouho se objeví v dashboardu? Jak často si můžu dovolit updatovat data? Jak dlouho trvá "jeden inkrementální update"?
+\section{Výkonnostní měření synchronizace}
+\label{sec:evaluace:benchmarks}
+
+V rámci evaluace bylo provedeno měření výkonu synchronizace dat pro repozitář \texttt{rust\-lang/rust}.
+Měření probíhalo na osobním stolním počítači se stabilním připojením k internetu, výsledky jsou tedy orientační a mohou se lišit v závislosti na hardwaru a připojení.
+
+\subsection{Počáteční inicializace dat}
+\label{sec:evaluace:benchmarks:inicializace}
+
+Počáteční synchronizace slouží k prvotnímu stažení všech dat z repozitáře za zvolené časové období.
+Měření bylo provedeno pro data od 1.\,1.\,2023, tedy za přibližně 3 roky a 4,5 měsíce.
+Celková doba počáteční synchronizace činila přibližně 51 minut.
+Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:benchmarks:inicializace}.
+
+\begin{table}[h]
+  \centering
+  \caption{Časy jednotlivých fází počáteční synchronizace (rust-lang/rust, od 2023-01-01)}
+  \label{tab:evaluace:benchmarks:inicializace}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Fáze} & \textbf{Trvání} \\
+    \midrule
+    Klonování git repozitáře ($\approx$\,1,2\,GB) & $\approx$ 1--2 min \\
+    Stažení \PR a issues z GitHub \API & 14 min 13 s \\
+    Vložení přispěvatelů z \PR do databáze & 18 s \\
+    Vložení \PR do databáze & 22 min 5 s \\
+    Stažení issues z GitHub \API & 14 min 4 s \\
+    Vložení přispěvatelů z issues do databáze & 23 s \\
+    Vložení issues do databáze & 1 s \\
+    Synchronizace týmů & $<$ 1 s \\
+    \midrule
+    \textbf{Celkem} & $\approx$ \textbf{51 min} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Za uvedené období bylo staženo přibližně 64\,000 \PR a issues, k čemuž bylo zapotřebí přibližně
+640 \API požadavků na GitHub (při maximální velikosti stránky 100 záznamů).
+Synchronizace dat týmů vyžadovala jediný požadavek na \API rust týmu\ref{sec:rust_team_api}, který nepodléhá běžnému limitu.
+
+% Počáteční synchronizaci je doporučeno spouštět jako samostatný proces -- nejlépe s vyhrazeným přístupovým tokenem -- a to pouze jednou při prvním nasazení.
+% Alternativně lze zvolit kratší časové okno (například posledních 30 dní) a teprve poté spustit stahování kompletní historie událostí jako oddělený proces na pozadí, čímž se výrazně zkrátí doba inicializace.
+
+\subsection{Inkrementální aktualizace}
+\label{sec:evaluace:benchmarks:inkrementalni}
+
+Po dokončení počáteční synchronizace systém provádí inkrementální aktualizace, při nichž jsou z GitHub \API staženy pouze záznamy změněné od posledního běhu.
+Výpis~\ref{lst:evaluace:benchmarks:inkrementalni} zachycuje log inkrementální aktualizace v situaci, kdy nebyly nalezeny žádné nové záznamy.
+
+\begin{listing}[h]
+\begin{minted}[linenos=false]{text}
+Getting pull requests from github:  took: 3.653 seconds
+Inserting contributors from pull requests:  took: 0.000 seconds
+Inserting pull requests to database:  took: 0.000 seconds
+Getting issues from github:  took: 2.473 seconds
+Inserting contributors from issues to database:  took: 0.000 seconds
+Inserting issues to database:  took: 0.000 seconds
+Upserting users from rust teams:  took: 0.069 seconds
+Overall getting resources:  took: 6.312 seconds
+\end{minted}
+  \caption{Log inkrementální aktualizace bez nových záznamů}
+  \label{lst:evaluace:benchmarks:inkrementalni}
+\end{listing}
+
+Celý cyklus inkrementální aktualizace trval přibližně 6,3 sekundy.
+Největší část vykazovalo dotazování GitHub \API, konkrétně přibližně 3,7 sekundy pro \PR a 2,5 sekundy pro issues.
+V případě nových záznamů přibývá průměrně 1,5 dodatečného \API požadavku na každý nový \PR nebo issue, a to z důvodu stahování kompletní historie událostí a štítků.
+
+Po dokončení každého synchronizačního cyklu jsou aktualizovaná data okamžitě dostupná v dashboardu.
+Maximální prodleva mezi vznikem změny v repozitáři a jejím zobrazením odpovídá nakonfigurovanému intervalu mezi synchronizacemi.
+Při výchozím nastavení intervalu na 2 minuty je tato prodleva v nejhorším případě 2 minuty.
+
+\subsection{Spotřeba API požadavků}
+\label{sec:evaluace:benchmarks:api}
+
+GitHub omezuje počet \API požadavků na 5\,000 za hodinu pro autentizované požadavky \cite{github_rate_limits} (viz. \ref{subsec:github_api_limits}).
+Při standardním provozu spotřebuje systém minimálně 60 požadavků za hodinu, přičemž se vychází z přibližně 2 požadavků na jeden synchronizační cyklus (jeden pro \PR, jeden pro issues) při intervalu 2 minuty (30 cyklů za hodinu).
+K tomu je nutné připočítat průměrně 1,5 požadavku za každý nový \PR nebo issue potřebný k synchronizaci historie.
+Pro repozitář \texttt{rust-lang/rust} většinou přibývá v závislosti na denní době 0 až 5 nových záznamů za hodinu.
+
+Celková průměrná spotřeba při normálním provozu za hodinu je tedy:
+\[
+  30 \times 2 + 5 \times 1{,}5 = 67{,}5 \text{ požadavků/hod}
+\]
+
+Tato hodnota představuje přibližně 1,4\,\% stanoveného limitu, takže systém může bez problémů fungovat i s výrazně kratšími synchronizačními intervaly nebo může být provozováno více instancí souběžně pro různé repozitáře se stejným přístupovým tokenem.
