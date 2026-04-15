@@ -39,7 +39,8 @@ entity "issues" as issues {
   is_pr : BOOLEAN
   contributor_id : BIGINT <<FK>>
   current_state : TEXT
-  timestamp : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
   merge_sha : TEXT
   --
   (repository, issue) : <<UNIQUE>>
