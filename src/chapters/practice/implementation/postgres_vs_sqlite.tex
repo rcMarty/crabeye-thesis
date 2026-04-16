@@ -1,40 +1,28 @@
 \section{Volba databázového systému}
 \label{sec:implementation:db_choice}
 
-Při implementaci bylo nutné zvolit konkrétní systém pro správu relačních databází. Jako hlavní kandidáti byly zvažovány dva systémy: SQLite a~PostgreSQL. Oba systémy jsou relační, podporují \SQL a~jsou open-source software. Liší se však v~architektuře, způsobu nasazení a~vhodnosti pro různé scénáře použití.
+Při implementaci bylo nutné zvolit konkrétní systém pro správu relačních databází. Jako hlavní kandidáti byly zvažovány SQLite a~PostgreSQL — oba relační, open-source a~s~podporou \SQL, avšak odlišné v~architektuře a~vhodnosti pro daný scénář.
 
 \subsection{SQLite}
 \label{subsec:implementation:db_choice:sqlite}
 
-SQLite je odlehčený, souborový databázový systém, který nevyžaduje samostatný serverový proces\cite{sqlite_about}. Celá databáze je uložena v~jediném souboru na disku, přičemž databázový stroj je přímo vložen (embedded) do aplikace jako knihovna. Díky tomu odpadá nutnost instalace a~konfigurace samostatného databázového serveru, což výrazně zjednodušuje lokální nasazení a~vývoj. Pro spuštění aplikace s~SQLite stačí mít přítomný databázový soubor a~příslušnou klientskou knihovnu.
+SQLite je odlehčený souborový databázový systém bez samostatného serverového procesu\cite{sqlite_about}. Celá databáze je uložena v~jediném souboru a~databázový stroj je vložen přímo do aplikace jako knihovna. Tím odpadá nutnost instalace serveru, čímž se výrazně zjednodušuje lokální vývoj a~nasazení. SQLite je proto vhodné zejména pro prototypování, nízkou souběžnost nebo jako vestavěná databáze mobilních a~desktopových aplikací\cite{sqlite_when_to_use}.
 
-Tato jednoduchost nasazení je hlavní výhodou SQLite zejména při vývoji a~testování. Vývojář nemusí mít nainstalovaný žádný databázový server, není třeba spravovat přihlašovací údaje ani síťové připojení. SQLite je proto vhodné pro aplikace s~nízkou souběžností přístupu, pro prototypování nebo jako vestavěná databáze mobilních a~desktopových aplikací\cite{sqlite_when_to_use}.
-
-Nevýhodou výchozí konfigurace SQLite je omezená podpora souběžného přístupu více procesů nebo vláken. Ve výchozím režimu (tzv. Rollback Journal) dochází při zápisu k~uzamčení celého databázového souboru, což může způsobovat prodlevy nebo chyby v~prostředí s~větším zatížením\cite{sqlite_when_to_use}. Tento nedostatek do značné míry řeší \WAL (Write-Ahead Logging) režim, aktivovatelný příkazem \texttt{PRAGMA journal\_mode=WAL;}\cite{sqlite_wal}. Díky \WAL módu mohou čtenáři přistupovat k~databázi i~v~době probíhajícího zápisu. Souběžné zápisy jsou však i~v~\WAL módu serializovány, protože SQLite připouští nejvýše jednoho souběžného zapisovatele\cite{sqlite_wal}.
-
-Tradiční nasazení SQLite ve vícekontejnerovém prostředí je problematické, neboť sdílení databázového souboru mezi kontejnery přináší problémy s~konzistencí dat. Moderní cloudový ekosystém SQLite zaznamenal výrazný rozvoj a~vznikly distribuované služby jako Cloudflare D1\cite{cloudflare_d1} nebo Turso\cite{turso_sqlite}, umožňující globálně distribuované nasazení SQLite. Pro analytické nástroje vyžadující specifické \SQL funkce a~pokročilé dotazy mohou tyto platformy nabízet omezenější sadu možností oproti tradičním databázovým serverům.
+Nevýhodou je omezená podpora souběžných zápisů. Ve výchozím režimu (Rollback Journal) dochází při zápisu k~uzamčení celého souboru. Tento problém částečně řeší \WAL režim (\code{PRAGMA journal\_mode=WAL;})\cite{sqlite_wal}, který umožňuje souběžné čtení za probíhajícího zápisu, avšak souběžné zápisy jsou stále serializovány. Nasazení ve vícekontejnerovém prostředí je kvůli sdílenému souboru problematické. Moderní cloudové platformy jako \devTool{Cloudflare D1}{https://developers.cloudflare.com/d1/} nebo \devTool{Turso}{https://turso.tech} tato omezení řeší, avšak za cenu omezenější sady analytických \SQL funkcí.
 
 \subsection{PostgreSQL}
 \label{subsec:implementation:db_choice:postgresql}
 
-PostgreSQL je plnohodnotný, serverový relační databázový systém s~rozsáhlou sadou funkcí\cite{postgresql_about}. Funguje na architektuře klient-server, kde databázový server běží jako samostatný proces a~klientské aplikace se k~němu připojují prostřednictvím síťového rozhraní. Tato architektura umožňuje obsluhovat souběžně více klientů, spravovat transakce a~efektivně využívat dostupné systémové prostředky.
-
-Přestože nastavení PostgreSQL lokálně vyžaduje instalaci a~konfiguraci serveru, lze tento krok výrazně zjednodušit pomocí kontejnerizace, kde server běží jako kontejner a~je spustitelný jediným příkazem. Při nasazení do cloudu je PostgreSQL podporován prakticky všemi velkými poskytovateli jako spravovaná služba (například Amazon RDS, Google Cloud SQL nebo Azure Database for PostgreSQL), což odpadá nutnost správy samotného serveru a~usnadňuje škálování aplikace.
-
-Díky serverové architektuře PostgreSQL bez problémů zvládá souběžný přístup více aplikačních instancí, transakční konzistenci i~pokročilé dotazy s~propracovaným plánovačem dotazů a~podporou různých typů indexů. Pro scénáře s~dávkovým zápisem velkého objemu dat (jako je iniciální synchronizace repozitáře) je třeba vzít v~úvahu, že architektura klient-server zavádí přídavnou síťovou latenci (\TCPIP) oproti vestavěným databázím, kde komunikace probíhá přímo v~paměti procesu bez přenosu po síti.
+PostgreSQL je plnohodnotný serverový relační databázový systém\cite{postgresql_about} fungující na architektuře klient-server. Umožňuje souběžný přístup více klientů, pokročilou správu transakcí a~efektivní využití systémových prostředků. Lokální nastavení vyžaduje spuštění serveru, které lze zjednodušit kontejnerizací. V~cloudu je PostgreSQL dostupný jako spravovaná služba u~všech hlavních poskytovatelů (Amazon RDS, Google Cloud SQL, Azure). Oproti vestavěným databázím zavádí architektura klient-server přídavnou síťovou latenci (\TCPIP), která je však při dávkovém zápisu zanedbatelná.
 
 \subsection{Výsledné rozhodnutí}
 \label{subsec:implementation:db_choice:decision}
 
-\todo{aaaaaaaaaaaaaaa}
+Pro implementaci byl zvolen PostgreSQL. Rozhodujícím argumentem byla podpora analytického \SQL, zejména klauzule \code{DISTINCT ON}\cite{postgresql_distinct_on}, kterou SQLite nenabízí a~která zjednodušuje dotazy typu point-in-time pro zjištění stavu každého \PR v~daném okamžiku. PostgreSQL dále poskytuje pokročilé okenní funkce\cite{postgresql_window_functions} pro výpočty nad časovými řadami a~propracovaný plánovač dotazů s~podporou různých typů indexů. Cloudové platformy moderního ekosystému SQLite tyto analytické konstrukty nativně nepodporují. Zatímco SQLite serializuje souběžné zápisy i~v~\WAL módu, PostgreSQL je bez omezení zvládá paralelně.
 
-Pro implementaci byl zvolen databázový systém PostgreSQL, přičemž rozhodujícím argumentem byla především nadřazená podpora analytického \SQL. Prvotním impulzem bylo využití klauzule \texttt{DISTINCT ON}\cite{postgresql_distinct_on}, kterou SQLite nenabízí a~která zjednodušuje dotazy typu point-in-time , například zjištění stavu každého pull requestu v~daném časovém okamžiku. PostgreSQL dále poskytuje pokročilé okenní funkce (window functions)\cite{postgresql_window_functions} pro výpočty nad časovými řadami a~meziřádková porovnání, a~propracovaný plánovač dotazů s~podporou Hash Join a~různých typů indexů, nezbytných pro efektivní analytiku nad velkými objemy dat.
+Pro lokální vývoj je server spouštěn přes kontejnerizaci, takže vývojář nemusí instalovat PostgreSQL přímo do systému a~vývojové prostředí zůstává shodné s~produkčním nasazením.
 
-Ačkoliv moderní ecko\-sys\-tém SQLite (například Cloudflare D1\cite{cloudflare_d1} nebo Turso\cite{turso_sqlite}) dnes umožňuje distribuované nasazení v~cloudu, tyto platformy nativně nepodporují výše zmíněné analytické konstrukty \SQL. Spravované cloudové PostgreSQL služby navíc poskytují robustní prostředí pro případné škálování synchronizačních workerů. Zatímco SQLite (i~při využití \WAL módu) serializuje paralelní zápisy, architektura klient-server u~PostgreSQL umožňuje bezproblémový souběžný zápis dat z~více zdrojů současně.
-
-Pro lokální vývoj a~testování je databázový server spouštěn prostřednictvím kontejnerizace, takže vývojář nemusí instalovat PostgreSQL přímo do systému. Tím je zachována jednoduchost nastavení vývojového prostředí při současném zachování shodného databázového systému s~produkčním nasazením.
-
-Shrnutí klíčových rozdílů mezi oběma zvažovanými databázovými systémy s~ohledem na požadavky analyzovaného nástroje přehledně ilustruje tabulka \ref{tab:db_comparison}.
+Srovnání obou systémů shrnuje tabulka~\ref{tab:db_comparison}.
 
 \begin{table}[htbp]
   \centering
@@ -52,7 +40,7 @@ Shrnutí klíčových rozdílů mezi oběma zvažovanými databázovými systém
     \addlinespace
     \textbf{Souběžné zápisy} & Ve výchozím režimu zamyká celý soubor; \WAL mód serializuje souběžné zápisy. & Plná podpora souběžnosti a~nezávislých transakcí. \\
     \addlinespace
-    \textbf{Analytické dotazy} & Chybí \texttt{DISTINCT ON} a pokročilé okenní funkce; vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \texttt{DISTINCT ON}, okenní funkce a bohatá podpora datových typů. \\
+    \textbf{Analytické dotazy} & Chybí \code{DISTINCT ON} a pokročilé okenní funkce. Vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \code{DISTINCT ON}, okenní funkce a bohatá podpora datových typů. \\
     \bottomrule
   \end{tabular}
 \end{table}
