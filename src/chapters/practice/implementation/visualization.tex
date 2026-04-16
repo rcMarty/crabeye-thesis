@@ -2,5 +2,35 @@
 %         - screenshot(y), jak to vypadá
 
 \section{Zobrazování dat}
-- Zobrazování dat - Grafana vs Vue grafy
-- screenshot(y), jak to vypadá
+\label{sec:implementation:visualization}
+
+Jako první kandidát pro vizualizaci dat byla zvažována platforma Grafana\footnote{\url{https://grafana.com}}, která je v oblasti monitoringu a~vizualizace dat široce rozšířena. Grafana umožňuje připojení přímo na PostgreSQL a~zobrazování výsledků vlastních \SQL dotazů v~přizpůsobitelných panelech. Po bližším prozkoumání však bylo zjištěno, že analytické dotazy navržené pro tento projekt jsou natolik specifické a~parametrizované, že jejich integrace do prostředí Grafany by byla neúměrně složitá. Grafana totiž nepodporuje plnohodnotné předávání dynamických parametrů do složitých dotazů s~více WITH klauzulemi a~podmíněnou logikou, jakou tyto dotazy vyžadují.
+
+Další z limitů je při vizuální analýze rozsáhlých strukturálních dat. Lze sice oponovat, že Grafana dokáže textová data (například výpis souborů, které konkrétní vývojový tým upravoval za posledních 100 dní) bez potíží vypsat do tabulkových či logovacích panelů, avšak tento plochý formát postrádá analytickou hodnotu. Tabulární výpis stovek až tisíců textových dat neposkytuje uživateli vhled do architektury a hierarchie projektu. Pro efektivní identifikaci zasažených subsystémů je nezbytná prostorová agregace dat (např. vizualizace typu treemap), která textové cesty transformuje do interaktivní hierarchické struktury. Vzhledem k tomu, že nativní panely Grafany nejsou pro tento typ strukturálního mapování textových metrik uzpůsobeny, vyvstává potřeba implementace dedikovaných vizualizačních přístupů.
+
+Z~tohoto důvodu byl vytvořen vlastní frontendový klient, který komunikuje přímo s~\REST \API backendu. Frontend je implementován jako jednostránková webová aplikace a~poskytuje interaktivní grafy nad daty vystavovanými serverem.
+
+Hlavní vizualizací je zobrazení vývoje stavu \PR v~čase (\textit{PR State Over Time}), zachycené na \customref{obrázku}{fig:visualization:pr_state_over_time}. Uživatel zvolí repozitář, stav \PR, kotevní datum a~počet zpětně zobrazovaných dní. Na základě těchto parametrů je zavolán endpoint \code{/api/pr/prs-in-state-over-time}, který vrátí denní počty \PR v~daném stavu. Nad grafem jsou zobrazeny souhrnné statistiky za zvolené období: aktuální hodnota, průměr, minimum, maximum a~trend (rozdíl mezi aktuální hodnotou a~průměrem).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/visualization/pr_state_over_time.png}
+  \caption{Zobrazení vývoje počtu \PR ve stavu \uv{Waiting for Review} za posledních 300 dní}
+  \label{fig:visualization:pr_state_over_time}
+\end{figure}
+
+Druhým pohledem je souhrn všech stavů naráz (\textit{All States Combined}), zobrazený na \customref{obrázcích}{fig:visualization:all_states_full} a~\ref{fig:visualization:all_states_filtered}. V~tomto režimu jsou na jediném grafu vyneseny křivky pro všechny stavy současně. Uživatel může jednotlivé křivky interaktivně skrývat a~zobrazovat kliknutím na jejich popisek v~legendě. Tato funkce je zvláště užitečná při porovnání stavů s~výrazně odlišnými hodnotami na ose $y$ — například skrytím monotónně rostoucích křivek \textit{Open}, \textit{Closed} a~\textit{Merged} se odhalí detailnější průběh stavů \textit{Waiting for Review}, \textit{Waiting for Author} a~\textit{Waiting for Bors}, jak ukazuje \customref{obrázek}{fig:visualization:all_states_filtered}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/visualization/all_states_combined.png}
+  \caption{Souhrn všech stavů \PR za posledních 300 dní — plné zobrazení}
+  \label{fig:visualization:all_states_full}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/visualization/all_states_filtered.png}
+  \caption{Souhrn stavů \PR po skrytí monotónně rostoucích křivek — detail \PR čekajících na akci}
+  \label{fig:visualization:all_states_filtered}
+\end{figure}
