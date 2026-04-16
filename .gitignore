@@ -1,4 +1,5 @@
 .build
 _minted-*
+tmp/
 
 svg-inkscape

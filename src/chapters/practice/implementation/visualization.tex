@@ -35,7 +35,7 @@ Druhým pohledem je souhrn všech stavů naráz (\textit{All States Combined}), 
   \label{fig:visualization:all_states_filtered}
 \end{figure}
 
-Třetí vizualizací jsou soubory upravené členy daného týmu v~zadaném časovém okně, dostupné přes endpoint \code{/api/pr/files-modified-by-team}. Uživatel zadá název repozitáře, název týmu, kotevní datum a~počet dní pro zpětný pohled. Výsledkem je seznam souborů seřazený sestupně podle počtu úprav. Klíčovým parametrem je \code{group\_level}, který určuje způsob seskupení výsledků:
+Další vizualizací jsou soubory upravené členy daného týmu v~zadaném časovém okně, dostupné přes endpoint \code{/api/pr/files-modified-by-team}. Uživatel zadá název repozitáře, název týmu, kotevní datum a~počet dní pro zpětný pohled. Výsledkem je seznam souborů seřazený sestupně podle počtu úprav. Klíčovým parametrem je \code{group\_level}, který určuje způsob seskupení výsledků:
 
 \begin{itemize}
   \item \code{none} (výchozí) — plochý seznam jednotlivých souborů s~počtem úprav,
@@ -44,3 +44,30 @@ Třetí vizualizací jsou soubory upravené členy daného týmu v~zadaném čas
 \end{itemize}
 
 Díky parametru \code{group\_level} lze snadno identifikovat, na které části projektu se daný tým v~daném období zaměřoval, aniž by bylo nutné procházet stovky záznamů v~plochém seznamu.
+
+Výchozí zobrazení bez seskupení (\code{group\_level=none}) je zachyceno na \customref{obrázku}{fig:visualization:files_list}. Výsledky jsou prezentovány jako horizontální sloupcový graf doplněný tabulkou se seřazeným seznamem souborů a~jejich počty úprav.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/visualization/files_edited_team_list.png}
+  \caption{Soubory upravené týmem \uv{compiler} za posledních 80 dní — plochý seznam (\code{group\_level=none})}
+  \label{fig:visualization:files_list}
+\end{figure}
+
+Při seskupení s~parametrem \code{group\_level=all} je výsledná stromová struktura vizualizována jako treemap, viz \customref{obrázek}{fig:visualization:files_tree}. Plocha každého bloku odpovídá relativnímu počtu úprav dané složky nebo souboru vůči ostatním. Kliknutím na blok lze přejít do příslušné podúrovně hierarchie. Díky tomu lze na první pohled odhalit, které části repozitáře jsou daným týmem nejaktivněji upravovány.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/visualization/files_edited_team_tree.png}
+  \caption{Soubory upravené týmem — hierarchická vizualizace (treemap, \code{group\_level=all})}
+  \label{fig:visualization:files_tree}
+\end{figure}
+
+Frontend navíc umožňuje přepnout do režimu zobrazení surové \JSON odpovědi z~\API, jak ukazuje \customref{obrázek}{fig:visualization:files_json}. Tento pohled slouží zejména pro ladění a~ověřování správnosti vrácené stromové struktury.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/visualization/files_edited_team_json.png}
+  \caption{Surová \JSON struktura stromové hierarchie souborů vrácená \API}
+  \label{fig:visualization:files_json}
+\end{figure}
