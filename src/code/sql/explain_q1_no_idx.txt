@@ -1,0 +1,37 @@
+Aggregate  (cost=54969.47..54969.48 rows=1 width=8) (actual time=224.771..224.772 rows=1 loops=1)
+  Buffers: shared read=9859, temp read=995 written=1000
+  ->  Merge Right Join  (cost=51815.93..54969.46 rows=3 width=0) (actual time=182.061..224.642 rows=2857 loops=1)
+        Merge Cond: (issue_event_history.issue = ll.issue)
+        Filter: ((issue_event_history.issue IS NULL) OR (issue_event_history.event = 'reopened'::text))
+        Rows Removed by Filter: 2142
+        Buffers: shared read=9859, temp read=995 written=1000
+        ->  Unique  (cost=29140.47..29762.87 rows=98502 width=23) (actual time=100.334..118.678 rows=77980 loops=1)
+              Buffers: shared read=5476, temp read=516 written=519
+              ->  Sort  (cost=29140.47..29451.67 rows=124480 width=23) (actual time=100.332..109.557 rows=122968 loops=1)
+                    Sort Key: issue_event_history.issue, issue_event_history."timestamp" DESC
+                    Sort Method: external merge  Disk: 4128kB
+                    Buffers: shared read=5476, temp read=516 written=519
+                    ->  Seq Scan on issue_event_history  (cost=0.00..16051.00 rows=124480 width=23) (actual time=11.171..72.431 rows=123000 loops=1)
+                          Filter: (is_pr AND ("timestamp" <= '2026-01-01 00:00:00') AND (repository = 'rust-lang/rust') AND (event = ANY ('{closed,merged,reopened}')))
+                          Rows Removed by Filter: 441000
+                          Buffers: shared read=5476
+        ->  Materialize  (cost=22675.46..23971.02 rows=287 width=8) (actual time=81.719..101.572 rows=4999 loops=1)
+              Buffers: shared read=4383, temp read=479 written=481
+              ->  Subquery Scan on ll  (cost=22675.46..23970.30 rows=287 width=8) (actual time=81.717..101.064 rows=4999 loops=1)
+                    Filter: (ll.action = 'ADDED'::text)
+                    Rows Removed by Filter: 45001
+                    Buffers: shared read=4383, temp read=479 written=481
+                    ->  Unique  (cost=22675.46..23252.87 rows=57394 width=22) (actual time=81.708..98.456 rows=50000 loops=1)
+                          Buffers: shared read=4383, temp read=479 written=481
+                          ->  Sort  (cost=22675.46..22964.17 rows=115482 width=22) (actual time=81.706..91.247 rows=114999 loops=1)
+                                Sort Key: issue_labels_history.issue, issue_labels_history."timestamp" DESC
+                                Sort Method: external merge  Disk: 3832kB
+                                Buffers: shared read=4383, temp read=479 written=481
+                                ->  Seq Scan on issue_labels_history  (cost=0.00..10595.48 rows=115482 width=22) (actual time=0.013..45.778 rows=114999 loops=1)
+                                      Filter: (is_pr AND ("timestamp" <= '2026-01-01 00:00:00') AND (repository = 'rust-lang/rust') AND (label = 'S-waiting-on-review'))
+                                      Rows Removed by Filter: 240000
+                                      Buffers: shared read=4383
+Planning:
+  Buffers: shared hit=13 dirtied=1
+Planning Time: 0.416 ms
+Execution Time: 226.566 ms

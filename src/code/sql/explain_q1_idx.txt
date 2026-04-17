@@ -1,0 +1,33 @@
+Aggregate  (cost=16047.76..16047.77 rows=1 width=8) (actual time=84.096..84.098 rows=1 loops=1)
+  Buffers: shared hit=171 read=1912
+  ->  Merge Right Join  (cost=0.84..16047.75 rows=3 width=0) (actual time=0.173..83.881 rows=2857 loops=1)
+        Merge Cond: (issue_event_history.issue = ll.issue)
+        Filter: ((issue_event_history.issue IS NULL) OR (issue_event_history.event = 'reopened'::text))
+        Rows Removed by Filter: 2142
+        Buffers: shared hit=171 read=1912
+        ->  Result  (cost=0.42..6338.42 rows=98502 width=23) (actual time=0.074..37.006 rows=77980 loops=1)
+              Buffers: shared hit=73 read=809
+              ->  Unique  (cost=0.42..6338.42 rows=98502 width=23) (actual time=0.071..30.278 rows=77980 loops=1)
+                    Buffers: shared hit=73 read=809
+                    ->  Index Only Scan using idx_pr_event_hist_state_changes on issue_event_history  (cost=0.42..6027.22 rows=124480 width=23) (actual time=0.070..18.099 rows=122968 loops=1)
+                          Index Cond: ((repository = 'rust-lang/rust') AND ("timestamp" <= '2026-01-01 00:00:00'))
+                          Heap Fetches: 0
+                          Buffers: shared hit=73 read=809
+        ->  Materialize  (cost=0.42..8473.75 rows=287 width=8) (actual time=0.088..42.098 rows=4999 loops=1)
+              Buffers: shared hit=98 read=1103
+              ->  Subquery Scan on ll  (cost=0.42..8473.03 rows=287 width=8) (actual time=0.077..41.258 rows=4999 loops=1)
+                    Filter: (ll.action = 'ADDED'::text)
+                    Rows Removed by Filter: 45001
+                    Buffers: shared hit=98 read=1103
+                    ->  Result  (cost=0.42..7755.61 rows=57394 width=22) (actual time=0.069..38.559 rows=50000 loops=1)
+                          Buffers: shared hit=98 read=1103
+                          ->  Unique  (cost=0.42..7755.61 rows=57394 width=22) (actual time=0.067..34.059 rows=50000 loops=1)
+                                Buffers: shared hit=98 read=1103
+                                ->  Index Only Scan using idx_pr_labels_repo_label_issue_ts on issue_labels_history  (cost=0.42..7466.90 rows=115482 width=22) (actual time=0.067..23.605 rows=114999 loops=1)
+                                      Index Cond: ((repository = 'rust-lang/rust') AND (label = 'S-waiting-on-review') AND ("timestamp" <= '2026-01-01 00:00:00'))
+                                      Heap Fetches: 0
+                                      Buffers: shared hit=98 read=1103
+Planning:
+  Buffers: shared hit=487 read=12
+Planning Time: 4.383 ms
+Execution Time: 84.240 ms

@@ -1,0 +1,10 @@
+Aggregate  (cost=2122.71..2122.72 rows=1 width=8) (actual time=9.693..9.694 rows=1 loops=1)
+  Buffers: shared hit=1 read=274
+  ->  Index Only Scan using idx_pr_event_hist_merged on issue_event_history  (cost=0.41..2009.05 rows=45464 width=8) (actual time=0.082..5.982 rows=45000 loops=1)
+        Index Cond: ((repository = 'rust-lang/rust') AND ("timestamp" <= '2026-01-01 00:00:00'))
+        Heap Fetches: 0
+        Buffers: shared hit=1 read=274
+Planning:
+  Buffers: shared hit=3
+Planning Time: 0.129 ms
+Execution Time: 9.726 ms

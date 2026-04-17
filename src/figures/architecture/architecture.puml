@@ -1,5 +1,5 @@
 @startuml detailed_architecture
-title RANAL - Detailní architektura systému (modulární monolit)
+title Detailní architektura systému (modulární monolit)
 
 ' === Základní nastavení vzhledu ===
 skinparam shadowing false
@@ -46,7 +46,7 @@ note right of fe
 end note
 
 ' === BACKEND ===
-package "RANAL Backend (Rust)" as backend {
+package "Backend (Rust)" as backend {
   
   package "Vstup a Konfigurace" as config_layer {
     component "Config\n`src/config.rs`" as config

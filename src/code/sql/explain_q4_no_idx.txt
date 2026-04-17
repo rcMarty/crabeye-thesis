@@ -1,0 +1,70 @@
+WindowAgg  (cost=91102.20..91127.20 rows=1000 width=12) (actual time=650.329..650.352 rows=32 loops=1)
+  Buffers: shared hit=2719 read=9699, temp read=1923 written=1932
+  CTE in_state_periods
+    ->  Merge Join  (cost=77897.55..91027.14 rows=29 width=40) (actual time=247.479..579.868 rows=68713 loops=1)
+          Merge Cond: (label_transitions.issue = ordered_transitions.issue)
+          Rows Removed by Join Filter: 1714
+          Buffers: shared hit=2719 read=9699, temp read=1587 written=1596
+          ->  Subquery Scan on label_transitions  (cost=21788.97..25542.49 rows=68037 width=24) (actual time=78.839..146.360 rows=68570 loops=1)
+                Filter: (label_transitions.action = 'ADDED'::text)
+                Rows Removed by Filter: 46429
+                Buffers: shared hit=32 read=4351, temp read=462 written=464
+                ->  WindowAgg  (cost=21788.97..24098.83 rows=115493 width=30) (actual time=78.837..136.727 rows=114999 loops=1)
+                      Buffers: shared hit=32 read=4351, temp read=462 written=464
+                      ->  Sort  (cost=21788.97..22077.70 rows=115493 width=22) (actual time=78.824..91.057 rows=114999 loops=1)
+                            Sort Key: issue_labels_history.issue, issue_labels_history."timestamp"
+                            Sort Method: external merge  Disk: 3696kB
+                            Buffers: shared hit=32 read=4351, temp read=462 written=464
+                            ->  Seq Scan on issue_labels_history  (cost=0.00..9707.99 rows=115493 width=22) (actual time=0.027..44.984 rows=114999 loops=1)
+                                  Filter: (is_pr AND (repository = 'rust-lang/rust') AND (label = 'S-waiting-on-review'))
+                                  Rows Removed by Filter: 240000
+                                  Buffers: shared hit=32 read=4351
+          ->  Materialize  (cost=56108.58..65034.06 rows=2744 width=24) (actual time=168.628..362.274 rows=172425 loops=1)
+                Buffers: shared hit=2687 read=5348, temp read=1125 written=1132
+                ->  Subquery Scan on ordered_transitions  (cost=56108.58..65027.20 rows=2744 width=24) (actual time=168.625..330.538 rows=152998 loops=1)
+                      Filter: (ordered_transitions.event_type = ANY ('{created,reopened}'))
+                      Rows Removed by Filter: 120000
+                      Buffers: shared hit=2687 read=5348, temp read=1125 written=1132
+                      ->  WindowAgg  (cost=56108.58..61596.96 rows=274419 width=45) (actual time=168.621..305.726 rows=272998 loops=1)
+                            Buffers: shared hit=2687 read=5348, temp read=1125 written=1132
+                            ->  Sort  (cost=56108.58..56794.63 rows=274419 width=37) (actual time=168.611..198.680 rows=272999 loops=1)
+                                  Sort Key: issues.issue, issues.created_at
+                                  Sort Method: external merge  Disk: 9000kB
+                                  Buffers: shared hit=2687 read=5348, temp read=1125 written=1132
+                                  ->  Append  (cost=0.00..23816.29 rows=274419 width=37) (actual time=2.104..97.129 rows=273000 loops=1)
+                                        Buffers: shared hit=2687 read=5348
+                                        ->  Seq Scan on issues  (cost=0.00..5059.00 rows=149927 width=48) (actual time=2.103..19.937 rows=150000 loops=1)
+                                              Filter: (is_pr AND (repository = 'rust-lang/rust'))
+                                              Rows Removed by Filter: 50000
+                                              Buffers: shared hit=2559
+                                        ->  Seq Scan on issue_event_history  (cost=0.00..14641.00 rows=124492 width=23) (actual time=7.965..63.360 rows=123000 loops=1)
+                                              Filter: (is_pr AND (repository = 'rust-lang/rust') AND (event = ANY ('{closed,merged,reopened}')))
+                                              Rows Removed by Filter: 441000
+                                              Buffers: shared hit=128 read=5348
+  CTE daily_deltas
+    ->  HashAggregate  (cost=2.14..2.62 rows=48 width=12) (actual time=649.253..649.416 rows=1857 loops=1)
+          Group Key: ((lower(in_state_periods.valid_period))::date)
+          Batches: 1  Memory Usage: 393kB
+          Buffers: shared hit=2719 read=9699, temp read=1923 written=1932
+          ->  Append  (cost=0.00..1.90 rows=48 width=8) (actual time=247.483..626.233 rows=137426 loops=1)
+                ->  CTE Scan on in_state_periods  (cost=0.00..0.72 rows=29 width=8) (actual time=247.482..604.886 rows=68713 loops=1)
+                ->  CTE Scan on in_state_periods in_state_periods_1  (cost=0.00..0.75 rows=19 width=8) (actual time=0.024..13.418 rows=68713 loops=1)
+                      Filter: (NOT upper_inf(valid_period))
+  InitPlan 3 (returns $2)
+    ->  Aggregate  (cost=1.12..1.13 rows=1 width=32) (actual time=0.213..0.213 rows=1 loops=1)
+          ->  CTE Scan on daily_deltas  (cost=0.00..1.08 rows=16 width=8) (actual time=0.001..0.124 rows=1856 loops=1)
+                Filter: (event_date < '2025-12-01')
+                Rows Removed by Filter: 1
+  ->  Sort  (cost=71.29..73.79 rows=1000 width=12) (actual time=650.106..650.108 rows=32 loops=1)
+        Sort Key: ((d.d)::date)
+        Sort Method: quicksort  Memory: 26kB
+        ->  Hash Left Join  (cost=1.56..21.46 rows=1000 width=12) (actual time=650.082..650.090 rows=32 loops=1)
+              Hash Cond: ((d.d)::date = dd.event_date)
+              ->  Function Scan on generate_series d  (cost=0.00..10.00 rows=1000 width=8) (actual time=0.017..0.019 rows=32 loops=1)
+              ->  Hash  (cost=0.96..0.96 rows=48 width=12) (actual time=650.047..650.047 rows=1857 loops=1)
+                    Buckets: 2048  Batches: 1  Memory Usage: 96kB
+                    ->  CTE Scan on daily_deltas dd  (cost=0.00..0.96 rows=48 width=12) (actual time=649.255..649.754 rows=1857 loops=1)
+Planning:
+  Buffers: shared hit=6
+Planning Time: 0.809 ms
+Execution Time: 653.919 ms

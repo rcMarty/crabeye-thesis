@@ -1,5 +1,5 @@
 @startuml overall_architecture
-title RANAL - Architektura systému (zobecněná verze)
+title Architektura systému (zobecněná verze)
 
 skinparam shadowing false
 skinparam componentStyle rectangle
@@ -16,7 +16,7 @@ cloud "GitHub API" as gh
 folder "Lokální git mirror" as repo
 component "Frontend\n(SPA / dashboard)" as fe
 
-package "RANAL Backend (Rust, modulární monolit)" as be {
+package "Backend (Rust, modulární monolit)" as be {
   
   component "Prezentační vrstva\n(REST API + OpenAPI docs)" as api
   component "Vstupní vrstva\n(ingest, sync trigger, validace)" as input

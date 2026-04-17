@@ -1,0 +1,12 @@
+Aggregate  (cost=15248.56..15248.57 rows=1 width=8) (actual time=31.584..31.678 rows=1 loops=1)
+  Buffers: shared hit=32 read=5444
+  ->  Gather  (cost=1000.00..15134.90 rows=45464 width=8) (actual time=6.060..24.844 rows=45000 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=32 read=5444
+        ->  Parallel Seq Scan on issue_event_history  (cost=0.00..9588.50 rows=18943 width=8) (actual time=3.032..21.065 rows=15000 loops=3)
+              Filter: (is_pr AND ("timestamp" <= '2026-01-01 00:00:00') AND (repository = 'rust-lang/rust') AND (event = 'merged'))
+              Rows Removed by Filter: 173000
+              Buffers: shared hit=32 read=5444
+Planning Time: 0.064 ms
+Execution Time: 31.725 ms
