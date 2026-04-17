@@ -1,6 +1,6 @@
 # About
 This is my thesis repository for my Master's degree at FEI VŠB. The thesis is about how I analyzed the Rust repository.
-Code is available at [https://github.com/rcmarty/ranal](https://github.com/rcmarty/ranal)
+Code is available at [https://github.com/rcmarty/crabeye](https://github.com/rcmarty/crabeye)
 
 ## Packages
 
