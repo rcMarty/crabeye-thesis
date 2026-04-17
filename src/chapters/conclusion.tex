@@ -1,4 +1,31 @@
 \chapter{Závěr}
-Chtěl bych poděkovat všem že jsem z toho nezešílel
-a fsamozřejmě všechny požadavky byly splněny jak jinak že ano
+\label{chap:conclusion}
+
+Cílem této práce bylo vytvořit nástroj pro sledování aktivity rozsáhlých GitHub repozitářů, konkrétně repozitáře překladače jazyka Rust (\texttt{rust-lang/rust}).
+Motivací byl fakt, že běžně dostupné nástroje nedokážou pokrýt potřeby masivních open-source projektů, jejichž vývojový cyklus je řízen složitou organizační strukturou a~stavovými automaty nad štítky.
+
+V~teoretické části byl nastudován datový model GitHub repozitářů a~dostupná \API, od \REST přes GraphQL až po Webhooky.
+Tato rešerše poskytla základ pro návrh systému.
+
+Na základě získaných znalostí byla navržena struktura relační databáze pro agregaci metadat repozitáře z~různých zdrojů: GitHub \API, lokální Git historie a~konfiguračních souborů týmů.
+Výsledný systém byl implementován v~jazyce Rust, který umožňuje jednoduché znovuvyužití jako knihovny v~rámci jiných nástrojů.
+
+Nad navrženou databází byla implementována sada analytických dotazů pro získání užitečných informací o~repozitáři.
+Dotazy umožňují zjistit například to, jak dlouho čekají \PR na code review, kteří přispěvatelé pracují v~konkrétních oblastech kódu nebo jaký je vývoj počtu otevřených \PR v~čase.
+Výkonnostní evaluace prokázala, že s~vhodně navrženými databázovými indexy lze tyto dotazy provádět efektivně i~nad stovkami tisíc záznamů.
+
+Součástí implementace je rovněž interaktivní webové rozhraní, které výsledky analytických dotazů vizualizuje formou přehledných grafů a~tabulek.
+
+Nástroj byl otestován na datech repozitáře překladače Rustu, což je netriviální projekt s~více než 200\,000 issues a~\PR.
+Praktické vyhodnocení ukázalo, že nástroj dokáže identifikovat reálné bottlenecky ve schvalovacím procesu, například odlišit čas čekání na autora od čekání na recenzenta, což není pomocí standardního rozhraní GitHub možné.
+Všechny body zadání tak byly splněny.
+
+\section*{Budoucí rozvoj}
+\label{sec:conclusion:rozvoj}
+
+Nabízí se několik směrů pro budoucí rozšíření nástroje.
+V~první řadě by bylo možné doplnit další typy analytických dotazů, například analýzu průměrné doby od otevření \PR po jeho sloučení v~závislosti na týmu nebo komponentě, identifikaci souborů nejčastěji stojících za konflikty při slučování nebo sledování dlouhodobých trendů v~aktivitě jednotlivých kontributorů.
+Druhým přirozeným rozšířením je obohacení sledovaných dat: v~současnosti databáze neobsahuje například komentáře k~\PR, výsledky \CI nebo závislosti mezi issues.
+Zahrnutí těchto informací by umožnilo hlubší analýzy a~otevřelo cestu k~prediktivním modelům, například k~odhadování rizika zanesení chyby při sloučení konkrétního \PR.
+
 \endinput

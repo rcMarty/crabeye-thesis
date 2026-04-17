@@ -35,18 +35,18 @@
 \ThesisAssignmentFileName{../ThesisSpecification_KOR0289.pdf}
 
 \Acknowledgement{%
-  Děkuji, že mám ještě tolik času na dokončení této práce.
+  Chtěl bych poděkovat především svému vedoucímu práce Ing. Jakubu Beránkovi PhD. za cenné rady, a obecně jeho vedení obzvlášť ohledně praktické části práce. Dále bych rád poděkoval všem, kteří mi poskytli zpětnou vazbu k~různým částem této práce, a~v neposlední řadě mým blízkým za podporu během celého procesu psaní.
 }
 
 \CzechAbstract{%
-  Abstract Ranalu
+  Hlavním cílem této práce je návrh a~implementace nástroje pro sledování komplexních GitHub repozitářů. Motivací je nedostatek existujících nástrojů, které by efektivně pokrývaly potřeby rozsáhlých open-source projektů. V~teoretické části je provedena analýza datového modelu GitHub repozitářů a~dostupných rozhraní. Praktická část se věnuje návrhu relační databáze pro agregaci dat z~GitHub API, lokální Git historie a~konfiguračních souborů týmů, a~následné implementaci. Nad navrženou databází byla implementována sada analytických dotazů a~interaktivní webové rozhraní pro vizualizaci výsledků. Výsledný nástroj byl otestován na datech repozitáře překladače Rustu, který čítá více než 200\,000 issues a~pull requestů.
 }
-\CzechKeywords{git, github, rust, monitoring }
+\CzechKeywords{git, github, rust, monitoring, analýza repozitáře, pull requesty, databáze}
 
 \EnglishAbstract{%
-  Abstract Ranalu but in english.
+  The main goal of this thesis is the design and implementation of a tool for monitoring complex GitHub repositories. The motivation stems from the lack of existing tools that effectively cover the needs of large open-source projects. The theoretical part analyzes the data model of GitHub repositories and the available interfaces. The practical part covers the design of a relational database for aggregating data from the GitHub API, local Git history, and team configuration files, followed by the system implementation. A set of analytical queries and an interactive web interface for result visualization were built on top of the designed database. The resulting tool was evaluated on data from the Rust compiler repository, which contains more than 200\,000 issues and pull requests.
 }
-\EnglishKeywords{git, github, rust, monitoring }
+\EnglishKeywords{git, github, rust, monitoring, repository analysis, pull requests, database}
 
 \acsetup{make-links=true}
 \input{resources/acronyms.tex}
@@ -61,20 +61,9 @@
 \renewcommand\listingscaption{Výpis}
 \renewcommand\listoflistingscaption{Seznam výpisů zdrojového kódu}
 
-% Algorithm2e settings
-% \DontPrintSemicolon
-% \SetAlgoNoEnd
-% \NoCaptionOfAlgo
-% \SetKwProg{Fn}{Function}{:}{}
-% \SetKwProg{return}{Return}{:}{}
-% \SetKwData{True}{true}
-% \SetKwData{False}{false}
-% \SetKwFunction{FSwap}{Swap}
-% \SetKwFunction{FLength}{Length}
-% \newcommand{\bl}{\BlankLine}
 
 % Uprava hloubky obsahu - pozdeji smazat !
-\setcounter{tocdepth}{3}
+% \setcounter{tocdepth}{3}
 
 
 
@@ -130,5 +119,6 @@
 
 \input{./chapters/appendix/architecture_appendix.tex}
 \input{./chapters/appendix/database_appendix.tex}
+\input{./chapters/appendix/sql_appendix.tex}
 
 \end{document}

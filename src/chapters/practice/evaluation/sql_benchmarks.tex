@@ -1,3 +1,64 @@
 %     - Měření SQL dotazů: data z `rust-lang/rust`, jak dlouho trvá konkrétních 5 dotazů? Pomáhají indexy? `EXPLAIN ANALYZE` výstup.
 
-\section{Měření SQL dotazů}
+\section{Měření výkonu analytických dotazů}
+\label{sec:evaluace:sql}
+
+V~rámci evaluace bylo měřeno, jaký vliv mají databázové indexy na dobu vykonávání analytických dotazů. Databáze obsahovala data repozitáře \texttt{rust-lang/rust}: přibližně 200\,000 záznamů issues a~\PR, 564\,000 záznamů v~tabulce \code{issue\_event\_history}, 355\,000 v~\code{issue\_labels\_history} a~525\,000 v~\code{file\_activity}. Měření bylo provedeno pomocí \code{EXPLAIN ANALYZE} v~PostgreSQL.
+
+\subsection{Testované dotazy}
+\label{subsec:evaluace:sql:dotazy}
+
+Byly testovány čtyři dotazy (Q1--Q4) pokrývající typické analytické scénáře. Dotazy jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručný popis každého dotazu:
+
+\begin{description}
+  \item[Q1] Počet \PR ve stavu \code{S-waiting-on-review} k~zadanému datu. Dotaz využívá dvě \CTE s~\code{DISTINCT ON}: jednu pro poslední label-event a~druhou pro poslední stavovou změnu, následované \code{LEFT JOIN} a~filtrací.
+  \item[Q2] Kumulativní počet sloučených \PR k~zadanému datu pomocí \code{COUNT(DISTINCT issue)} s~filtrem \code{event = 'merged'} nad tabulkou \code{issue\_event\_history}.
+  \item[Q3] Soubory upravené přispěvateli z~daného týmu v~zadaném časovém rozsahu, agregace přes \code{file\_activity} a~\code{contributors\_teams}.
+  \item[Q4] Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu. Nejsložitější dotaz využívá delta-event přístup: nejprve sestaví intervaly otevřenosti a~aktivity štítku a~vypočítá jejich průnik (operatory \code{\&\&} a~\code{*}). Intervaly jsou následně rozloženy na delta-události (+1/$-1$) a~nad nimi je spočtán kumulativní součet. Výsledná složitost je $O(\text{events} + \text{days})$ místo naivního range-joinu.
+\end{description}
+
+\subsection{Vliv indexů}
+\label{subsec:evaluace:sql:indexy}
+
+Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné definice indexů jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručně:
+
+\begin{itemize}
+  \item \code{idx\_pr\_event\_hist\_state\_changes} --- částečný index na \code{issue\_event\_history} s~podmínkou \code{WHERE is\_pr = true AND event IN ('closed','merged','reopened')} a~klauzulí \code{INCLUDE (event)}.
+  \item \code{idx\_pr\_labels\_repo\_label\_issue\_ts} --- pokrývající index na \code{issue\_labels\_history} se sloupci \code{(repository, label, issue, timestamp DESC) INCLUDE (action)}.
+  \item \code{idx\_file\_activity\_repo\_contrib\_ts} --- pokrývající index na \code{file\_activity} se sloupci \code{(repository, contributor\_id, timestamp DESC) INCLUDE (file\_path, issue)}.
+\end{itemize}
+
+Částečné indexy s~podmínkou \code{WHERE is\_pr = true} redukovaly velikost indexu přibližně na polovinu, protože tabulka obsahuje záznamy jak pro issues, tak pro \PR. Pokrývající indexy s~klauzulí \code{INCLUDE} umožnily Index-Only Scan bez přístupu k~datovým stránkám (\code{Heap Fetches: 0}).
+
+\subsection{Výsledky měření}
+\label{subsec:evaluace:sql:vysledky}
+
+Výsledky měření jsou shrnuty v~\customref{tabulce}{tab:evaluace:sql}, plné výstupy \code{EXPLAIN (ANALYZE, BUFFERS)} jsou k~dispozici v~příloze~\ref{sec:appendix:sql:explain}.
+
+Nejvýraznější přínos měly indexy u~Q1 a~Q2. Bez indexů musel plánovač provést \code{Seq Scan} celé tabulky a~výsledky seřadit na disku (\code{external merge Disk}).
+Se~zavedením pokrývajících indexů přešel plán na \code{Index Only Scan},
+přičemž hodnota \code{Heap Fetches: 0} potvrzuje, že k~datovým stránkám nebylo vůbec přistupováno a~třídění na disku zcela odpadlo.
+Výsledkem je 2,7$\times$, resp. 3,3$\times$ kratší čas vykonávání.
+
+U~Q3 byl \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} nahrazen
+\code{Nested Loop}em. Ten pro každého člena týmu načítá záznamy přímo z~pokrývajícího indexu,
+tudíž odpadá přístup k~datovým stránkám (\code{Heap Fetches: 0}).
+Zrychlení je v~porovnání s~Q1 a~Q2 menší (1,6$\times$), protože agregace a~třídení výsledků tvoří větší podíl celkového času.
+
+Q4 zaznamenal nejmenší zlepšení (1,3$\times$). Dominantní náklady dotazu představuje \code{Merge Join} při výpočtu průniku intervalů otevřenosti a~aktivity štítku (\code{in\_state\_periods}), který není přímo indexovatelný. Indexy přesto přinesly měřitelnou úsporu, \code{Seq Scan} na \code{issue\_event\_history} byl nahrazen \code{Index Only Scan} a~řazení v~\CTE \code{label\_transitions} přešlo z~external merge na quicksort v~paměti.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Srovnání doby vykonávání analytických dotazů s~indexy a~bez indexů}
+  \label{tab:evaluace:sql}
+  \begin{tabular}{@{} c l r r r r r @{}}
+    \toprule
+    \textbf{Dotaz} & \textbf{Popis} & \textbf{Cost (s~idx)} & \textbf{Cost (bez idx)} & \textbf{s~idx} & \textbf{bez idx} & \textbf{Zrychlení} \\
+    \midrule
+    Q1 & Počet \PR ve stavu (label) & 16\,048  & 54\,969 & 84 ms  & 227 ms & 2,7$\times$ \\
+    Q2 & Počet sloučených \PR       & 2\,123   & 15\,249 & 10 ms  & 32 ms  & 3,3$\times$ \\
+    Q3 & Soubory upravené týmem     & 2\,630    & 16\,741 & 34 ms  & 53 ms  & 1,6$\times$ \\
+    Q4 & Vývoj počtu \PR v~čase     & 71\,398  & 91\,102 & 520 ms & 654 ms & 1,3$\times$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}

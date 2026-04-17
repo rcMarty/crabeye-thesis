@@ -1,4 +1,14 @@
 \chapter{Úvod}
-\label{sec:Introduction}
-Buckle up this will be speedrun of thesis on 400mg caffeine per day and 4 hours of sleep
-\endinput
+\label{chap:introduction}
+
+Distribuované verzovací systémy, zejména systém Git, umožňují vývojářům asynchronně spolupracovat na sdílené codebase. Kolem nich vyrostly platformy jako GitHub, které dnes neslouží pouze jako úložiště zdrojových kódů, ale integrují i správu revizí kódu, sledování chyb a \CICD procesy.
+
+Nativní analytické nástroje platformy GitHub dostačují pro malé a středně velké projekty, ale u velkých open-source repozitářů narážejí na své limity. Příkladem je repozitář překladače jazyka Rust (\texttt{rust-lang/rust}), kde spolupracují stovky vývojářů organizovaných do týmových hierarchií, otevírají se desítky \PR denně a stejně tak uzavírají.  Projekt využívá vlastní stavové automaty řízené štítky a striktní pravidla schvalování vynucovaná automatizovanými boty. Zjistit například, jak dlouho průměrně čeká kód na revizi od konkrétního týmu, nebo identifikovat stagnující \PR, je pomocí standardních nástrojů obtížné.
+
+Cílem této diplomové práce je proto návrh a implementace analytického nástroje, který tyto informační mezery překlenuje. Navržený systém stahuje, normalizuje a analyzuje data ze tří zdrojů: z verzovacího systému Git, z \API platformy GitHub a z externích organizačních struktur (Team \API). Nástroj je implementován v jazyce Rust s ohledem na výkon při zpracování velkých objemů dat.
+
+\section*{Cíle práce}
+Práce nejprve teoreticky analyzuje mechanismy pro získávání dat z platformy GitHub (\REST \API, GraphQL \API a Webhooky) a popisuje specifika procesního řízení ve velkých open-source repozitářích. Součástí je také zhodnocení nativních možností monitoringu platformy GitHub i specializovaných nástrojů třetích stran a identifikace jejich nedostatků v kontextu masivních projektů. Na základě těchto zjištění je navržena modulární softwarová architektura a databázový model schopný ukládat historická i inkrementální data. Výsledné řešení je vyhodnoceno na reálných datech z repozitáře \texttt{rust-lang/rust} prostřednictvím sady analytických dotazů zaměřených na hlubší porozumnění procesu revize kódu.
+
+\section*{Struktura práce}
+Teoretická část práce popisuje principy verzovacích systémů, \API platformy GitHub a obsahuje analýzu existujících monitorovacích nástrojů. Navazuje kapitola o návrhu systému s definicí požadavků, návrhem architektury a strukturou databáze. Implementační kapitola se věnuje technickým specifikům vývoje analytického nástroje. Práce je zakončena kapitolou o vyhodnocení, která prezentuje výsledky měření a analytická data ze zkoumaného repozitáře.

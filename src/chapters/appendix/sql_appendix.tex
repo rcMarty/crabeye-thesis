@@ -1,0 +1,182 @@
+\chapter{Analytické SQL dotazy a~databázové indexy}
+\label{chap:appendix:sql}
+
+Tato příloha obsahuje zdrojový kód analytických \SQL dotazů použitých při evaluaci v~\customref{sekci}{sec:evaluace:sql} a~definice databázových indexů pro jednotlivé tabulky.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Analytické dotazy}
+\label{sec:appendix:sql:queries}
+
+\subsection*{Q1 — Počet \PR ve stavu (štítek) k~zadanému datu}
+\label{lst:appendix:sql:q1}
+
+Dotaz pomocí dvou \CTE s~\code{DISTINCT ON} určí, kolik \PR je v~daném stavu ke zvolenému datu. První \CTE \code{latest\_labels} zachová pro každý \PR nejnovější labelovou událost pro cílový štítek \code{S-*}, druhá \CTE \code{latest\_state} nejnovější stavovou změnu (uzavření, sloučení nebo znovuotevření). Výsledný počet zahrnuje pouze \PR, jejichž poslední labelová událost je \code{ADDED} a~které jsou ke zvolenému datu stále otevřené.
+
+\begin{listing}[htbp]
+  \caption{Q1 --- Počet \PR ve stavu (štítek) k~zadanému datu}
+  \label{lst:appendix:sql:q1:code}
+  \inputminted{sql}{./code/sql/q1_pr_count_by_label.sql}
+\end{listing}
+
+\subsection*{Q2 — Kumulativní počet sloučených \PR k~zadanému datu}
+\label{lst:appendix:sql:q2}
+
+Stav „merged" je trvalý, takže stačí \code{COUNT(DISTINCT issue)} nad jedinou tabulkou \code{issue\_event\_history} s~indexovatelným filtrem \code{event = 'merged'} a~časovým řezem.
+
+\begin{listing}[htbp]
+  \caption{Q2 --- Kumulativní počet sloučených \PR k~zadanému datu}
+  \label{lst:appendix:sql:q2:code}
+  \inputminted{sql}{./code/sql/q2_merged_pr_count.sql}
+\end{listing}
+
+\subsection*{Q3 — Soubory upravené přispěvateli týmu v~zadaném období}
+\label{lst:appendix:sql:q3}
+
+Dotaz agreguje soubory upravené přispěvateli daného týmu (\code{contributors\_teams}) v~zadaném časovém rozsahu. Výsledek je seřazen sestupně podle počtu úprav.
+
+\begin{listing}[htbp]
+  \caption{Q3 --- Soubory upravené přispěvateli týmu}
+  \label{lst:appendix:sql:q3:code}
+  \inputminted{sql}{./code/sql/q3_files_by_team.sql}
+\end{listing}
+
+\subsection*{Q4 — Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu}
+\label{lst:appendix:sql:q4}
+
+Nejsložitější z~testovaných dotazů využívá delta-event přístup. \CTE \code{all\_transitions} sestaví pomocí \code{UNION ALL} seznam všech relevantních událostí (vznik \PR, uzavření, sloučení, znovuotevření). \CTE \code{ordered\_transitions} přiřadí každé události čas následující události přes okenní funkci \code{LEAD()}, čímž vzniknou neprotínající se intervaly otevřenosti (\code{open\_periods}). Stejným způsobem jsou konstruovány intervaly aktivního štítku (\code{label\_active\_periods}). Průnik obou typů intervalů operátorem \code{\&\&} a~\code{*} dá intervaly, kdy je \PR v~cílovém stavu (\code{in\_state\_periods}). Tyto intervaly jsou rozloženy na delta-události (+1 na začátku, $-1$ na konci), agregovány po dnech a~pak je nad nimi spočítán kumulativní součet. Složitost je $O(\text{events} + \text{days})$ místo naivního $O(\text{days} \times \text{events})$.
+
+\begin{listing}[htbp]
+  \caption{Q4 --- Denní vývoj počtu \PR v~daném stavu}
+  \label{lst:appendix:sql:q4:code}
+  \inputminted{sql}{./code/sql/q4_pr_state_over_time.sql}
+\end{listing}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Databázové indexy}
+\label{sec:appendix:sql:indexes}
+
+Níže jsou uvedeny definice všech databázových indexů. Indexy jsou rozděleny podle tabulky, ke které náleží.
+
+\subsection*{Tabulka \code{issues}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{issues}}
+  \label{lst:appendix:sql:idx_issues}
+  \inputminted{sql}{./code/sql/issues_indexes.sql}
+\end{listing}
+
+\subsection*{Tabulka \code{issue\_event\_history}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{issue\_event\_history}}
+  \label{lst:appendix:sql:idx_event_history}
+  \inputminted{sql}{./code/sql/issue_event_history_indexes.sql}
+\end{listing}
+
+\subsection*{Tabulka \code{issue\_labels\_history}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{issue\_labels\_history}}
+  \label{lst:appendix:sql:idx_labels_history}
+  \inputminted{sql}{./code/sql/issue_labels_history_indexes.sql}
+\end{listing}
+
+\subsection*{Tabulka \code{file\_activity}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{file\_activity}}
+  \label{lst:appendix:sql:idx_file_activity}
+  \inputminted{sql}{./code/sql/file_activity_indexes.sql}
+\end{listing}
+
+\subsection*{Tabulka \code{contributors}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{contributors}}
+  \label{lst:appendix:sql:idx_contributors}
+  \inputminted{sql}{./code/sql/contributors_indexes.sql}
+\end{listing}
+
+\subsection*{Tabulka \code{contributors\_teams}}
+\begin{listing}[htbp]
+  \caption{Indexy tabulky \code{contributors\_teams}}
+  \label{lst:appendix:sql:idx_contributors_teams}
+  \inputminted{sql}{./code/sql/contributors_teams_indexes.sql}
+\end{listing}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Výstupy EXPLAIN ANALYZE}
+\label{sec:appendix:sql:explain}
+
+Níže jsou uvedeny výstupy příkazu \code{EXPLAIN (ANALYZE, BUFFERS)} pro každý testovaný dotaz, vždy bez indexů a~poté se zapnutými indexy. Měření proběhlo na databázi repozitáře \texttt{rust-lang/rust} s~přibližně 200\,000 \PR, 564\,000 záznamy v~\code{issue\_event\_history}, 355\,000 v~\code{issue\_labels\_history} a~525\,000 v~\code{file\_activity}.
+
+% ── Q1 ─────────────────────────────────────────────────────────────────────
+\subsection*{Q1 --- bez indexů}
+
+\begin{listing}[htbp]
+  \caption{Q1: EXPLAIN ANALYZE bez indexů (Execution Time: 226,6 ms)}
+  \label{lst:appendix:explain:q1:no_idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_no_idx.txt}
+\end{listing}
+
+\subsection*{Q1 --- s~indexy}
+
+Klíčové změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort (external merge Disk)} nahrazeny dvěma \code{Index Only Scan} s~\code{Heap Fetches: 0}, řazení probíhá přímo po indexu.
+
+\begin{listing}[htbp]
+  \caption{Q1: EXPLAIN ANALYZE s~indexy (Execution Time: 84,2 ms)}
+  \label{lst:appendix:explain:q1:idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_idx.txt}
+\end{listing}
+
+% ── Q2 ─────────────────────────────────────────────────────────────────────
+\subsection*{Q2 --- bez indexů}
+
+\begin{listing}[htbp]
+  \caption{Q2: EXPLAIN ANALYZE bez indexů (Execution Time: 31,7 ms)}
+  \label{lst:appendix:explain:q2:no_idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q2_no_idx.txt}
+\end{listing}
+
+\subsection*{Q2 --- s~indexy}
+
+\code{Parallel Seq Scan} nahrazen přímým \code{Index Only Scan using idx\_pr\_event\_hist\_merged} s~\code{Heap Fetches: 0}. Paralelní scan zaniká, plán se zjednodušuje na jediný uzel.
+
+\begin{listing}[htbp]
+  \caption{Q2: EXPLAIN ANALYZE s~indexy (Execution Time: 9,7 ms)}
+  \label{lst:appendix:explain:q2:idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q2_idx.txt}
+\end{listing}
+
+% ── Q3 ─────────────────────────────────────────────────────────────────────
+\subsection*{Q3 --- bez indexů}
+
+\begin{listing}[htbp]
+  \caption{Q3: EXPLAIN ANALYZE bez indexů (Execution Time: 18,7 ms)}
+  \label{lst:appendix:explain:q3:no_idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q3_no_idx.txt}
+\end{listing}
+
+\subsection*{Q3 --- s~indexy}
+
+\code{Parallel Seq Scan} na \code{file\_activity} (144\,909 řádků přeskočeno) nahrazen \code{Nested Loop} s~dvěma \code{Index Only Scan}: nejprve členové týmu z~primárního klíče \code{contributors\_teams} (72 řádků), podráu pro každého přispěvatele data z~\code{idx\_file\_activity\_repo\_contrib\_ts} s~\code{Heap Fetches: 0}. Zrychlení je způsobeno především eliminací paralelizácie a~sečtením stovek tisíc přeskočených řádků.
+
+\begin{listing}[htbp]
+  \caption{Q3: EXPLAIN ANALYZE s~indexy (Execution Time: 0,8 ms)}
+  \label{lst:appendix:explain:q3:idx}
+  \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q3_idx.txt}
+\end{listing}
+
+% ── Q4 ─────────────────────────────────────────────────────────────────────
+\subsection*{Q4 --- bez indexů}
+
+\begin{listing}[htbp]
+  \caption{Q4: EXPLAIN ANALYZE bez indexů (Execution Time: 653,9 ms)}
+  \label{lst:appendix:explain:q4:no_idx}
+  \inputminted[fontsize=\scriptsize]{text}{./code/sql/explain_q4_no_idx.txt}
+\end{listing}
+
+\subsection*{Q4 --- s~indexy}
+
+Oproti variantě bez indexů jsou hlavní změny: \code{Seq Scan} na \code{issue\_labels\_history} nahrazen \code{Index Only Scan using idx\_pr\_labels\_repo\_label\_issue\_ts} s~\code{Incremental Sort} (quicksort v~paměti místo external merge na disku), \code{Seq Scan} na \code{issue\_event\_history} nahrazen \code{Index Only Scan using idx\_pr\_event\_hist\_state\_changes}. \code{Seq Scan} na \code{issues} zůstává, protože tabulka \code{issues} neobsahuje optimalizovatelnou větev plánu. Výsledné zrychlení je limitováno právě touto částí.
+
+\begin{listing}[htbp]
+  \caption{Q4: EXPLAIN ANALYZE s~indexy (Execution Time: 519,8 ms)}
+  \label{lst:appendix:explain:q4:idx}
+  \inputminted[fontsize=\scriptsize]{text}{./code/sql/explain_q4_idx.txt}
+\end{listing}

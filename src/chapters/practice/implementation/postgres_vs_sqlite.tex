@@ -8,7 +8,7 @@ Při implementaci bylo nutné zvolit konkrétní systém pro správu relačních
 
 SQLite je odlehčený souborový databázový systém bez samostatného serverového procesu\cite{sqlite_about}. Celá databáze je uložena v~jediném souboru a~databázový stroj je vložen přímo do aplikace jako knihovna. Tím odpadá nutnost instalace serveru, čímž se výrazně zjednodušuje lokální vývoj a~nasazení. SQLite je proto vhodné zejména pro prototypování, nízkou souběžnost nebo jako vestavěná databáze mobilních a~desktopových aplikací\cite{sqlite_when_to_use}.
 
-Nevýhodou je omezená podpora souběžných zápisů. Ve výchozím režimu (Rollback Journal) dochází při zápisu k~uzamčení celého souboru. Tento problém částečně řeší \WAL režim (\code{PRAGMA journal\_mode=WAL;})\cite{sqlite_wal}, který umožňuje souběžné čtení za probíhajícího zápisu, avšak souběžné zápisy jsou stále serializovány. Nasazení ve vícekontejnerovém prostředí je kvůli sdílenému souboru problematické. Moderní cloudové platformy jako \devTool{Cloudflare D1}{https://developers.cloudflare.com/d1/} nebo \devTool{Turso}{https://turso.tech} tato omezení řeší, avšak za cenu omezenější sady analytických \SQL funkcí.
+Nevýhodou je omezená podpora souběžných zápisů. Ve výchozím režimu (Rollback Journal) dochází při zápisu k~uzamčení celého souboru. Tento problém částečně řeší \WAL režim (\code{PRAGMA journal\_mode=WAL;})\cite{sqlite_wal}, který umožňuje souběžné čtení za probíhajícího zápisu, avšak souběžné zápisy jsou stále serializovány. Nasazení ve vícekontejnerovém prostředí je kvůli sdílenému souboru problematické. Moderní cloudové platformy jako \devTool{Cloudflare D1}{https://developers.cloudflare.com/d1/} nebo \devTool{Turso}{https://turso.tech} tato omezení řeší, avšak SQLite má stále omezenější sadu analytických \SQL funkcí.
 
 \subsection{PostgreSQL}
 \label{subsec:implementation:db_choice:postgresql}
@@ -18,11 +18,11 @@ PostgreSQL je plnohodnotný serverový relační databázový systém\cite{postg
 \subsection{Výsledné rozhodnutí}
 \label{subsec:implementation:db_choice:decision}
 
-Pro implementaci byl zvolen PostgreSQL. Rozhodujícím argumentem byla podpora analytického \SQL, zejména klauzule \code{DISTINCT ON}\cite{postgresql_distinct_on}, kterou SQLite nenabízí a~která zjednodušuje dotazy typu point-in-time pro zjištění stavu každého \PR v~daném okamžiku. PostgreSQL dále poskytuje pokročilé okenní funkce\cite{postgresql_window_functions} pro výpočty nad časovými řadami a~propracovaný plánovač dotazů s~podporou různých typů indexů. Cloudové platformy moderního ekosystému SQLite tyto analytické konstrukty nativně nepodporují. Zatímco SQLite serializuje souběžné zápisy i~v~\WAL módu, PostgreSQL je bez omezení zvládá paralelně.
+Pro implementaci byl zvolen PostgreSQL. Rozhodujícím argumentem byla podpora analytického \SQL, zejména klauzule \code{DISTINCT ON}\cite{postgresql_distinct_on}, kterou SQLite nenabízí a~která zjednodušuje dotazy typu point-in-time pro zjištění stavu každého \PR v~daném okamžiku. PostgreSQL dále poskytuje pokročilejší okenní funkce\cite{postgresql_window_functions} pro výpočty nad časovými řadami a~propracovaný plánovač dotazů s~podporou různých typů indexů. Cloudové platformy moderního ekosystému SQLite tyto analytické konstrukty nativně nepodporují. Zatímco SQLite serializuje souběžné zápisy i~v~\WAL módu, PostgreSQL díky MVCC (multiversion concurrency control) a~zamykání na úrovni řádků zvládá zápisy lépe.
 
 Pro lokální vývoj je server spouštěn přes kontejnerizaci, takže vývojář nemusí instalovat PostgreSQL přímo do systému a~vývojové prostředí zůstává shodné s~produkčním nasazením.
 
-Srovnání obou systémů shrnuje tabulka~\ref{tab:db_comparison}.
+Srovnání obou systémů shrnuje \customref{tabulka}{tab:db_comparison}.
 
 \begin{table}[htbp]
   \centering
@@ -40,7 +40,7 @@ Srovnání obou systémů shrnuje tabulka~\ref{tab:db_comparison}.
     \addlinespace
     \textbf{Souběžné zápisy} & Ve výchozím režimu zamyká celý soubor; \WAL mód serializuje souběžné zápisy. & Plná podpora souběžnosti a~nezávislých transakcí. \\
     \addlinespace
-    \textbf{Analytické dotazy} & Chybí \code{DISTINCT ON} a pokročilé okenní funkce. Vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \code{DISTINCT ON}, okenní funkce a bohatá podpora datových typů. \\
+    \textbf{Analytické dotazy} & Chybí \code{DISTINCT ON} a~pokročilé okenní funkce. Vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \code{DISTINCT ON}, okenní funkce a~bohatá podpora datových typů. \\
     \bottomrule
   \end{tabular}
 \end{table}
