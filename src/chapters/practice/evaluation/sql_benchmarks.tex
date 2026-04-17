@@ -41,7 +41,7 @@ přičemž hodnota \code{Heap Fetches: 0} potvrzuje, že k~datovým stránkám n
 Výsledkem je 2,7$\times$, resp. 3,3$\times$ kratší čas vykonávání.
 
 U~Q3 byl \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} nahrazen
-\code{Nested Loop}em. Ten pro každého člena týmu načítá záznamy přímo z~pokrývajícího indexu,
+\code{Nested Loop}. Ten pro každého člena týmu načítá záznamy přímo z~pokrývajícího indexu,
 tudíž odpadá přístup k~datovým stránkám (\code{Heap Fetches: 0}).
 Zrychlení je v~porovnání s~Q1 a~Q2 menší (1,6$\times$), protože agregace a~třídení výsledků tvoří větší podíl celkového času.
 

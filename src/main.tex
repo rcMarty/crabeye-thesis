@@ -60,6 +60,8 @@
 \setminted{fontsize=\fontsize{9}{11}\selectfont, baselinestretch=1, frame=lines, framesep=8pt, linenos, breaklines}
 \renewcommand\listingscaption{Výpis}
 \renewcommand\listoflistingscaption{Seznam výpisů zdrojového kódu}
+\counterwithin{listing}{chapter}
+\newenvironment{longlisting}{\captionsetup{type=listing}}{}
 
 
 % Uprava hloubky obsahu - pozdeji smazat !
@@ -101,7 +103,7 @@
 \input{./chapters/theory/versioning.tex}
 \input{./chapters/theory/github.tex}
 \input{./chapters/theory/existing_tools.tex}
-\input{./chapters/theory/used_technologies.tex}
+% \input{./chapters/theory/used_technologies.tex}
 \input{./chapters/theory/rust_repository.tex}
 
 \input{./chapters/practice/design.tex}
