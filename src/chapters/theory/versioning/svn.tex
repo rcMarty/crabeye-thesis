@@ -1,13 +1,14 @@
 %region Apache Subversion
 \section{Apache Subversion}
 \label{sec:svn}
-Apache Subversion (zkráceně \SVN) je \VCS, který vznikl v~roce 2004 jako náhrada za \CVS~\cite{svnbook17}. Jedná se o~open source centralizovaný verzovací systém.
+Apache Subversion, neboli taky \SVN je \VCS, který vznikl v~roce 2004 jako náhrada za \CVS~\cite{svnbook17}. Jedná se o~open source centralizovaný verzovací systém.
 
 Jeho hlavní implementační specifika jsou: atomické revize a~transakce, větvení pomocí \textit{levných kopií} (Cheap copies), verzování adresářů a~metadat, podpora binárních souborů, podpora neslučitelných souborů a~přístup k~datům přes \HTTP, \HTTPS a~protokol SVN~\cite{svnbook17}.
 
 %region Globální revize a transakce
 \subsection*{Globální revize a transakce}
 \label{sec:svn_revisions}
+Revize je snímek stavu repozitáře zaznamenaný v~okamžiku zápisu změn.
 \SVN používá globální revize napříč všemi soubory. U~starších systémů (např.\ \CVS) byly revize vedeny samostatně pro každý soubor, přičemž každý soubor měl vlastní historii a~číslo revize.
 
 Každý zápis do repozitáře je v~\SVN atomický a~je zaznamenán jako jedna revize zahrnující všechny dotčené soubory. To znamená, že zápis se buď provede celý, nebo se neprovede vůbec. Každá revize má jeden globální identifikátor, který jednoznačně reprezentuje stav celého repozitáře~\cite{svnbook17}.
@@ -19,7 +20,7 @@ Každý zápis do repozitáře je v~\SVN atomický a~je zaznamenán jako jedna r
 \label{sec:svn_branching}
 Větvení v~\SVN nemá žádnou speciální interní reprezentaci. Větve jsou realizovány na úrovni adresářové struktury uživateli (typicky \code{/branches}, \code{/tags}, \code{/trunk}).
 
-Větvení se provádí příkazem \code{svn copy}. Interně nedochází k~fyzické duplikaci dat ale vytvoří se pouze symbolický odkaz na původní data v~dané revizi. Tvorba nové větve je tímto způsobem velice rychlá~\cite{svnbook17}.
+Větvení se provádí příkazem \code{svn copy}. Interně nedochází k~fyzické duplikaci dat, ale vytvoří se pouze symbolický odkaz na původní data v~dané revizi. Tvorba nové větve je tímto způsobem velice rychlá~\cite{svnbook17}.
 
 %endregion
 
@@ -49,7 +50,7 @@ Při vývoji se může stát, že pracujeme se soubory, které algoritmicky slou
 %region Přístup k datům
 \subsection*{Přístup k datům}
 \label{sec:svn_access}
-\SVN nabízí flexibilní metody přístupu jak přes \HTTP/\HTTPS obohacené o~verzovací funkce nebo přes vlastní protokol svnserve běžící nad \TCPIP~\cite{svnbook17}, který je lehčí než \HTTP/\HTTPS.
+\SVN nabízí flexibilní metody přístupu jak přes \HTTP/\HTTPS obohacené o~verzovací funkce nebo přes vlastní protokol svnserve běžící nad \TCPIP~\cite{svnbook17}, který je technicky jednodušší a rychlejší než \HTTP/\HTTPS.
 
 %endregion
 

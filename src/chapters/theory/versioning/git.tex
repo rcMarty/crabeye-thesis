@@ -2,18 +2,18 @@
 %region Git
 \section{Git}
 \label{sec:git}
-Git vychází z komerčního \VCS BitKeeper a zakládá si na několika klíčových požadavcích~\cite{chacon2014progit}:
+Git je open source distribuovaný \VCS vytvořený v~roce 2005 Linusem Torvaldsem primárně pro správu zdrojového kódu jádra operačního systému Linux. Vychází z~komerčního \VCS BitKeeper a~zakládá si na několika klíčových požadavcích~\cite{chacon2014progit}:
 \begin{itemize}
-  \item Rychlost,
-  \item jednoduchý návrh,
-  \item silná podpora nelineárního vývoje pro tisíce paralelních větví,
-  \item plně distribuovaný charakter,
-  \item schopnost efektivně spravovat velké projekty, jako je jádro operačního systému Linux.
+  \item Rychlost
+  \item Jednoduchý návrh
+  \item Silná podpora nelineárního vývoje pro tisíce paralelních větví
+  \item Plně distribuovaný charakter
+  \item Schopnost efektivně spravovat velké projekty, jako je jádro operačního systému Linux
 \end{itemize}
 
-Oproti ostatním \VCS, které uchovávají historii jako seznam změn, Git uchovává historii jako sérii snímků (snapshots)~\cite{chacon2014progit}. Při každém commitu se uloží kompletní stav všech souborů, nikoli pouze jejich rozdíly. Pokud se soubor oproti předchozímu snímku nezměnil, uloží se pouze odkaz na jeho předchozí verzi. Tímto přístupem je dosaženo efektivního větvení a slučování.
+Oproti ostatním \VCS, které uchovávají historii jako seznam změn, Git uchovává historii jako sérii snímků (snapshots). Záznam takového snímku se nazývá commit. Tento termín označuje jak konkrétní bod v~historii projektu, tak i~samotnou operaci jeho vytvoření. Při každém commitu se uloží kompletní stav všech souborů, nikoli pouze jejich rozdíly. Pokud se soubor oproti předchozímu snímku nezměnil, uloží se pouze odkaz na jeho předchozí verzi. Tímto přístupem je dosaženo efektivního větvení a slučování~\cite{chacon2014progit}.
 
-V~základu pracuje Git se třemi stavy souborů~\cite{chacon2014progit}:
+V~základu pracuje Git se třemi stavy souborů:
 \begin{description}
   \item [Modifikované (modified)] soubor byl změněn, ale zatím nebyl uložen do historie.
   \item [Připravené (staged)] soubor je označen pro zahrnutí do dalšího commitu.
@@ -24,19 +24,19 @@ Z~těchto stavů vyplývají i~hlavní oblasti projektu na disku~\cite{chacon201
 \begin{description}
   \item [Pracovní adresář (Working directory)] obsahuje lokální kopii jedné verze projektu. Tyto soubory jsou vytaženy z~lokální databáze Gitu.
   \item [Oblast připravených změn (Staging area)] soubor, v~němž jsou uloženy informace o~tom, co bude obsahovat příští commit.
-  \item [Adresář Gitu (Git directory)] obsahuje historii a~metadata projektu.
+  \item [Adresář Gitu (Git directory neboli \code{.git})] obsahuje historii a~metadata projektu.
 \end{description}
 
 Kromě synchronizace dat se serverem jsou v~Gitu všechny operace lokální, čímž je dosažena vysoká rychlost a~možnost plně pracovat odkudkoliv bez nutnosti být připojen k~síti~\cite{chacon2014progit}.
 
 Než se v~Gitu cokoliv uloží, spočítá se nejprve kontrolní součet (checksum) pomocí algoritmu \SHA-1, který se pak používá k~odkazování na uložená data. Tímto způsobem je zaručeno, že nelze provést žádnou operaci, o~které by Git nevěděl, a~data jsou tak vždy konzistentní~\cite{chacon2014progit}.
 
-Při jakékoliv operaci v~Gitu jsou data do databáze vždy přidávána. Ovšem lze systém přimět k~operaci, která je nevratná, avšak je to obtížné. Jakmile jsou změny jednou zapsány, nelze je ztratit. Díky tomu lze bez obav experimentovat a~zkoušet různé přístupy~\cite{chacon2014progit}.
+Při jakékoliv běžné operaci v~Gitu jsou data do databáze pouze přidávána, nikdy mazána. Ke ztrátě zapsaných dat může dojít jedině při záměrném použití pokročilých operací, které mění historii repozitáře. Díky tomu lze bez obav provádět rozsáhlé experimenty nebo změny, protože k~dříve zapsanému stavu se lze vždy vrátit~\cite{chacon2014progit}.
 
 %region Úložiště adresované obsahem
-\subsection*{Úložiště adresované obsahem (Content-addressable storage)}
+\subsection{Úložiště adresované obsahem (Content-addressable storage)}
 \label{sec:git_content_addressable_storage}
-Gitová databáze je fundamentálně založena na principu souborového systému s adresovatelným obsahem jako úložiště klíč--hodnota, kde klíčem je hash obsahu a hodnotou je samotný soubor. Tento klíč je při každém commitu vypočítáván a vrácen pro pozdější použití.
+Git databáze je fundamentálně založena na principu souborového systému s adresovatelným obsahem jako úložiště klíč--hodnota, kde klíčem je hash obsahu a hodnotou je samotný soubor. Tento klíč je při každém commitu vypočítáván a vrácen pro pozdější použití.
 Klíč je generován pomocí algoritmu \SHA-1, který vytvoří 40znakový řetězec z obsahu souboru~\cite{chacon2014progit}.
 
 Fyzicky jsou tyto objekty ukládány do složky \code{.git/objects}. V~této složce jsou podsložky pojmenované prvními dvěma znaky hashe a v~těchto podsložkách jsou zkomprimované soubory s~daty pojmenované zbylými 38 znaky hashe~\cite{chacon2014progit}. Například objekt s~hashem \\ \code{e965c8f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6} bude uložen jako \\ \code{.git/objects/e9/65c8f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6}.
@@ -44,25 +44,29 @@ Fyzicky jsou tyto objekty ukládány do složky \code{.git/objects}. V~této slo
 %endregion
 
 %region Objektový model Gitu
-\subsection*{Objektový model Gitu}
+\subsection{Objektový model Gitu}
 \label{sec:git_object_model}
 Git používá tři hlavní typy objektů pro ukládání dat:
 
-\paragraph*{Bloby (Binary Large Objects)} \label{par:git:bloby}
-Představují nejnižší úroveň uložení dat v~Gitu. Blob obsahuje pouze obsah souboru bez názvu původního souboru nebo jakýchkoliv metadat.
-
-\paragraph*{Stromy (Tree Objects)} \label{par:git:tree_objects}
-Mají na starost názvy souborů a jejich hierarchii, čímž simulují jednoduchý \FS operačního systému. Strom se skládá z~jednoho či více záznamů, které obsahují název souboru, \SHA-1 hash blobu, typ objektu, na který odkazuje (blob nebo strom), a oprávnění. Díky této struktuře je jednoduché zachytit snímek celého projektu.
-
-\paragraph*{Commity (Commit Objects)} \label{par:git:commit_objects}
-I~když stromový objekt zachycuje snímek projektu, neobsahuje kontext o~tom, kdo tento stav uložil, kdy a z~jakého důvodu. Každý commit obsahuje tato metadata:
-
 \begin{description}
-  \item[Odkaz na kořenový strom (root tree)] Hash stromu, který reprezentuje snímek projektu v~okamžiku commitu.
-  \item[Odkazy na rodičovské commity] Hashe předchozích commitů. První commit nemá žádného rodiče, běžné commity mají jednoho rodiče a merge commity mají dva nebo více rodičů.
-  \item[Metadata o~autorovi] Jméno, e-mail a časové razítko osoby, která vytvořila danou změnu.
-  \item[Metadata committera] Jméno, e-mail a časové razítko osoby, která změnu fakticky uložila do repozitáře.
-  \item[Zpráva (commit message)] Krátký popis změn, které commit obsahuje.
+  \item[Bloby (Binary Large Objects)] \label{par:git:bloby}
+    Představují nejnižší úroveň uložení dat v~Gitu. Blob obsahuje pouze obsah souboru bez názvu původního souboru nebo jakýchkoliv metadat.
+
+  \item[Stromy (Tree Objects)] \label{par:git:tree_objects}
+    Mají na starost názvy souborů a jejich hierarchii, čímž simulují jednoduchý \FS operačního systému. Strom se skládá z~jednoho či více záznamů, které obsahují název souboru, \SHA-1 hash blobu, typ objektu, na který odkazuje (blob nebo strom), a oprávnění. Díky této struktuře je jednoduché zachytit snímek celého projektu.
+
+  \item[Commity (Commit Objects)] \label{par:git:commit_objects}
+    I~když stromový objekt zachycuje snímek projektu, neobsahuje kontext o~tom, kdo tento stav uložil, kdy a z~jakého důvodu.
+
+    Každý commit obsahuje tato metadata:
+
+    \begin{description}
+      \item[Odkaz na kořenový strom (root tree)] Hash stromu, který reprezentuje snímek projektu v~okamžiku commitu.
+      \item[Odkazy na rodičovské commity] Hashe předchozích commitů. První commit nemá žádného rodiče, běžné commity mají jednoho rodiče a merge commity mají dva nebo více rodičů.
+      \item[Metadata o~autorovi] Jméno, e-mail a časové razítko osoby, která vytvořila danou změnu.
+      \item[Metadata committera] Jméno, e-mail a časové razítko osoby, která změnu fakticky uložila do repozitáře.
+      \item[Zpráva (commit message)] Krátký popis změn, které commit obsahuje.
+    \end{description}
 \end{description}
 %endregion
 
@@ -84,7 +88,7 @@ I~když stromový objekt zachycuje snímek projektu, neobsahuje kontext o~tom, k
 % - Zmínit soubor HEAD, který určuje, na jaké větvi se uživatel právě nachází.
 Dřívější \VCS{}, jako například \SVN{}, přistupovaly k~větvím jako k~fyzickým kopiím dat. To znamená, že pro vytvoření nové větve bylo nutné zkopírovat celý projekt do nové složky, což bylo prostorově i~časově náročné~\cite{chacon2014progit}.
 
-V~Gitu jsou naproti tomu větve pouze pohyblivé ukazatele směřující na konkrétní commit. Fyzicky se jedná o~jeden textový soubor ve složce \code{.git/refs/heads/}, který obsahuje pouze hash commitu. Vytvoření větve tedy fyzicky znamená vytvoření nového souboru s~hashem commitu, což je velice rychlé bez ohledu na velikost projektu~\cite{chacon2014progit}.
+V~Gitu jsou naproti tomu větve pouze pohyblivé ukazatele směřující na konkrétní commit. Fyzicky se jedná o~jeden textový soubor ve složce \code{.git/refs/heads/}, který obsahuje pouze hash commitu. Vytvoření větve tedy znamená vytvoření nového souboru s~hashem commitu, což je velice rychlé bez ohledu na velikost projektu~\cite{chacon2014progit}.
 
 Aby Git dokázal určit, na jaké větvi se uživatel právě nachází, využívá speciální ukazatel zvaný HEAD. Tento ukazatel je textový soubor uložen v~\code{.git/HEAD}, který namísto přímého hashe obsahuje symbolickou referenci na aktuální větev. Když uživatel vytvoří nový commit, Git přečte HEAD, zjistí aktuální větev a~posune její ukazatel tak, aby odkazoval na nově vzniklý commit~\cite{chacon2014progit}.
 
@@ -109,7 +113,7 @@ Při vytváření packfilu je využívána delta komprese. U~tohoto způsobu kom
 %region Programovatelný přístup ke Gitu
 \subsection{Programovatelný přístup ke Gitu}
 \label{sec:git_api}
-Programovatelný přístup ke Gitu je zajištěn pomocí knihovny \devTool{libgit2}{https://libgit2.org/}. Jedná se o~knihovnu napsanou v~jazyce C bez jakýchkoli externích závislostí, se zaměřením na programátorsky přívětivé \API{}.
+Jeden z mnoha programovatelných přístupů ke Gitu je knihovna \devTool{libgit2}{https://libgit2.org/}. Jedná se o reimplementaci Git knihovny napsanou v~jazyce C bez jakýchkoli externích závislostí, se zaměřením na programátorsky přívětivé \API{}.
 Knihovna poskytuje také tzv. language bindings pro různé jazyky, včetně Rustu, Pythonu, Ruby a~dalších. Díky tomu je možné využívat Git pohodlně v~ostatních aplikacích bez nutnosti znalosti jazyka C~\cite{chacon2014progit}.
 
 Jedna z~nejzajímavějších vlastností této knihovny je podpora tzv. backendů (pluginů). Libgit2 umožňuje vývojářům napojit vlastní úložiště pro různé typy operací a~vytvářet vlastní pravidla pro konfiguraci, ukládání referencí nebo i~pro databázi objektů~\cite{chacon2014progit}.

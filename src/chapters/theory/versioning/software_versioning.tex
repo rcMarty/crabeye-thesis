@@ -14,7 +14,7 @@ Další vlastností \VCS je možnost souběžné práce více uživatelů na ste
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[height=\textwidth]{figures/vcs/Revision_controlled_project_visualization.pdf}
+  \includegraphics[height=0.7\textwidth]{figures/vcs/Revision_controlled_project_visualization.pdf}
   \caption{Příklad historie projektu řízené verzovacím systémem~\cite{sink2011version}.}
   \label{fig:revision_controlled_project_visualization}
 \end{figure}
@@ -37,11 +37,9 @@ Hlavní rozdíl mezi centrálními a~distribuovanými \VCS spočívá v~tom, že
   \label{fig:vcs_comparison}
 \end{figure}
 
-Rozdíl je patrný i~v~principu odesílání změn. U~centrálního \VCS příkaz \code{svn commit} zapíše změny přímo na server, zatímco u~distribuovaného \VCS (v~případě Gitu) příkaz \code{git commit} provede změny pouze do lokálního repozitáře. Teprve příkaz \code{git push} odešle všechny dosud lokálně zapsané, avšak nepropagované commity na hostovací službu. Tedy u~centrálního \VCS je vyžadováno připojení k~serveru pro publikování změn, zatímco u~distribuovaného není vyžadováno a můžeme změny na server zapsat později.
+Rozdíl je patrný i~v~principu odesílání změn. U~centrálního \VCS se každá změna zapisuje přímo na server, zatímco u~distribuovaného \VCS se změna nejprve zaznamená do lokálního repozitáře a~teprve následně se propaguje na hostovací službu. Tedy u~centrálního \VCS je vyžadováno připojení k~serveru pro publikování změn, zatímco u~distribuovaného není vyžadováno a~změny na server lze zapsat později.
 
-Za zmínku dále stojí, že příkaz \code{git pull} ve skutečnosti zastřešuje dvě operace: nejprve stáhne změny ze serveru a~poté je sloučí s~lokálními změnami. Není tedy přímým opakem příkazu \code{git push}.
-
-Rozdíl je patrný i~v~principu řešení konfliktů a~slučování větví. Centralizovaný \VCS umožňuje provést aktualizaci ze serveru, i~když má uživatel rozpracované, dosud nezapsané soubory, a~systém automaticky smíchá všechny změny, což může vést ke konfliktům. Distribuovaný \VCS uživatele nejprve donutí provést \code{commit}, čímž se změny zapíší do lokální historie, a~teprve poté se může provést \code{merge} mezi dvěma pevnými body historie, z~nichž vzniká nový pevný bod historie.
+Rozdíl je patrný i~v~principu řešení konfliktů a~slučování větví. Centralizovaný \VCS umožňuje provést aktualizaci ze serveru, i~když má uživatel rozpracované, dosud nezapsané soubory, a~systém automaticky smíchá všechny změny, což může vést ke konfliktům. Distribuovaný \VCS uživatele nejprve donutí zaznamenat změny do lokální historie a~teprve poté lze provést sloučení mezi dvěma pevnými body historie, z~nichž vzniká nový pevný bod.
 
 %endregion
 
