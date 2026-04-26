@@ -15,16 +15,16 @@ Oproti ostatním \VCS, které uchovávají historii jako seznam změn, Git uchov
 
 V~základu pracuje Git se třemi stavy souborů:
 \begin{description}
-  \item [Modifikované (modified)] soubor byl změněn, ale zatím nebyl uložen do historie.
-  \item [Připravené (staged)] soubor je označen pro zahrnutí do dalšího commitu.
-  \item [Zapsané (committed)] změny jsou zaznamenány v~lokální historii.
+  \item[Modifikované (modified)] soubor byl změněn, ale zatím nebyl uložen do historie.
+  \item[Připravené (staged)] soubor je označen pro zahrnutí do dalšího commitu.
+  \item[Zapsané (committed)] změny jsou zaznamenány v~lokální historii.
 \end{description}
 
 Z~těchto stavů vyplývají i~hlavní oblasti projektu na disku~\cite{chacon2014progit}:
 \begin{description}
-  \item [Pracovní adresář (Working directory)] obsahuje lokální kopii jedné verze projektu. Tyto soubory jsou vytaženy z~lokální databáze Gitu.
-  \item [Oblast připravených změn (Staging area)] soubor, v~němž jsou uloženy informace o~tom, co bude obsahovat příští commit.
-  \item [Adresář Gitu (Git directory neboli \code{.git})] obsahuje historii a~metadata projektu.
+  \item[Pracovní adresář (Working directory)] obsahuje lokální kopii jedné verze projektu. Tyto soubory jsou vytaženy z~lokální databáze Gitu.
+  \item[Oblast připravených změn (Staging area)] soubor, v~němž jsou uloženy informace o~tom, co bude obsahovat příští commit.
+  \item[Adresář Gitu (Git directory neboli \code{.git})] obsahuje historii a~metadata projektu.
 \end{description}
 
 Kromě synchronizace dat se serverem jsou v~Gitu všechny operace lokální, čímž je dosažena vysoká rychlost a~možnost plně pracovat odkudkoliv bez nutnosti být připojen k~síti~\cite{chacon2014progit}.

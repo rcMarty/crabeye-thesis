@@ -24,7 +24,7 @@ V~této sekci jsou popsány nejpoužívanější funkce GitHubu a~modely interak
 
 \subsection{Repozitáře}
 \label{subsec:github:repozitare}
-Repozitář představuje základní prvek na GitHubu. Jedná se o~místo, kde je ukládán zdrojový kód a~jiné soubory projektu. Repozitáře mohou být veřejné nebo soukromé a~mohou mít více spolupracovníků~\cite{github_docs}.
+Repozitář představuje základní prvek na GitHubu. Jedná se o~místo, kde je ukládán zdrojový kód a~jiné soubory projektu. Repozitáře mohou být veřejné nebo soukromé a~mohou mít více spolupracovníků~\cite{github_docs}. Každý repozitář je jednoznačně identifikován kombinací vlastníka (uživatelský účet nebo organizace) a~názvu repozitáře, například \texttt{rust-lang/rust}.
 
 \subsubsection*{Forky}
 \label{subsubsec:github:forky}
@@ -40,7 +40,7 @@ Jedna issue může mít sub-issues, aby mohl být větší úkol rozdělen na v�
 
 \subsection{Pull Requests}
 \label{subsec:github:pull_requests}
-Pull requests (\PR) představují mechanismus, kterým může být navrženo začlenění změn do projektu. Jde o speciální případ Issue takže všechny \PR jsou i issues, ale ne všechny issues jsou \PR. Umožňují vytvořit požadavek na provedení změn ve zdrojovém kódu. Následně může proběhnout kontrola změn a~diskuze nad konkrétními částmi kódu. Tím je podporováno udržení kvality kódu a~včasné odhalení chyb~\cite{github_pull_requests_docs}.
+Pull requests (\PR) představují mechanismus, kterým může být navrženo začlenění změn do projektu. Jde o speciální případ Issue takže všechny \PR jsou i issues, ale ne všechny issues jsou \PR. Umožňují vytvořit požadavek na provedení změn ve zdrojovém kódu. Před samotným sloučením obvykle proběhne proces code review, při němž ostatní vývojáři procházejí navržené změny, komentují konkrétní řádky kódu a~schvalují nebo odmítají začlenění. Tím je podporováno udržení kvality kódu a~včasné odhalení chyb~\cite{github_pull_requests_docs}.
 
 Za zmínku stojí také dobrá provázanost mezi issues a~\PR. Pokud \PR řeší konkrétní issue, je možné tuto issue automaticky uzavřít pomocí klíčových slov, například \code{Closes \#123}, kde \code{\#123} představuje číslo issue.
 

@@ -9,11 +9,57 @@ Pro interakci s~různými zdroji jsou využívány základní \HTTP metody~\cite
   \item \code{DELETE} pro odstranění zdrojů,
   \item \code{PATCH} pro částečnou aktualizaci zdrojů (např. změna stavu issue).
 \end{itemize}
-Každý endpoint je definován cestou. Cesta může obsahovat statické i~dynamické části. Například endpoint pro získání issues repozitáře je \code{GET /repos/\{owner\}/\{repo\}/issues}, kde \code{owner} a~\code{repo} představují dynamické části, které musí být nahrazeny konkrétními hodnotami~\cite{github_rest_api}.
+Každý endpoint je definován cestou. Cesta může obsahovat statické i~dynamické části. Například endpoint pro získání issues repozitáře je \code{GET /repos/\{owner\}/\{repo\}/issues}, kde \code{owner} a~\code{repo} představují dynamické části, které musí být nahrazeny konkrétními hodnotami~\cite{github_rest_api}. Ukázka takového požadavku je uvedena ve výpisu~\ref{lst:github_rest_example}.
 
-Data jsou nejčastěji zprostředkována ve formátu \JSON, který zajišťuje dobrou čitelnost jak pro člověka, tak pro strojové zpracování. V~závislosti na endpointu lze využít také jiné media types, například \code{diff} nebo \code{patch}~\cite{github_rest_api}.
+\begin{listing}[H]
+\begin{minted}{shell}
+curl --request GET \
+--url "https://api.github.com/events?per_page=2&page=1" \
+--header "Accept: application/vnd.github+json" \
+--header "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/events
+\end{minted}
+  \caption{Ukázka \REST \API požadavku na GitHub pro získání událostí celého GitHubu.}
+  \label{lst:github_rest_example}
+\end{listing}
 
-GitHub \REST \API je verzováno a~využívá kalendářní verzování. Hlavička GitHub \API verze \code{X-GitHub-Api-Version} není povinná, ale je silně doporučována. Pokud tato hlavička není uvedena, je použita výchozí verze definovaná v~dokumentaci, například \code{2022-11-28}. Verze \API se do požadavku zapisuje ve formátu \code{X-GitHub-Api-Version: 2022-11-28}. Tím je zajištěno, že novější verze nezmění chování integrace navázané na starší verzi~\cite{github_rest_api}.
-GitHub také poskytuje seznam zpětně nekompatibilních změn mezi verzemi, návody a dokumentaci pro migrování na novější verze \API pro jednodušší migraci.
+\begin{listing}[H]
+\begin{minted}[linenos=false]{text}
+HTTP/2 200 OK
+Content-Type: application/json; charset=utf-8
+\end{minted}
+\begin{minted}{json}
+[
+  {
+    "id": "11056651313",
+    "type": "PushEvent",
+    "actor": {
+      "id": 41898282,
+      "login": "github-actions[bot]",
+      "display_login": "github-actions",
+      "url": "https://api.github.com/users/github-actions[bot]"
+    },
+    "repo": {
+      "id": 1184208499,
+      "name": "IsBenben/xxxh-fans",
+      "url": "https://api.github.com/repos/IsBenben/xxxh-fans"
+    },
+    "payload": {
+      "repository_id": 1184208499,
+      "push_id": 33348345827
+    },
+    "public": true,
+    "created_at": "2026-04-26T09:11:54Z"
+  }
+]
+\end{minted}
+  \caption{Ukázka odpovědi \REST \API na požadavek ze výpisu~\ref{lst:github_rest_example} (zkráceno).}
+  \label{lst:github_rest_response}
+\end{listing}
 
-I~když jsou některé endpointy veřejně dostupné bez autentizace, většina z~nich vyžaduje autentizaci pomocí tokenu v~hlavičce požadavku. Token lze získat více způsoby, například pomocí \PAT, prostřednictvím GitHub App nebo jako vestavěný \code{GITHUB\_TOKEN} v~rámci GitHub Actions~\cite{github_rest_api,github_actions_docs}. Přihlašování pomocí jemně odstupňovaného \PAT podporuje detailnější správu oprávnění a~je upřednostňováno oproti staršímu modelu tokenů~\cite{github_rest_api}.
+Data jsou nejčastěji zprostředkována ve formátu \JSON, který zajišťuje dobrou čitelnost jak pro člověka, tak pro strojové zpracování. V~závislosti na endpointu lze využít také jiné typy formátování obsahu, například \code{diff} nebo \code{patch}~\cite{github_rest_api}.
+
+GitHub \REST \API je verzováno a~využívá kalendářní verzování. Hlavička GitHub \API verze \code{X-GitHub-Api-Version} není povinná, ale je silně doporučována. Pokud tato hlavička není uvedena, je použita výchozí verze definovaná v~dokumentaci, například \code{2022-11-28}. Verze \API se do požadavku zapisuje ve formátu \code{X-GitHub-Api-Version: 2022-11-28}. Tím je zajištěno, že novější verze nezmění chování integrace navázané na starší verzi.
+GitHub také poskytuje seznam zpětně nekompatibilních změn mezi verzemi, návody a dokumentaci pro migraci na novější verze \API pro jednodušší přechod~\cite{github_rest_api_versions}.
+
+I~když jsou některé endpointy veřejně dostupné bez autentizace, většina z~nich vyžaduje autentizaci pomocí tokenu v~hlavičce požadavku. Token lze získat více způsoby, například pomocí \PAT, prostřednictvím GitHub App nebo jako vestavěný \code{GITHUB\_TOKEN} v~rámci GitHub Actions~\cite{github_actions_docs,github_rest_api}.

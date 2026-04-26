@@ -73,7 +73,7 @@ Při výchozím nastavení intervalu na 2 minuty je tato prodleva v nejhorším 
 \subsection{Spotřeba API požadavků}
 \label{sec:evaluace:benchmarks:api}
 
-GitHub omezuje počet \API požadavků na 5\,000 za hodinu pro autentizované požadavky \cite{github_rate_limits} (viz. \ref{subsec:github_api_limits}).
+GitHub omezuje počet \API požadavků na 5\,000 za hodinu pro autentizované požadavky \cite{github_rate_limits} (viz \ref{subsec:github_api_limits}).
 Při standardním provozu spotřebuje systém minimálně 60 požadavků za hodinu, přičemž se vychází z přibližně 2 požadavků na jeden synchronizační cyklus (jeden pro \PR, jeden pro issues) při intervalu 2 minuty (30 cyklů za hodinu).
 K tomu je nutné připočítat průměrně 1,5 požadavku za každý nový \PR nebo issue potřebný k synchronizaci historie.
 Pro repozitář \texttt{rust-lang/rust} většinou přibývá v závislosti na denní době 0 až 5 nových záznamů za hodinu.

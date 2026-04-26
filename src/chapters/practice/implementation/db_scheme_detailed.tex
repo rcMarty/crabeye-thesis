@@ -33,10 +33,10 @@ Sloupec \code{is\_pr} je přítomen nejen v~tabulce \code{issues}, ale také ve 
 
 Některá data nemusí být z GitHubu vždy dostupná, schéma proto v tabulce \code{issues} využívá volitelné sloupce:
 
-\begin{itemize}
-  \item \textbf{\code{contributor\_id}:} Může být prázdný (\code{NULL}), pokud autor svůj GitHub účet smazal nebo anonymizoval. Systém tak dokáže uložit záznam i bez známého autora.
-  \item \textbf{\code{merge\_sha}:} Obsahuje hash commitu pouze u úspěšně sloučených (merged) pull requestů. Pokud je \PR stále otevřený nebo byl zahozen, zůstává hodnota \code{NULL}.
-\end{itemize}
+\begin{description}
+  \item[\code{contributor\_id}] Může být prázdný (\code{NULL}), pokud autor svůj GitHub účet smazal nebo anonymizoval. Systém tak dokáže uložit záznam i bez známého autora.
+  \item[\code{merge\_sha}] Obsahuje hash commitu pouze u úspěšně sloučených (merged) pull requestů. Pokud je \PR stále otevřený nebo byl zahozen, zůstává hodnota \code{NULL}.
+\end{description}
 
 \subsection{Hierarchie týmů}
 \label{subsec:implementation:db_scheme:team_hierarchy}

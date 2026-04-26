@@ -5,10 +5,14 @@
 \chapter{Repozitář Rust překladače}
 \label{chap:rust_repository}
 
+Rust je systémový programovací jazyk zaměřený na bezpečnost paměti a~výkon, jehož vývoj zastřešuje nezisková organizace Rust Foundation. Vývoj probíhá otevřeně na GitHubu v~rámci organizace rust-lang, která sdružuje stovky přispěvatelů a~spravuje desítky repozitářů. Samotný překladač je vyvíjen v~repozitáři rust-lang/rust, kam denně přispívají vývojáři z~celého světa s~různými rolemi a~oprávněními. Tato komplexita si vyžaduje automatizaci procesů, jako jsou přiřazování reviewerů, správa štítků nebo řízení merge fronty~\cite{rust_foundation,rust_lang_org}.
+
 Tato kapitola se zaměřuje na specifika a~charakteristiku repozitáře Rust překladače. Z~důvodu jeho komplexity a~interního workflow je tento repozitář ideálním kandidátem pro analýzu a~sledování vývoje. Denně jsou zde otevírány a~uzavírány desítky \PR a~issues s~různými návrhy a~úpravami. Jsou zde rovněž popsána specifika relevantní pro co nejefektivnější vhled do stavu a~průběhu vývoje projektu.
 
 \section{Rust Team \API}
 \label{sec:rust_team_api}
+
+Organizace rust-lang je rozdělena do specializovaných týmů, z~nichž každý odpovídá za konkrétní oblast projektu, například za vývoj překladače, návrh jazyka nebo správu infrastruktury. Členové týmů mají různá oprávnění, jako je schvalování \PR nebo přidělování štítků, přičemž tato oprávnění jsou svázána právě s~příslušností k~danému týmu.
 
 Organizace rust-lang spravuje přístupová práva uživatelů prostřednictvím speciálního repozitáře \texttt{rust-lang/team}\footnote{\url{https://github.com/rust-lang/team}}, který obsahuje seznam týmů, jejich členů a~přidělených rolí. Tento repozitář funguje jako jediný zdroj pravdy (\textit{single source of truth}) pro informace o~tom, kdo má jaká oprávnění a~jaké týmy v~organizaci existují.
 
@@ -31,13 +35,13 @@ Výchozí stavy, které poskytuje GitHub (otevřeno, zavřeno, sloučeno), jsou 
 Štítky lze primárně rozdělit do následujících kategorií:
 
 \begin{itemize}
-  \item \code{S-*} --- stavy, ve kterých se právě nachází daný \PR nebo issue. Například \code{S-waiting-for-author} označuje \PR čekající na úpravy od autora, \code{S-waiting-for-review} označuje \PR čekající na přezkoumání. Tyto štítky jsou zásadní pro sledování stavu v~průběhu vývoje.
-  \item \code{T-*} --- štítky označující tým, jehož se daný \PR nebo issue týká. Například \code{T-lang} pro jazykový tým nebo \code{T-compiler} pro tým pracující na překladači.
-  \item \code{A-*} --- štítky pro oblasti, kterých se daný \PR nebo issue dotýká. Například \code{A-macros} pro makra nebo \code{A-diagnostics} pro zprávy o~chybách a~upozorněních.
-  \item \code{E-*} --- označení issue nebo \PR, u~kterého je vyžadována účast konkrétního odborníka nebo týmu.
+  \item \code{S-*} -- stavy, ve kterých se daný \PR nebo issue právě nachází. Příkladem jsou štítky \code{S-waiting-for-review} (\PR čeká na code review) nebo \code{S-waiting-for-author} (\PR čeká na úpravy od autora). Tyto štítky jsou zásadní pro sledování stavu v~průběhu vývoje.
+  \item \code{T-*} -- štítky označující tým, jehož se daný \PR nebo issue týká. Například \code{T-lang} pro jazykový tým nebo \code{T-compiler} pro tým pracující na překladači.
+  \item \code{A-*} -- štítky pro oblasti, kterých se daný \PR nebo issue dotýká. Například \code{A-macros} pro makra nebo \code{A-diagnostics} pro zprávy o~chybách a~upozorněních.
+  \item \code{E-*} -- výzvy ke spolupráci (\textit{calls for participation}). Například \code{E-easy} označuje issue vhodnou pro nové přispěvatele a \code{E-needs-mcve} žádá o~minimalizaci reprodukce chyby~\cite{rust_issue_triaging}.
 \end{itemize}
 
-Typů štítků je v~repozitáři výrazně více, avšak výše uvedené kategorie jsou základní pro pochopení fungování systému štítků a~jeho možností pro sledování stavu a~kategorizaci jednotlivých \PR a~issues \cite{rust_team_docs}.
+Typů štítků je v~repozitáři výrazně více, avšak výše uvedené kategorie jsou základní pro pochopení fungování systému štítků a~jeho možností pro sledování stavu a~kategorizaci jednotlivých \PR a~issues~\cite{rust_issue_triaging}.
 
 % \section{Ostatní specifika}
 % \todo{idk jestli actually budou yet}

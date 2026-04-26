@@ -23,9 +23,9 @@ Byly testovány čtyři dotazy (Q1--Q4) pokrývající typické analytické scé
 Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné definice indexů jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručně:
 
 \begin{itemize}
-  \item \code{idx\_pr\_event\_hist\_state\_changes} --- částečný index na \code{issue\_event\_history} s~podmínkou \code{WHERE is\_pr = true AND event IN ('closed','merged','reopened')} a~klauzulí \code{INCLUDE (event)}.
-  \item \code{idx\_pr\_labels\_repo\_label\_issue\_ts} --- pokrývající index na \code{issue\_labels\_history} se sloupci \code{(repository, label, issue, timestamp DESC) INCLUDE (action)}.
-  \item \code{idx\_file\_activity\_repo\_contrib\_ts} --- pokrývající index na \code{file\_activity} se sloupci \code{(repository, contributor\_id, timestamp DESC) INCLUDE (file\_path, issue)}.
+  \item \code{idx\_pr\_event\_hist\_state\_changes} -- částečný index na \code{issue\_event\_history} s~podmínkou \code{WHERE is\_pr = true AND event IN ('closed','merged','reopened')} a~klauzulí \code{INCLUDE (event)}.
+  \item \code{idx\_pr\_labels\_repo\_label\_issue\_ts} -- pokrývající index na \code{issue\_labels\_history} se sloupci \code{(repository, label, issue, timestamp DESC) INCLUDE (action)}.
+  \item \code{idx\_file\_activity\_repo\_contrib\_ts} -- pokrývající index na \code{file\_activity} se sloupci \code{(repository, contributor\_id, timestamp DESC) INCLUDE (file\_path, issue)}.
 \end{itemize}
 
 Částečné indexy s~podmínkou \code{WHERE is\_pr = true} redukovaly velikost indexu přibližně na polovinu, protože tabulka obsahuje záznamy jak pro issues, tak pro \PR. Pokrývající indexy s~klauzulí \code{INCLUDE} umožnily Index-Only Scan bez přístupu k~datovým stránkám (\code{Heap Fetches: 0}).

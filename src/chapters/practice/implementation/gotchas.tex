@@ -11,8 +11,8 @@ Při prvním spuštění synchronizace je nutné načíst historická data. Repo
 Z~tohoto důvodu systém rozlišuje dva režimy synchronizace (\code{SyncMode}):
 
 \begin{itemize}
-  \item \textbf{Last(N)} — načte posledních $N$ stránek výsledků (\PR nebo issues), seřazených sestupně podle data vytvoření. Slouží pro rychlé doplnění nejnovějších záznamů nebo při prvotním spuštění.
-  \item \textbf{Since(datum)} — načítá záznamy seřazené sestupně podle časového razítka a~ukončí se ve chvíli, kdy narazí na záznamy starší než zadané datum. Tento režim je využíván při průběžné synchronizaci v~pozadí.
+  \item \textbf{Last(N)} -- načte posledních $N$ stránek výsledků (\PR nebo issues), seřazených sestupně podle data vytvoření. Slouží pro rychlé doplnění nejnovějších záznamů nebo při prvotním spuštění.
+  \item \textbf{Since(datum)} -- načítá záznamy seřazené sestupně podle časového razítka a~ukončí se ve chvíli, kdy narazí na záznamy starší než zadané datum. Tento režim je využíván při průběžné synchronizaci v~pozadí.
 \end{itemize}
 
 V~rámci serveru běží na pozadí smyčka (\code{StateMonitor}), která se každých 60 sekund spustí a~zavolá synchronizaci v~režimu \code{Since(last\_known\_event\_timestamp)}, kde jako počáteční datum slouží časová značka posledního záznamu v~tabulce \code{issue\_event\_history}. Tím je zajištěno, že jsou průběžně doplňovány pouze záznamy, které se od posledního spuštění změnily.
@@ -31,7 +31,7 @@ Přesto je v~implementaci přítomna ochrana pro případ rozsáhlé počátečn
 
 GitHub nabízí dva přístupy k~získání průběžné historie změn \PR a~issues: webhooky a~timeline events \API.
 
-Webhooky fungují jako push notifikace — GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint. Tento přístup je vhodný pro aplikace, které potřebují reagovat na události v~reálném čase\cite{github_webhooks}. Pro účely této práce je však nevhodný ze dvou důvodů. Za prvé, webhook vyžaduje veřejně dostupný endpoint, což komplikuje lokální vývoj a~testování. Za druhé, webhooky neposkytují historická data, takže jimi nelze zpětně získat události, ke kterým došlo před registrací webhooku.
+Webhooky fungují jako push notifikace. GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint. Tento přístup je vhodný pro aplikace, které potřebují reagovat na události v~reálném čase\cite{github_webhooks}. Pro účely této práce je však nevhodný ze dvou důvodů. Za prvé, webhook vyžaduje veřejně dostupný endpoint, což komplikuje lokální vývoj a~testování. Za druhé, webhooky neposkytují historická data, takže jimi nelze zpětně získat události, ke kterým došlo před registrací webhooku.
 
 Systém proto používá timeline events \API, které pro každý \PR nebo issue vrátí seznam všech zaznamenaných událostí v~chronologickém pořadí. Tím je možné jak zpětně naplnit historii, tak průběžně doplňovat nové události. Načítání je optimalizováno tak, že pro každý záznam je kontrolována časová značka posledního uloženého záznamu v~databázi.  Pokud načtená stránka událostí obsahuje záznamy s~časovou značkou starší než tato hodnota, načítání je ukončeno.
 
