@@ -10,7 +10,7 @@ Verzování je proces správy a~sledování změn v~projektu~\cite{ernst2024vcs}
 
 Další vlastností \VCS je možnost souběžné práce více uživatelů na stejných souborech. \VCS \\ umožňuje řešit konflikty (tzv.\ \textit{merge konflikty}), které vznikají při souběžné úpravě stejného souboru více uživateli~\cite{sink2011version}.
 
-\customref{Na obrázku}{fig:revision_controlled_project_visualization} je znázorněn příklad typické struktury historie projektu řízeného verzovacím systémem. Základní ideální struktura je lineární graf, tj.\ řada uzlů za sebou, kde každý další vychází z~předchozího. Projekt má hlavní větev (Trunk), z~níž se dále větví ostatní větve (Branches), například pro vývoj nové funkcionality. Větve se poté slučují zpět (Merges) a~vznikají nové verze projektu. Z~pohledu teorie grafů se jedná o~acyklický orientovaný graf. Může se stát, že nově vyvíjená funkcionalita je nevyhovující, a~tak vzniká slepá větev (Discontinued development branch). Jakmile je dosažen požadovaný stav v~hlavní větvi, provádí se tzv.\ tagování (Tags). Tag většinou označuje novou verzi projektu nebo jiný důležitý milník.
+\customref{Na Obrázku}{fig:revision_controlled_project_visualization} je znázorněn příklad typické struktury historie projektu řízeného verzovacím systémem. Základní ideální struktura je lineární graf, tj.\ řada uzlů za sebou, kde každý další vychází z~předchozího. Projekt má hlavní větev (Trunk), z~níž se dále větví ostatní větve (Branches), například pro vývoj nové funkcionality. Větve se poté slučují zpět (Merges) a~vznikají nové verze projektu. Z~pohledu teorie grafů se jedná o~acyklický orientovaný graf. Může se stát, že nově vyvíjená funkcionalita je nevyhovující, a~tak vzniká slepá větev (Discontinued development branch). Jakmile je dosažen požadovaný stav v~hlavní větvi, provádí se tzv.\ tagování (Tags). Tag většinou označuje novou verzi projektu nebo jiný důležitý milník.
 
 \begin{figure}[ht]
   \centering
@@ -26,7 +26,7 @@ Další vlastností \VCS je možnost souběžné práce více uživatelů na ste
 \label{sec:vcs_types}
 Hlavní rozdíl mezi centrálními a~distribuovanými \VCS spočívá v~tom, že distribuované \VCS uchovávají kopii kompletní historie změn jak u~každého uživatele, tak i~na hostovacím serveru~\cite{sink2011version}.
 
-\customref{Na obrázku}{fig:vcs_comparison} jsou zobrazeny oba typy architektury. U~centrálního \VCS se musí spoléhat výhradně na hostovací server. Pokud ten vypadne, v~lepším případě uživatelé nemohou publikovat své změny, v~horším případě při absenci zálohy dojde ke ztrátě celé historie. U~distribuovaného \VCS stačí, aby alespoň jeden uživatel měl projekt k~dispozici, protože každý uživatel s~lokální kopií projektu disponuje prakticky plnohodnotnou zálohou s~kompletní historií a jednoduše se může projekt obnovit nebo znovu nasadit na jakoukoli jinou hostovací službu.
+\customref{Na Obrázku}{fig:vcs_comparison} jsou zobrazeny oba typy architektury. U~centrálního \VCS se musí spoléhat výhradně na hostovací server. Pokud ten vypadne, v~lepším případě uživatelé nemohou publikovat své změny, v~horším případě při absenci zálohy dojde ke ztrátě celé historie. U~distribuovaného \VCS stačí, aby alespoň jeden uživatel měl projekt k~dispozici, protože každý uživatel s~lokální kopií projektu disponuje prakticky plnohodnotnou zálohou s~kompletní historií a jednoduše se může projekt obnovit nebo znovu nasadit na jakoukoli jinou hostovací službu.
 
 \begin{figure}[ht]
   \centering

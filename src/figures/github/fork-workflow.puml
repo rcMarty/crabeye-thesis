@@ -21,14 +21,14 @@ skinparam Shadowing false
 
 package "Vzdálené úložiště (GitHub servery)" as Remote {
     rectangle "A\nHlavní repozitář\n(Main repository)" as A
-    rectangle "B\nMaster větev forku\nhlavního repozitáře" as B
+    rectangle "B\nHlavní větev forku\nhlavního repozitáře" as B
     rectangle "E\nVzdálená projektová větev\nvaší master větve" as E
 }
 
 package "Lokální úložiště (Váš stroj)" as Local {
     rectangle " " as DSpace #FAFAFA;line:FAFAFA
-    rectangle "C\nMaster větev\nlokálního klonu forku" as C
-    rectangle "D\nLokální projektová větev\nvaší master větve" as D
+    rectangle "C\nHlavní větev\nlokálního klonu forku" as C
+    rectangle "D\nLokální projektová větev\nvaší hlavní větve" as D
 }
 
 Remote -[hidden]down-> Local
@@ -42,11 +42,11 @@ B -[hidden]down-> C
 D -[hidden]right-> C
 
 A -right-> B : 1. Vytvoření forku\nhlavního repozitáře
-B -down-> C  : 2. Clone forku\nna lokální stroj
+B -down-> C  : 2. Naklonování forku\nna lokální stroj
 C -left-> D  : 3. Vytvoření projektové větve
-A --> C  : 4. Git fetch upstream\nz hlavního repozitáře\n\n\nGit merge pro změny\nze vzdáleného repozitáře\ns lokální master větví.
+A --> C  : 4. Git fetch upstream\nz hlavního repozitáře\n\n\nGit merge pro změny\nze vzdáleného repozitáře\ns lokální hlavní větví.
 C -up-> B : 5. Push sloučených změn\nz hlavního repozitáře
-C -left-> D       : 6. Merge změn z master větve
+C -left-> D       : 6. Merge změn z hlavní větve
 D -left- DSpace  : 7. Přidání souborů\ndo stavu staged
 DSpace -right-> D  : 8. Commit změn\ns popisem
 D -up-> E    : 9. Push commitů\ndo vzdálené větve

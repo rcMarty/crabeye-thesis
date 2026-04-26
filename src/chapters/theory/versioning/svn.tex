@@ -8,8 +8,7 @@ Jeho hlavní implementační specifika jsou: atomické revize a~transakce, větv
 %region Globální revize a transakce
 \subsection*{Globální revize a transakce}
 \label{sec:svn_revisions}
-Revize je snímek stavu repozitáře zaznamenaný v~okamžiku zápisu změn.
-\SVN používá globální revize napříč všemi soubory. U~starších systémů (např.\ \CVS) byly revize vedeny samostatně pro každý soubor, přičemž každý soubor měl vlastní historii a~číslo revize.
+\SVN používá globální revize napříč všemi soubory. Revize je snímek stavu repozitáře zaznamenaný v~okamžiku zápisu změn. U~starších systémů (např.\ \CVS) byly revize vedeny samostatně pro každý soubor, přičemž každý soubor měl vlastní historii a~číslo revize.
 
 Každý zápis do repozitáře je v~\SVN atomický a~je zaznamenán jako jedna revize zahrnující všechny dotčené soubory. To znamená, že zápis se buď provede celý, nebo se neprovede vůbec. Každá revize má jeden globální identifikátor, který jednoznačně reprezentuje stav celého repozitáře~\cite{svnbook17}.
 

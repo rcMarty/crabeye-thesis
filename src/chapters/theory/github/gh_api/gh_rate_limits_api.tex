@@ -12,7 +12,7 @@ GraphQL \API také poskytuje možnost získat informaci o~celkové ceně dotazu 
 
 \paragraph*{Příklad GraphQL dotazu a výpočet složitosti}
 \label{par:github:graphql:priklad_slozitosti}
-Ve \customref{výpisu}{lst:graphql_query} je zobrazen dotaz, ve kterém je požadováno 50 repozitářů a~pro každý z~nich 10 nejnovějších issues.
+Ve \customref{Výpisu}{lst:graphql_query} je zobrazen dotaz, ve kterém je požadováno 50 repozitářů a~pro každý z~nich 10 nejnovějších issues.
 
 %region GraphQL basic query and complexity calculation
 \begin{listing}[H]
@@ -38,7 +38,7 @@ Ve \customref{výpisu}{lst:graphql_query} je zobrazen dotaz, ve kterém je poža
 
 Odhad celkové ceny při plném naplnění všech limitů lze vyjádřit jako 1 bod za získání repozitářů a~500 bodů za získání issues, tedy $(1 + 50 \times 10) / 100 = 5{,}01$. Po zaokrouhlení je výsledná cena 5 bodů. Detailní výpočet počtu uzlů pro tento dotaz je uveden v~\listingref{lst:graphql_calc}~\cite{github_graphql_rate_limits}.
 
-Ve \customref{výpisu}{lst:graphql_complex_query} je zobrazen další komplexní dotaz, ve kterém je požadováno prvních 50 repozitářů, pro každý z~nich prvních 20 \PR a~pro každý \PR prvních 10 komentářů. Současně je pro každý repozitář požadováno prvních 20 issues a~pro každou issue prvních 10 komentářů. Takový dotaz má 22~050 uzlů, jejichž výpočet je uveden ve \customref{výpisu}{lst:graphql_complex_calc}, a~odhadovanou cenu $(1 + 20 \times 50 \times 10 + 20 \times 50 \times 10) / 100 = 200{,}01$, tedy po zaokrouhlení 200 bodů~\cite{github_graphql_rate_limits}.
+Ve \customref{výpisu}{lst:graphql_complex_query} je zobrazen další komplexní dotaz, ve kterém je požadováno prvních 50 repozitářů, pro každý z~nich prvních 20 \PR a~pro každý \PR prvních 10 komentářů. Současně je pro každý repozitář požadováno prvních 20 issues a~pro každou issue prvních 10 komentářů. Takový dotaz má 22~050 uzlů, jejichž výpočet je uveden ve \customref{Výpisu}{lst:graphql_complex_calc}, a~odhadovanou cenu $(1 + 20 \times 50 \times 10 + 20 \times 50 \times 10) / 100 = 200{,}01$, tedy po zaokrouhlení 200 bodů~\cite{github_graphql_rate_limits}.
 
 %region GraphQL complex query and complexity calculation
 \begin{listing}[H]

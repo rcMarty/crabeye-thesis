@@ -33,7 +33,7 @@ Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné d
 \subsection{Výsledky měření}
 \label{subsec:evaluace:sql:vysledky}
 
-Výsledky měření jsou shrnuty v~\customref{tabulce}{tab:evaluace:sql}, plné výstupy \code{EXPLAIN (ANALYZE, BUFFERS)} jsou k~dispozici v~příloze~\ref{sec:appendix:sql:explain}.
+Výsledky měření jsou shrnuty v~\customref{Tabulce}{tab:evaluace:sql}, plné výstupy \code{EXPLAIN (ANALYZE, BUFFERS)} jsou k~dispozici v~příloze~\ref{sec:appendix:sql:explain}.
 
 Nejvýraznější přínos měly indexy u~Q1 a~Q2. Bez indexů musel plánovač provést \code{Seq Scan} celé tabulky a~výsledky seřadit na disku (\code{external merge Disk}).
 Se~zavedením pokrývajících indexů přešel plán na \code{Index Only Scan},
