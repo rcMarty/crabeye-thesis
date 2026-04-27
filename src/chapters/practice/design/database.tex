@@ -12,15 +12,15 @@ Důvodem je analytická povaha dotazů a~potřeba agregovat data přes více ent
 
 Relační databáze navíc díky primárním a~cizím klíčům zajišťuje integritu dat. Předem definovaná struktura umožňuje validaci a~konzistenci dat, což zjednodušuje logiku na straně aplikace.
 
-\subsection{Rozdělení labelů a~eventů}
+\subsection{Rozdělení štítků a~událostí}
 \label{subsec:database:labels_and_events}
 
-Labely a~eventy jsou rozděleny do oddělených tabulek z~důvodu malého průniku jejich atributů. Řešení je obdobné jako u~tabulky issues, kde jediným rozdílem mezi issue a~\PR je příznak určující typ záznamu. Labely a~eventy mají řadu odlišných atributů, a~proto je vhodnější je uchovávat ve dvou samostatných tabulkách.
+Štítky a~události jsou rozděleny do oddělených tabulek z~důvodu malého průniku jejich atributů. Řešení je obdobné jako u~tabulky issues, kde jediným rozdílem mezi issue a~\PR je příznak určující typ záznamu. Štítky a~události mají řadu odlišných atributů, a~proto je vhodnější je uchovávat ve dvou samostatných tabulkách.
 
 \subsection{Diagram databáze}
 \label{subsec:database:database_diagram}
 
-Celková struktura databáze je znázorněna na \customref{Obrázku}{fig:database:overall_database}. Schéma má tři hlavní logické části: strukturu přispěvatelů a~přiřazení do týmů, aktuální stav \PR a~issues a~historii změn issues zahrnující zaznamenané události, změny labelů a~soubory upravené v~rámci sloučených nebo uzavřených \PR.
+Celková struktura databáze je znázorněna na \customref{Obrázku}{fig:database:overall_database}. Schéma má tři hlavní logické části: strukturu přispěvatelů a~přiřazení do týmů, aktuální stav \PR a~issues a~historii změn issues zahrnující zaznamenané události, změny štítků a~soubory upravené v~rámci sloučených nebo uzavřených \PR.
 
 \begin{figure}[H]
   \centering

@@ -25,7 +25,7 @@ Toto řešení umožňuje provoz automatizačních botů, jako je bors nebo tria
 
 Bezpečnost Team \API zajišťuje několik opatření. Prvním z~nich je zabránění neoprávněnému přístupu prostřednictvím spuštění škodlivého kódu v~\CI. Úspěšný útok by mohl vést k~získání plných práv k~celé infrastruktuře organizace. Ochrana spočívá v~tom, že nikdo kromě hlavních administrátorů, ani běžní správci (maintaineři), nemá přístup k~tajným tokenům, nemůže upravovat soubory pipeline, provádět sloučení neschváleného kódu ani si zvyšovat vlastní oprávnění.
 
-Druhá skupina bezpečnostních opatření chrání před hrozbami manipulace s~obsahem repozitáře. Takový útok by mohl provést maintainer a~mohl by zahrnovat například změnu \URL domovské stránky za falešnou, eskalaci vlastních práv nebo práv napříč více týmy, případně smazání ostatních uživatelů. Ochranou proti těmto útokům je povinnost schválení změn ostatními maintainery a~zavedení kontrol v~\CI, které ověřují, zda změny v~souborech TOML nevedly k~podezřelé aktivitě \cite{rust_team_docs}.
+Druhá skupina bezpečnostních opatření chrání před hrozbami manipulace s~obsahem repozitáře. Takový útok by mohl provést maintainer a~mohl by zahrnovat například změnu \URL domovské stránky za falešnou, eskalaci vlastních práv nebo práv napříč více týmy, případně smazání ostatních uživatelů. Ochranou proti těmto útokům je povinnost schválení změn ostatními maintainery a~zavedení kontrol v~\CI, které ověřují, zda změny v~souborech TOML nevedly k~podezřelé aktivitě~\cite{rust_team_docs}.
 
 \section{Štítky}
 \label{sec:rust_labels}

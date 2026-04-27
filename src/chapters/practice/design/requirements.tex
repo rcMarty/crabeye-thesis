@@ -19,7 +19,7 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
     \begin{itemize}
       \item Systém musí umožnit opakované spouštění synchronizace bez ztráty konzistence dat.
       \item Systém musí aktualizovat již uložené záznamy (např.\ změny stavu \PR nebo issue) a~doplňovat nové události.
-      \item Systém musí podporovat přírůstkovou synchronizaci, aby nedocházelo ke zbytečnému opakovanému načítání již zpracovaných dat.
+      \item Systém musí podporovat inkrementální synchronizaci, aby nedocházelo ke zbytečnému opakovanému načítání již zpracovaných dat.
     \end{itemize}
 
   \item \textbf{Historizace změn v~čase}
@@ -51,7 +51,6 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
     \begin{itemize}
       \item Systém musí efektivně zpracovávat data z~rozsáhlého repozitáře s~velkým množstvím \PR a~issues.
       \item Systém musí omezovat objem vracených dat pomocí stránkování a~limitů.
-      \item Databázová vrstva musí využívat vhodné indexy pro často prováděné dotazy.
     \end{itemize}
 
   \item \textbf{Spolehlivost a~odolnost}

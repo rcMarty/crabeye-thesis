@@ -21,7 +21,7 @@ Dotaz pomocí dvou \CTE s~\code{DISTINCT ON} určí, kolik \PR je v~daném stavu
 \subsection*{Q2 — Kumulativní počet sloučených \PR k~zadanému datu}
 \label{lst:appendix:sql:q2}
 
-Stav „merged" je trvalý, takže stačí \code{COUNT(DISTINCT issue)} nad jedinou tabulkou \code{issue\_event\_history} s~indexovatelným filtrem \code{event = 'merged'} a~časovým řezem.
+Na rozdíl od Q1 nevyžaduje tento dotaz sledování historických přechodů stavů. Stav „merged" je trvalý — jakmile je \PR sloučen, nelze jej vrátit do předchozího stavu. Stačí proto spočítat počet unikátních \PR, u~nichž existuje záznam události \code{merged} v~tabulce \code{issue\_event\_history} s~časovým razítkem před zadaným datem. Výsledkem je \code{COUNT(DISTINCT issue)} s~indexovatelným filtrem \code{event = 'merged'} a~časovým řezem.
 
 \begin{longlisting}
   \caption[Q2 --- Kumulativní počet sloučených \PR]{Q2 --- Kumulativní počet sloučených \PR k~zadanému datu}
