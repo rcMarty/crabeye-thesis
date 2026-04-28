@@ -26,7 +26,7 @@ Tato omezení zabraňují vzniku duplicitních záznamů při opakovaném spušt
 \subsection{Denormalizace sloupce \texttt{is\_pr}}
 \label{subsec:implementation:db_scheme:is_pr_denormalization}
 
-Sloupec \code{is\_pr} je přítomen nejen v~tabulce \code{issues}, ale také ve všech historických tabulkách. Jde o~záměrnou denormalizaci. Při analytických dotazech, které pracují pouze s~historickými událostmi nebo změnami labelů, je tak možné filtrovat záznamy podle typu (issue vs.\ \PR) bez nutnosti provádět \code{JOIN} s~tabulkou \code{issues}. Tento přístup snižuje složitost dotazů a~zlepšuje jejich výkon pro časté dotazy.
+Sloupec \code{is\_pr} je přítomen nejen v~tabulce \code{issues}, ale také ve všech historických tabulkách. Jde o~záměrnou denormalizaci. Při analytických dotazech, které pracují pouze s~historickými událostmi nebo změnami labelů, je tak možné filtrovat záznamy podle typu (issue vs.\ \PR) bez nutnosti provádět \code{JOIN} s~tabulkou \code{issues}. Tento přístup snižuje složitost dotazů a~zlepšuje jejich výkon pro často prováděné dotazy.
 
 \subsection{Volitelné sloupce (Nullable)}
 \label{subsec:implementation:db_scheme:nullable}
@@ -35,7 +35,7 @@ Některá data nemusí být z GitHubu vždy dostupná, schéma proto v tabulce \
 
 \begin{description}
   \item[\code{contributor\_id}] Může být prázdný (\code{NULL}), pokud autor svůj GitHub účet smazal nebo anonymizoval. Systém tak dokáže uložit záznam i bez známého autora.
-  \item[\code{merge\_sha}] Obsahuje hash commitu pouze u úspěšně sloučených (merged) pull requestů. Pokud je \PR stále otevřený nebo byl zahozen, zůstává hodnota \code{NULL}.
+  \item[\code{merge\_sha}] Obsahuje hash commitu pouze u úspěšně sloučených (merged) pull requestů. Pokud je \PR stále otevřený nebo byl zavřen, zůstává hodnota \code{NULL}.
 \end{description}
 
 \subsection{Hierarchie týmů}

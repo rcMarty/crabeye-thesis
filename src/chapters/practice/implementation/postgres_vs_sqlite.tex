@@ -22,25 +22,27 @@ Pro implementaci byl zvolen PostgreSQL. Rozhodujícím argumentem byla podpora a
 
 Pro lokální vývoj je server spouštěn přes kontejnerizaci, takže vývojář nemusí instalovat PostgreSQL přímo do systému a~vývojové prostředí zůstává shodné s~produkčním nasazením.
 
-Srovnání obou systémů shrnuje \customref{Tabulka}{tab:db_comparison}.
+Srovnání obou systémů shrnuje \customref{Tabulka}{tab:implementation:db_choice:comparison}.
 
 \begin{table}[htbp]
   \centering
-  \caption{Srovnání vlastností SQLite a PostgreSQL pro účely analytického nástroje}
-  \label{tab:db_comparison}
-  \begin{tabular}{@{} l p{6cm} p{6cm} @{}}
+  \caption{Srovnání vlastností SQLite a~PostgreSQL pro účely analytického nástroje}
+  \label{tab:implementation:db_choice:comparison}
+  \begin{tabularx}{\textwidth}{@{} l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X @{}}
     \toprule
+    & \multicolumn{2}{c}{\textbf{Databázový systém}} \\
+    \cmidrule(lr){2-3}
     \textbf{Kritérium} & \textbf{SQLite} & \textbf{PostgreSQL} \\
     \midrule
-    \textbf{Architektura} & Vestavěná knihovna, serverless. & Klient-server architektura. \\
+    Architektura & Vestavěná knihovna. & Klient-server architektura. \\
     \addlinespace
-    \textbf{Lokální nasazení} & Zcela bezúdržbové, stačí jeden soubor. & Vyžaduje instalaci serveru nebo spuštění přes kontejnerizaci. \\
+    Lokální nasazení & Zcela bezúdržbové, stačí jeden soubor. & Vyžaduje instalaci serveru nebo spuštění přes kontejnerizaci. \\
     \addlinespace
-    \textbf{Cloudové nasazení} & Tradiční kontejnerové nasazení problematické; moderní platformy (D1, Turso) řeší omezení, avšak s~omezenější sadou analytických \SQL funkcí. & Nativní podpora, dostupné jako spravovaná služba. \\
+    Cloudové nasazení & Tradiční kontejnerové nasazení problematické; moderní platformy (D1, Turso) řeší omezení, avšak s~omezenější sadou analytických \SQL funkcí. & Nativní podpora, dostupné jako spravovaná služba. \\
     \addlinespace
-    \textbf{Souběžné zápisy} & Ve výchozím režimu zamyká celý soubor; \WAL mód serializuje souběžné zápisy. & Plná podpora souběžnosti a~nezávislých transakcí. \\
+    Souběžné zápisy & Ve výchozím režimu zamyká celý soubor; \WAL mód serializuje souběžné zápisy. & Plná podpora souběžnosti a~nezávislých transakcí. \\
     \addlinespace
-    \textbf{Analytické dotazy} & Chybí \code{DISTINCT ON} a~pokročilé okenní funkce. Vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \code{DISTINCT ON}, okenní funkce a~bohatá podpora datových typů. \\
+    Analytické dotazy & Chybí \code{DISTINCT ON} a~pokročilé okenní funkce. Vhodné pro jednodušší dotazy. & Pokročilý optimalizátor, \code{DISTINCT ON}, okenní funkce a~bohatá podpora datových typů. \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}

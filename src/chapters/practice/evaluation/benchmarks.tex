@@ -1,8 +1,16 @@
 \section{Výkonnostní měření synchronizace}
 \label{sec:evaluace:benchmarks}
 
-V rámci evaluace bylo provedeno měření výkonu synchronizace dat pro repozitář \texttt{rust\-lang/rust}.
-Měření probíhalo na osobním stolním počítači se stabilním připojením k internetu, výsledky jsou tedy orientační a mohou se lišit v závislosti na hardwaru a připojení.
+Měření výkonu synchronizace dat pro repozitář \texttt{rust-lang/rust} probíhalo na lokální pracovní stanici. Pro zajištění reprodukovatelnosti experimentů je níže uvedena hardwarová a~síťová specifikace testovacího prostředí:
+
+\begin{itemize}
+  \item \textbf{Procesor:} AMD Ryzen 5 5600G (6 jader, 12 vláken, základní frekvence 3,9\,GHz)
+  \item \textbf{Operační paměť:} 32\,GB DDR4 (3\,600\,MHz)
+  \item \textbf{Úložiště:} 512\,GB NVMe SSD (KXG50ZNV512G, 3200 MBps čtení / 1050 MBps zápis)
+  \item \textbf{Připojení k~síti:} Symetrické internetové připojení s~propustností 300\,Mb/s
+\end{itemize}
+
+Časová náročnost synchronizace je úzce spjata s~propustností disku a~parametry sítě. Získané výsledky proto slouží primárně k~relativnímu porovnání v~rámci této konkrétní konfigurace a~absolutní hodnoty se mohou při použití odlišného hardwaru měnit.
 
 \subsection{Počáteční inicializace dat}
 \label{sec:evaluace:benchmarks:inicializace}
@@ -21,9 +29,9 @@ Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:be
     \textbf{Fáze} & \textbf{Trvání} \\
     \midrule
     Klonování git repozitáře ($\approx$\,1,2\,GB) & $\approx$ 1--2 min \\
-    Stažení \PR a issues z GitHub \API & 14 min 13 s \\
+    Stažení \PR z GitHub \API & 14 min 13 s \\
     Vložení přispěvatelů z \PR do databáze & 18 s \\
-    Vložení \PR do databáze & 22 min 5 s \\
+    Načtení změněných souborů z git historie a vložení záznamů do databáze & 22 min 5 s \\
     Stažení issues z GitHub \API & 14 min 4 s \\
     Vložení přispěvatelů z issues do databáze & 23 s \\
     Vložení issues do databáze & 1 s \\
@@ -36,13 +44,17 @@ Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:be
 
 Za uvedené období bylo staženo přibližně 64\,000 \PR a issues, k čemuž bylo zapotřebí přibližně
 640 \API požadavků na GitHub (při maximální velikosti stránky 100 záznamů).
-Synchronizace dat týmů vyžadovala jediný požadavek na \API rust týmu\ref{sec:rust_team_api}, který nepodléhá běžnému limitu.
+Synchronizace dat týmů vyžadovala jediný požadavek na \API rust týmu \sectionref{sec:rust_team_api}, který nepodléhá běžnému limitu.
 
 % Počáteční synchronizaci je doporučeno spouštět jako samostatný proces -- nejlépe s vyhrazeným přístupovým tokenem -- a to pouze jednou při prvním nasazení.
 % Alternativně lze zvolit kratší časové okno (například posledních 30 dní) a teprve poté spustit stahování kompletní historie událostí jako oddělený proces na pozadí, čímž se výrazně zkrátí doba inicializace.
 
 \subsection{Inkrementální aktualizace}
 \label{sec:evaluace:benchmarks:inkrementalni}
+
+Inkrementální aktualizace je realizována pomocí timestampu poslední již uložené události v databázi. Systém si při zahájení synchronizace načte nejnovější známý timestamp a následně volá výpisy pull requestů a issues seřazené podle času poslední změny v sestupném pořadí z GitHub \API. Zpracovávány jsou pouze ty stránky výsledků, jejichž položky mohou ještě obsahovat záznamy novější než uložené mez.
+Při dosažení starších položek se procházení ukončí.
+Detailní historie událostí a změn štítků je potom stahována už jen pro takto vybrané změněné pull requesty a issues, přičemž i zde lze načítání ukončit po dosažení již dříve uložených událostí.
 
 Po dokončení počáteční synchronizace systém provádí inkrementální aktualizace, při nichž jsou z GitHub \API staženy pouze záznamy změněné od posledního běhu.
 Výpis~\ref{lst:evaluace:benchmarks:inkrementalni} zachycuje log inkrementální aktualizace v situaci, kdy nebyly nalezeny žádné nové záznamy.
@@ -83,4 +95,4 @@ Celková průměrná spotřeba při normálním provozu za hodinu je tedy:
   30 \times 2 + 5 \times 1{,}5 = 67{,}5 \text{ požadavků/hod}
 \]
 
-Tato hodnota představuje přibližně 1,4\,\% stanoveného limitu, takže systém může bez problémů fungovat i s výrazně kratšími synchronizačními intervaly nebo může být provozováno více instancí souběžně pro různé repozitáře se stejným přístupovým tokenem.
+Tato hodnota představuje přibližně $1{,}4$~\% stanoveného limitu, takže systém může bez problémů fungovat i s výrazně kratšími synchronizačními intervaly nebo může být provozováno více instancí souběžně pro různé repozitáře se stejným přístupovým tokenem.

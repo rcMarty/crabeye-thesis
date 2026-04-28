@@ -15,5 +15,6 @@ Code is available at [https://github.com/rcmarty/crabeye](https://github.com/rcm
 - texlive-wrapfig
 - texlive-algorithm2e
 - texlive-collection-latexextra
+- texlive-siunitx
 
 *Hope thats all packages and i didn't miss any*

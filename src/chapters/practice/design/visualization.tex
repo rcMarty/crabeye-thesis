@@ -1,0 +1,12 @@
+\section{Návrh vizualizace dat}
+\label{sec:design:visualization}
+
+\todo{Doplnit přehled požadavků na vizualizaci: co je potřeba zobrazit (časové řady stavů PR, hierarchická data souborů, parametrizované dotazy) a jaké jsou na vizualizaci kladeny nároky (interaktivita, filtrování, podpora stromových dat).}
+
+Prvním zvažovaným nástrojem pro vizualizaci dat byla platforma Grafana\footnote{\url{https://grafana.com}}, která je v oblasti monitoringu zavedeným standardem s~přímou podporou PostgreSQL. Ukázalo se však, že integrace analytických \SQL dotazů navržených pro tento projekt by v ní byla neúměrně složitá. Grafana totiž naráží na limity při předávání dynamických parametrů do komplexních dotazů obsahujících podmíněnou logiku a~vícenásobné klauzule WITH.
+
+Druhým důvodem k~odklonu od tohoto řešení byla vizualizace hierarchických textových dat. Pokud například uživatele zajímá seznam upravených souborů za určité období, Grafana nabízí pouze plochý tabulkový výpis. U~stovek záznamů však takový formát postrádá přehlednost. Pro rychlou identifikaci zasažených částí kódu je mnohem vhodnější prostorová agregace dat (např. vizualizace typu treemap), která cesty k~souborům převede do názorné struktury projektu. Nativní panely Grafany však pro tento účel nejsou uzpůsobeny.
+
+Z~těchto důvodů byl vytvořen vlastní frontendový klient ve formě jednostránkové webové aplikace. Ten komunikuje s~backendem přes \REST \API, čímž zajišťuje plnou kontrolu nad předáváním parametrů a~poskytuje potřebnou svobodu při tvorbě interaktivních vizualizací přímo na míru aplikaci.
+
+\todo{Doplnit přehled zamýšlených pohledů/vizualizací: stručný seznam (PR State Over Time, All States Combined, Files Modified by Team) s krátkým popisem účelu každého pohledu — bez screenshotů, ty patří do implementace.}

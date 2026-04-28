@@ -43,5 +43,25 @@ Výchozí stavy, které poskytuje GitHub (otevřeno, zavřeno, sloučeno), jsou 
 
 Typů štítků je v~repozitáři výrazně více, avšak výše uvedené kategorie jsou základní pro pochopení fungování systému štítků a~jeho možností pro sledování stavu a~kategorizaci jednotlivých \PR a~issues~\cite{rust_issue_triaging}.
 
-% \section{Ostatní specifika}
-% \todo{idk jestli actually budou yet}
+\section{Proces sloučení pull requestů}
+\label{sec:rust_merge_process}
+
+Sloučení \PR v~repozitáři rust-lang/rust neprobíhá standardním způsobem pomocí merge na GitHubu. Místo toho je tento proces řízen specializovaným botem bors, který zajišťuje, že každý \PR je před sloučením otestován v~aktuálním stavu větve \code{main}. Tím je zabráněno situaci, kdy \PR sice prochází testy v~okamžiku code review, ale po sloučení s~mezitím aktualizovanou větví \code{main} testy selžou~\cite{rust_lang_bors}.
+
+\subsection{Bot bors}
+\label{subsec:rust_merge_process:bors}
+
+Bors je bot pro správu fronty sloučení (\textit{merge queue}). Jeho instance pro repozitář rust-lang/rust je dostupná na adrese \url{https://bors.rust-lang.org/queue/rust} a~vystupuje pod účtem \texttt{@bors} na GitHubu. Bot je naprogramován v~jazyce Rust a~jeho zdrojový kód je dostupný v~repozitáři \texttt{rust-lang/bors}~\cite{rust_lang_bors,forge_rust_bors}.
+
+\subsection{Průběh sloučení pull requestu}
+\label{subsec:rust_merge_process:workflow}
+
+Průběh sloučení \PR v~repozitáři rust-lang/rust lze shrnout do následujících kroků~\cite{rustc_contributing}:
+
+\begin{enumerate}
+  \item \textbf{Otevření \PR} -- Přispěvatel otevře \PR s~navrhovanými změnami. Bot \texttt{@rustbot} automaticky přiřadí reviewera na základě změněných souborů a~přidělí odpovídající štítky.
+  \item \textbf{Code review} -- Přiřazený reviewer přezkoumá změny a~případně si vyžádá úpravy (štítek \code{S-waiting-on-author}). Jakmile je \PR připraven ke sloučení, reviewer jej schválí příkazem \code{@bors r+} v~komentáři.
+  \item \textbf{Fronta sloučení} -- Příkaz \code{r+} zařadí \PR do fronty sloučení bota bors.
+  \item \textbf{Spuštění \CI} -- Bors vytvoří pomocnou větev \code{automation/bors/auto}, do které sloučí změny z~\PR s~aktuálním stavem větve \code{main}, a~spustí kompletní sadu testů \CI.
+  \item \textbf{Sloučení} -- Pokud testy projdou, bors sloučí \PR do větve \code{main} a~uzavře jej. Pokud testy selžou, bors \PR zamítne a~informuje autora o~výsledku.
+\end{enumerate}

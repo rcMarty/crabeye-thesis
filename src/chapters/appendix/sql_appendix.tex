@@ -1,4 +1,4 @@
-\chapter{Analytické SQL dotazy a~databázové indexy}
+\chapter{Analytické SQL dotazy a~indexy}
 \label{chap:appendix:sql}
 
 Tato příloha obsahuje zdrojový kód analytických \SQL dotazů použitých při evaluaci v~\customref{Sekci}{sec:evaluace:sql} a~definice databázových indexů pro jednotlivé tabulky.
@@ -108,24 +108,28 @@ Níže jsou uvedeny výstupy příkazu \code{EXPLAIN (ANALYZE, BUFFERS)} pro ka�
 % ── Q1 ─────────────────────────────────────────────────────────────────────
 \subsection*{Q1 --- bez indexů}
 
-\begin{listing}[htbp]
+Bez indexů provádí plánovač dva sekvenční průchody (\ code{Seq Scan}) nad celými tabulkami \code{issue\_labels\_history} a~\code{issue\_event\_history}. Výsledky jsou následně řazeny na disku operací \code{Sort (external merge Disk)}, protože data se nevejdou do operační paměti. Odhadované náklady dosahují 54\,969 při celkové době vykonávání 226,6\,ms.
+
+\begin{longlisting}
   \caption{Q1: EXPLAIN ANALYZE bez indexů (Execution Time: 226,6 ms)}
   \label{lst:appendix:explain:q1:no_idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_no_idx.txt}
-\end{listing}
+\end{longlisting}
 
 \subsection*{Q1 --- s~indexy}
 
-Klíčové změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort (external merge Disk)} nahrazeny dvěma \code{Index Only Scan} s~\code{Heap Fetches: 0}, řazení probíhá přímo po indexu.
+Hlavní změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort (external merge Disk)} nahrazeny dvěma \code{Index Only Scan} s~\code{Heap Fetches: 0}, řazení probíhá přímo po indexu.
 
-\begin{listing}[htbp]
+\begin{longlisting}
   \caption{Q1: EXPLAIN ANALYZE s~indexy (Execution Time: 84,2 ms)}
   \label{lst:appendix:explain:q1:idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_idx.txt}
-\end{listing}
+\end{longlisting}
 
 % ── Q2 ─────────────────────────────────────────────────────────────────────
 \subsection*{Q2 --- bez indexů}
+
+Bez indexů plánovač zvolí \code{Parallel Seq Scan} přes celou tabulku \code{issue\_event\_history} a~záznamy filtruje průběžně. Paralelizace sice snižuje elapsed time, avšak všechny záznamy jsou čteny bez ohledu na hodnotu sloupce \code{event}. Odhadované náklady jsou 15\,249 při době vykonávání 31,7\,ms.
 
 \begin{longlisting}
   \caption{Q2: EXPLAIN ANALYZE bez indexů (Execution Time: 31,7 ms)}
@@ -146,6 +150,8 @@ Klíčové změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort
 % ── Q3 ─────────────────────────────────────────────────────────────────────
 \subsection*{Q3 --- bez indexů}
 
+Bez indexů provede plánovač \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} a~záznamy nesouvisející s~daným týmem jsou čteny a~až poté filtrovány. Tabulka \code{contributors\_teams} je procházena sekvenčně a~výsledky jsou spojeny operací \code{Hash Join}. Odhadované náklady jsou 16\,741 při době vykonávání 18,7\,ms.
+
 \begin{longlisting}
   \caption{Q3: EXPLAIN ANALYZE bez indexů (Execution Time: 18,7 ms)}
   \label{lst:appendix:explain:q3:no_idx}
@@ -154,7 +160,7 @@ Klíčové změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort
 
 \subsection*{Q3 --- s~indexy}
 
-\code{Parallel Seq Scan} na \code{file\_activity} (144\,909 řádků přeskočeno) nahrazen \code{Nested Loop} s~dvěma \code{Index Only Scan}: nejprve členové týmu z~primárního klíče \code{contributors\_teams} (72 řádků), podráu pro každého přispěvatele data z~\code{idx\_file\_activity\_repo\_contrib\_ts} s~\code{Heap Fetches: 0}. Zrychlení je způsobeno především eliminací paralelizácie a~sečtením stovek tisíc přeskočených řádků.
+\code{Parallel Seq Scan} na \code{file\_activity} nahrazen \code{Nested Loop} s~dvěma \code{Index Only Scan}: nejprve jsou načteni členové týmu z~primárního klíče \code{contributors\_teams} (72 řádků), poté jsou pro každého přispěvatele data čtena přímo z~pokrývajícího indexu \code{idx\_file\_activity\_repo\_contrib\_ts} s~\code{Heap Fetches: 0}. Zrychlení je způsobeno především eliminací paralelizace a~přeskočením desítek tisíc nesouvisejících řádků.
 
 \begin{longlisting}
   \caption{Q3: EXPLAIN ANALYZE s~indexy (Execution Time: 0,8 ms)}
@@ -164,6 +170,8 @@ Klíčové změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort
 
 % ── Q4 ─────────────────────────────────────────────────────────────────────
 \subsection*{Q4 --- bez indexů}
+
+Bez indexů jsou v plánu tři sekvenční průchody: \code{Seq Scan} nad \code{issue\_labels\_history},\\ \code{issue\_event\_history} a~\code{issues}. Řazení dat pro okenní funkce probíhá operací \\ \code{Sort (external merge Disk)}, protože mezivýsledky překračují limit operační paměti. Tato kombinace vede k~odhadovaným nákladům 91\,102 a~době vykonávání 653,9\,ms.
 
 \begin{longlisting}
   \caption{Q4: EXPLAIN ANALYZE bez indexů (Execution Time: 653,9 ms)}
