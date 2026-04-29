@@ -33,17 +33,7 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
     \begin{itemize}
       \item Systém musí podporovat filtrování podle repozitáře, časového rozsahu a~dalších parametrů dotazu.
       \item Systém musí podporovat stránkování výsledků pro práci s~většími datovými sadami.
-      \item Systém musí poskytovat následující analytické pohledy \chapterref{chap:queries}:
-        \begin{itemize}
-          \item historický stav konkrétního \PR k~zadanému datu (rekonstrukce z~událostí a~změn štítků),
-          \item počet \PR v~konkrétním stavu k~zadanému datu,
-          \item vývoj počtu \PR v~konkrétním stavu v~čase,
-          \item přehled \PR aktuálně čekajících na review nebo jiný přístup,
-          \item události konkrétní issue k~zadanému datu,
-          \item soubory nejčastěji upravované konkrétním přispěvatelem,
-          \item přispěvatelé, kteří upravili daný soubor nebo složku,
-          \item soubory upravené členy daného týmu v~zadaném časovém okně.
-        \end{itemize}
+      \item Systém musí poskytovat analytické pohledy uvedené \customref{v~Sekci}{subsec:requirements:queries}.
     \end{itemize}
 
   \item \textbf{Zpřístupnění dat přes \API}
@@ -53,6 +43,56 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
       \item Systém musí poskytovat strojově čitelnou dokumentaci \API ve formátu OpenAPI/Swagger.
     \end{itemize}
 \end{enumerate}
+
+\subsection{Specifikace analytických dotazů}
+\label{subsec:requirements:queries}
+
+Funkční požadavek na analytické zpracování vyžaduje sadu konkrétních dotazů nad nasbíranými daty. Tato podsekce pro každý dotaz uvádí jeho účel, vstupní parametry a~očekávaný výstup. Návrh realizace jednotlivých dotazů je popsán v~\customref{v~Sekci}{sec:queries}.
+
+\begin{description}
+  \item[Q1 -- Historický stav \PR k~danému datu]
+    Při revizi kódu ve velkém repozitáři je užitečné zpětně zjistit, v~jakém stavu se konkrétní \PR nacházel v~určitém období. Tento dotaz umožňuje rekonstruovat historii stavů~\PR na základě zaznamenaných událostí a~změn štítků.
+
+    \textbf{Vstup:} identifikátor~\PR, počáteční datum, počet dní zpětně.\\
+    \textbf{Výstup:} seznam stavů~\PR v~zadaném časovém rozmezí, každý s~časovým razítkem.
+
+  \item[Q2 -- Počet \PR v~konkrétním stavu k~datu]
+    Pro sledování trendů v~procesu revize kódu je potřeba zjistit, kolik~\PR se nacházelo v~daném stavu k~určitému dni. Opakovaným voláním tohoto dotazu pro různá data lze sestavit časovou řadu zachycující vývoj počtu~\PR v~konkrétním stavu.
+
+    \textbf{Vstup:} stav~\PR (výčtový typ), datum.\\
+    \textbf{Výstup:} počet~\PR v~zadaném stavu k~danému datu.
+
+  \item[Q3 -- \PR čekající na zpracování]
+    \label{item:query:q3}
+    V~rozsáhlém repozitáři snadno vzniká situace, kdy některé~\PR dlouho čekají na pozornost. Tento dotaz zobrazuje aktuální~\PR ve stavech \code{S-waiting-on-review}, \code{S-waiting-on-bors} nebo \code{S-waiting-on-author} \sectionref{sec:rust_labels}, čímž umožňuje identifikovat nejstarší čekající~\PR.
+
+    \textbf{Vstup:} (žádné specifické parametry, pracuje s~aktuálním stavem).\\
+    \textbf{Výstup:} stránkovaný seznam~\PR seřazený podle doby čekání.
+
+  \item[Q4 -- Události konkrétní issue k~datu]
+    Pro pochopení vývoje konkrétní issue je potřeba vidět chronologický přehled jejích událostí. Dotaz vrací zaznamenané akce jako uzavření, znovuotevření nebo komentáře k~zadanému datu.
+
+    \textbf{Vstup:} identifikátor issue, datum.\\
+    \textbf{Výstup:} seznam událostí dané issue k~zadanému datu s~časovými razítky. Pokud issue neexistuje, vrací se prázdná odpověď.
+
+  \item[Q5 -- Nejčastěji upravované soubory přispěvatelem]
+    Při rozdělování práce v~týmu je užitečné vědět, na kterých částech projektu se daný vývojář nejvíce podílí. Dotaz vrací soubory, které přispěvatel nejčastěji upravoval v~zadaném období.
+
+    \textbf{Vstup:} jméno přispěvatele, počet dní zpětně od aktuálního data.\\
+    \textbf{Výstup:} seřazený seznam souborů s~počtem úprav a~metadaty přispěvatele.
+
+  \item[Q6 -- Přispěvatelé, kteří upravili soubor nebo složku]
+    Tento dotaz nabízí opačný pohled k~Q5. K~zadané cestě souboru nebo adresáře vrací přispěvatele, kteří v~dané oblasti prováděli změny. Cesta je vyhledávána jako prefix, takže dotaz pokrývá i~celý adresář včetně podadresářů.
+
+    \textbf{Vstup:} cesta k~souboru nebo složce, časové okno.\\
+    \textbf{Výstup:} stránkovaný seznam přispěvatelů s~metadaty a~celkovým počtem.
+
+  \item[Q7 -- Soubory upravené členy týmu]
+    Pro koordinaci práce mezi týmy je potřeba zjistit, na kterých souborech nebo modulech pracují členové konkrétního týmu. Výsledek lze zobrazit jako plochý seznam, stromovou strukturu seskupenou do zvolené hloubky adresářové hierarchie, nebo jako úplný adresářový strom.
+
+    \textbf{Vstup:} název týmu, časové okno, počet úrovní hierarchie pro seskupení.\\
+    \textbf{Výstup:} seznam souborů (plochý nebo hierarchický) seřazený podle počtu úprav.
+\end{description}
 
 \subsection{Nefunkční požadavky}
 \label{subsec:requirements:nonfunctional}

@@ -17,6 +17,9 @@ Byly testovány čtyři dotazy (Q1--Q4) pokrývající typické analytické scé
   \item[Q4] Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu. Nejsložitější dotaz využívá delta-event přístup: nejprve sestaví intervaly otevřenosti a~aktivity štítku a~vypočítá jejich průnik (operatory \code{\&\&} a~\code{*}). Intervaly jsou následně rozloženy na delta-události (+1/$-1$) a~nad nimi je spočtán kumulativní součet. Výsledná složitost je $O(\text{events} + \text{days})$ místo naivního range-joinu.
 \end{description}
 
+\todo{dát nový sql kod pro q4  dotaz}
+\todo{předělat identifikátory protože q1 až 8 už jsou zabrané z designu}
+
 \subsection{Vliv indexů}
 \label{subsec:evaluace:sql:indexy}
 
@@ -62,7 +65,7 @@ Q4 zaznamenal nejmenší zlepšení (1,3$\times$) \listingref{lst:appendix:expla
     Q1 & Počet \PR ve stavu (label) & 54969 & 16048 & 227 & 84 & 2,7$\times$ \\
     Q2 & Počet sloučených \PR       & 15249 & 2123  & 32  & 10 & 3,3$\times$ \\
     Q3 & Soubory upravené týmem     & 16741 & 2630  & 53  & 34 & 1,6$\times$ \\
-    Q4 & Vývoj počtu \PR v~čase     & 91102 & 71398 & 654 & 520 & 1,3$\times$ \\
+    Q4 & Vývoj počtu \PR v čase     & 91102 & 71398 & 654 & 520 & 1,3$\times$ \\
     \bottomrule
   \end{tabular}
 \end{table}
