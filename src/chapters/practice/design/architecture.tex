@@ -26,6 +26,8 @@ Vstupní vrstva zajišťuje komunikaci s~externími zdroji dat. Obsahuje moduly 
 
 Vrstva se stará o~načítání issues a~\PR z~\API GitHubu a~taktéž o~mapování změněných souborů k~\PR z~git repozitáře, pokud je daný \PR sloučen.
 
+Informace o~souborech změněných v~rámci \PR jsou sice dostupné přes \API GitHubu prostřednictvím endpointu pro výpis souborů daného \PR~\cite{github_rest_api}, avšak jeho použití by při zpracování tisíců \PR vedlo k~tisícům síťových požadavků a~zbytečnému zatížení \API. Tím by se celý proces synchronizace výrazně prodloužil a~přiblížil limitům počtu požadavků \sectionref{subsec:implementation:gotchas:rate_limits}. Z~tohoto důvodu jsou informace o~změněných souborech načítány přímo z~lokální kopie git repozitáře, kde je každý sloučený \PR reprezentován merge commitem se svým rodičovským commitem. Tento přístup nevyžaduje žádné síťové požadavky a~je výrazně rychlejší.
+
 \subsection{Zpracování a~agregace}
 \label{subsec:architecture:processing}
 
@@ -47,9 +49,9 @@ Prezentační vrstva zajišťuje vystavení dat uživatelům. Obsahuje backendov
 
 \API je navrženo podle principů \REST a~poskytuje přímé endpointy pro frontend. Je rozděleno do modulů podle případů užití nebo typu požadovaných dat. Endpointy jsou zdokumentovány a~obsahují příklady odpovědí i~chybových stavů s~možností spustit vlastní požadavek přímo na daný endpoint. Endpointy primárně volají úložnou vrstvu pro získání dat, jedná se tedy o~tenkou vrstvu nad databází.
 
-\subsection{Průřezové vlastnosti systému}
+\subsection{Celkové vlastnosti systému}
 \label{subsec:architecture:cross_cutting}
 
-První průřezovou vlastností je pozorovatelnost a~monitorování průběžného chování systému. Systém měří dobu trvání nejdůležitějších operací, což umožňuje identifikovat výkonnostní \textit{úzká hrdla}. Dlouhotrvající procesy jsou navíc opatřeny vizualizací průběhu v~reálném čase, je-li to technicky možné. Systém také samostatně zaznamenává důležité události a~chyby pro pozdější analýzu a~ladění.
+První vlastností je pozorovatelnost a~monitorování průběžného chování systému. Systém měří dobu trvání nejdůležitějších operací, což umožňuje identifikovat výkonnostní úzká hrdla (\textit{bottlenecks}). Dlouhotrvající procesy jsou navíc opatřeny vizualizací průběhu v~reálném čase, je-li to technicky možné. Systém také samostatně zaznamenává důležité události a~chyby pro pozdější analýzu a~ladění.
 
-Druhou průřezovou vlastností je robustnost a~odolnost vůči chybám a~výpadkům. Systém je navržen tak, aby při chybě ať už z~externích \API nebo z~interní databáze, zaznamenal vzniklou chybu a~pokusil se pokračovat v~běhu. Tato vlastnost společně s~možností opětovného načtení dat po výpadku zajišťuje, že systém zůstává funkční a~poskytuje aktuální data i~při dočasných problémech s~externími zdroji nebo interních chybách.
+Druhou vlastností je robustnost a~odolnost vůči chybám a~výpadkům. Systém je navržen tak, aby při chybě ať už z~externích \API nebo z~interní databáze, zaznamenal vzniklou chybu a~pokusil se pokračovat v~běhu. Tato vlastnost společně s~možností opětovného načtení dat po výpadku zajišťuje, že systém zůstává funkční a~poskytuje aktuální data i~při dočasných problémech s~externími zdroji nebo interních chybách.

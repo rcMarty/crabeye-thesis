@@ -6,7 +6,11 @@
 Systém zpřístupňuje nasbíraná data z~mnoha zdrojů prostřednictvím \REST \API. \API tohoto systému zpřístupňuje endpointy, které odpovídají na dotazy, jež si uživatelé mohou klást při sledování velkého repozitáře. Rozsah pokrytých dotazů sahá od stavu konkrétního~\PR po přehled souborů upravovaných konkrétním týmem.
 
 \section{Přehled implementovaných dotazů}
-Následující část detailně specifikuje kompletní sadu analytických pohledů, které byly v rámci návrhu definovány a následně implementovány. Pro každý dotaz je níže popsán jeho hlavní účel, potřebné vstupy a způsob agregace dat ze zdrojových dat.
+Následující část detailně specifikuje kompletní sadu analytických pohledů, které byly v rámci návrhu definovány a následně implementovány.
+
+Všechny dotazy sdílí jednotný přístup: jsou striktně čtecí (neprovádějí žádné modifikace dat), jsou parametrizovány identifikátorem repozitáře a~pracují s~daty uloženými při sběru v~databázi \sectionref{sec:database}, nikoli přímo s~externími \API v~době požadavku. Tím je zaručena nízká latence odpovědí i~při analytických dotazech nad velkým množstvím historických záznamů. Každý endpoint deklaruje možné \HTTP stavové kódy včetně 404 (nenalezeno) a~500 (vnitřní chyba), což usnadňuje integraci s~libovolnou prezentační vrstvou nebo dalším nástrojem pro vizualizaci dat.
+
+Pro každý dotaz je níže popsán jeho hlavní účel, potřebné vstupy a způsob agregace dat ze zdrojových dat.
 
 \begin{description}
   \item[Historický stav \PR k~danému datu:] Prvním z~dotazů je rekonstrukce stavu~\PR v~časovém období. Dotaz přijímá identifikátor~\PR, datum, od nějž se mají záznamy hledat, a~počet dní do historie od tohoto data, a~vrací seznam stavů~\PR v~tomto časovém rozmezí. U~každého záznamu je přiloženo časové razítko. Tato data jsou čerpána z~\API GitHubu \subsectionref{subsec:github_api_rest}, konkrétně z~endpointů pro~\PR a~Timeline \API, kde jsou zaznamenávány stavové štítky začínající prefixem \code{S-*} \sectionref{sec:rust_labels} a~události. Výsledek tak umožňuje přesně určit, v~jakém stavu se daný~\PR nacházel v~libovolném časovém okamžiku.
@@ -24,7 +28,3 @@ Následující část detailně specifikuje kompletní sadu analytických pohled
   \item[Soubory upravené členy daného týmu:] Posledním z~implementovaných dotazů je přehled souborů, které v~zadaném časovém okně upravili členové konkrétního týmu. Na vstupu je název týmu \sectionref{sec:rust_team_api}, časové okno a~počet úrovní adresářové hierarchie pro seskupení výsledku. Data jsou čerpána ze všech tří hlavních zdrojů a~výsledek lze získat třemi způsoby: buď jako plochý seznam souborů seřazených sestupně podle počtu úprav, jako stromovou strukturu seskupenou do zvoleného počtu úrovní adresářové hierarchie, nebo jako úplný adresářový strom. Tato flexibilita umožňuje prezentační vrstvě \subsectionref{subsec:architecture:presentation_layer} přizpůsobit vizualizaci jak detailním grafům na úrovni jednotlivých souborů, tak přehledovým heatmapám celých modulů.
 
 \end{description}
-
-\section{Souhrn}
-\label{sec:queries:souhrn}
-Všechny dotazy sdílí jednotný přístup: jsou striktně čtecí (neprovádějí žádné modifikace dat), jsou parametrizovány identifikátorem repozitáře a~pracují s~daty uloženými při sběru v~databázi \sectionref{sec:database}, nikoli přímo s~externími \API v~době požadavku. Tím je zaručena nízká latence odpovědí i~při analytických dotazech nad velkým množstvím historických záznamů. Každý endpoint deklaruje možné \HTTP stavové kódy včetně 404 (nenalezeno) a~500 (vnitřní chyba), což usnadňuje integraci s~libovolnou prezentační vrstvou nebo dalším nástrojem pro vizualizaci dat.

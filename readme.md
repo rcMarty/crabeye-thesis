@@ -16,5 +16,6 @@ Code is available at [https://github.com/rcmarty/crabeye](https://github.com/rcm
 - texlive-algorithm2e
 - texlive-collection-latexextra
 - texlive-siunitx
+- texlive-multirow
 
 *Hope thats all packages and i didn't miss any*

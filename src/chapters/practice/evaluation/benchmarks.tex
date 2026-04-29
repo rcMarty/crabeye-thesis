@@ -17,7 +17,7 @@ Měření výkonu synchronizace dat pro repozitář \texttt{rust-lang/rust} prob
 
 Počáteční synchronizace slouží k prvotnímu stažení všech dat z repozitáře za zvolené časové období.
 Měření bylo provedeno pro data od 1.\,1.\,2023, tedy za přibližně 3 roky a 4,5 měsíce.
-Celková doba počáteční synchronizace činila přibližně 51 minut.
+Celková doba počáteční synchronizace činila přibližně 49 minut.
 Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:benchmarks:inicializace}.
 
 \begin{table}[h]
@@ -28,16 +28,17 @@ Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:be
     \toprule
     \textbf{Fáze} & \textbf{Trvání} \\
     \midrule
-    Klonování git repozitáře ($\approx$\,1,2\,GB) & $\approx$ 1--2 min \\
-    Stažení \PR z GitHub \API & 14 min 13 s \\
-    Vložení přispěvatelů z \PR do databáze & 18 s \\
-    Načtení změněných souborů z git historie a vložení záznamů do databáze & 22 min 5 s \\
-    Stažení issues z GitHub \API & 14 min 4 s \\
-    Vložení přispěvatelů z issues do databáze & 23 s \\
+    Stažení \PR z~GitHub \API & 15 min 35 s \\
+    Vložení přispěvatelů z~\PR do databáze & $<$ 1 s \\
+    Zpracování \PR a~výpočet aktivity souborů & 15 min 59 s \\
+    Hromadné vložení \PR do databáze & 2 s \\
+    Hromadné vložení aktivity souborů do databáze & 15 s \\
+    Stažení issues z~GitHub \API & 17 min 17 s \\
+    Vložení přispěvatelů z~issues do databáze & $<$ 1 s \\
     Vložení issues do databáze & 1 s \\
     Synchronizace týmů & $<$ 1 s \\
     \midrule
-    \textbf{Celkem} & $\approx$ \textbf{51 min} \\
+    \textbf{Celkem} & $\approx$ \textbf{49 min} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -48,6 +49,8 @@ Synchronizace dat týmů vyžadovala jediný požadavek na \API rust týmu \sect
 
 % Počáteční synchronizaci je doporučeno spouštět jako samostatný proces -- nejlépe s vyhrazeným přístupovým tokenem -- a to pouze jednou při prvním nasazení.
 % Alternativně lze zvolit kratší časové okno (například posledních 30 dní) a teprve poté spustit stahování kompletní historie událostí jako oddělený proces na pozadí, čímž se výrazně zkrátí doba inicializace.
+
+Stahování \PR a~issues by bylo teoreticky možné urychlit paralelizací požadavků. Vzhledem k~limitům počtu požadavků \sectionref{subsec:implementation:gotchas:rate_limits} a~riziku dočasného zablokování přístupového tokenu bylo zvoleno sekvenční zpracování. Počáteční synchronizace se navíc v~ideálním případě provede pouze jednou při prvním nasazení, takže tato volba nemá zásadní vliv na běžný provoz systému.
 
 \subsection{Inkrementální aktualizace}
 \label{sec:evaluace:benchmarks:inkrementalni}
