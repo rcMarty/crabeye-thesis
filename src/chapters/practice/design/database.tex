@@ -62,7 +62,9 @@ Při návrhu struktury databáze bylo klíčové zajistit, aby schéma efektivn�
 \subsection{Rozdělení štítků a~událostí}
 \label{subsec:database:labels_and_events}
 
-Štítky a~události jsou rozděleny do oddělených tabulek z~důvodu malého průniku jejich atributů. Řešení je obdobné jako u~tabulky issues, kde jediným rozdílem mezi issue a~\PR je příznak určující typ záznamu. Štítky a~události mají řadu odlišných atributů, a~proto je vhodnější je uchovávat ve dvou samostatných tabulkách.
+Každý \PR a~issue má dvě kategorie historických změn. První kategorií jsou \emph{události} -- akce jako sloučení, uzavření, znovuotevření, přidání komentáře a~podobně, které jsou reprezentovány typem události a~časovým razítkem. Druhou kategorií jsou \emph{štítky} -- metadata přiřazovaná k~\PR nebo issue (například \code{S-waiting-on-review}), u~nichž je nutné sledovat štítek, časové razítko a~zda byl štítek přidán nebo odebrán. Tyto štítky se sledují především kvůli sledování stavů \sectionref{sec:rust_labels}.
+
+Protože události a~štítky mají odlišné atributy a~slouží jiným analytickým účelům, jsou uloženy ve dvou samostatných tabulkách: \code{issue\_event\_history} a~\code{issue\_labels\_history}. Jejich sloučení do jedné tabulky by vyžadovalo volitelné sloupce pro atributy druhého typu, nebo by vedlo k~redundanci dat.
 
 \subsection{Diagram databáze}
 \label{subsec:database:database_diagram}
@@ -79,6 +81,8 @@ Celková struktura databáze je znázorněna na \customref{Obrázku}{fig:databas
 Podrobnější ER diagram databáze je uveden v~příloze \imageref{fig:appendix:database}. Centrem schématu je tabulka issues, která obsahuje aktuální stav issue i~\PR. Tato tabulka je společná pro oba typy záznamů, protože i~na straně GitHubu je každý \PR zároveň issue a~rozlišení probíhá pouze pomocí příznaku. Například u~endpointu pro získání issues se rozdíl mezi \PR a~issue pozná primárně pomocí přítomnosti pole \code{pull\_request} v~objektu entity v~odpovědi. Kvůli tomuto jedinému rozdílu je na tabulce implementován podmíněný index, konkrétně dva: jeden pro záznamy, kde \code{is\_pr = true}, a~druhý, kde \code{is\_pr = false}. Tento index efektivně rozděluje prohledávání tabulky na dvě části, čímž zmenšuje jeho velikost a~urychluje vyhledávání.
 
 Do historických entit jsou pouze přidávány nové události a~záznamy jsou neměnné. Ostatní záznamy v~tabulkách jsou aktualizovány podle posledního známého stavu.
+
+Data o~týmech jsou sice dostupná přes Team \API \sectionref{sec:rust_team_api} jako jednorázová \JSON odpověď, avšak pro analytické dotazy je nutné je mít v~databázi. Dotazy jako „soubory upravené členy daného týmu" vyžadují \SQL \code{JOIN} tabulky \code{file\_activity} s~přiřazením přispěvatelů do týmů. Bez lokálních dat by bylo nutné při každém dotazu volat Team \API a~filtrovat výsledky v~aplikační vrstvě. Data jsou proto uložena do tabulek \code{teams} a~\code{contributors\_teams} a~obnovována při každé synchronizaci, aby odrážela aktuální složení týmů.
 
 Vztah mezi týmem a~přispěvatelem je realizován jako vazba m:n přes spojovací tabulku \\ \code{contributors\_teams}, protože každý člen může být ve více týmech a~každý tým má více členů.
 

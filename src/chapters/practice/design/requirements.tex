@@ -10,7 +10,7 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
   \item \textbf{Integrace dat z~více zdrojů}
     \begin{itemize}
       \item Systém musí načítat data o~\PR a~issues z~\API GitHubu.
-      \item Systém musí načítat informace o~změněných souborech z~historie git repozitáře.
+      \item Systém musí načítat informace o~změněných souborech z~+ git repozitáře.
       \item Systém musí načítat informace o~členech týmů a~přispěvatelích, které jsou potřebné pro analytické dotazy.
       \item Systém musí korektně zpracovávat omezení počtu požadavků (\emph{rate limiting}) při komunikaci s~\API GitHubu.
     \end{itemize}
@@ -25,14 +25,25 @@ Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém
   \item \textbf{Historizace změn v~čase}
     \begin{itemize}
       \item Systém musí ukládat časový vývoj stavů a~atributů \PR a~issues (např.\ změny stavů a~štítků).
+      \item Systém musí umožnit rekonstrukci historického stavu \PR a~issues i~zpětně pro záznamy vzniklé v~době, kdy aplikace nebyla spuštěna nebo synchronizace nebyla aktivní.
       \item Systém musí podporovat doplnění chybějící historie (\emph{backfill}) pro již uložené záznamy.
     \end{itemize}
 
   \item \textbf{Analytické zpracování}
     \begin{itemize}
-      \item Systém musí poskytovat agregované pohledy nad daty (např.\ aktivita nad soubory, přehledy podle týmů).
       \item Systém musí podporovat filtrování podle repozitáře, časového rozsahu a~dalších parametrů dotazu.
       \item Systém musí podporovat stránkování výsledků pro práci s~většími datovými sadami.
+      \item Systém musí poskytovat následující analytické pohledy \chapterref{chap:queries}:
+        \begin{itemize}
+          \item historický stav konkrétního \PR k~zadanému datu (rekonstrukce z~událostí a~změn štítků),
+          \item počet \PR v~konkrétním stavu k~zadanému datu,
+          \item vývoj počtu \PR v~konkrétním stavu v~čase,
+          \item přehled \PR aktuálně čekajících na review nebo jiný přístup,
+          \item události konkrétní issue k~zadanému datu,
+          \item soubory nejčastěji upravované konkrétním přispěvatelem,
+          \item přispěvatelé, kteří upravili daný soubor nebo složku,
+          \item soubory upravené členy daného týmu v~zadaném časovém okně.
+        \end{itemize}
     \end{itemize}
 
   \item \textbf{Zpřístupnění dat přes \API}

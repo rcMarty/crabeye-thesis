@@ -20,6 +20,15 @@ Struktura týmů a~jejich přiřazení uživatelů je definována pomocí soubor
 
 Toto řešení umožňuje provoz automatizačních botů, jako je bors nebo triage, v~repozitáři překladače Rustu. Tito boti zajišťují přidělování kontroly \PR a~issues podle interních algoritmů a~automaticky přiřazují štítky označující aktuální stav daného \PR nebo issue.
 
+\subsection{Přispěvatelé a~členové týmů}
+\label{subsec:rust_team_api:contributors_members}
+
+V~kontextu repozitáře rust-lang/rust je nutné rozlišovat dva pojmy.
+
+\emph{Přispěvatel} (contributor) je jakýkoliv GitHub uživatel, který vytvořil \PR nebo issue v~repozitáři. Přispěvatel nemusí být přiřazen k~žádnému týmu. Přispěvatelé jsou identifikováni svým GitHub uživatelským jménem a~jednoznačným číselným identifikátorem.
+
+\emph{Člen týmu} je přispěvatel, který je zároveň evidován v~Team \API jako člen nějakého týmu organizace rust-lang. Členové týmů mají zpravidla udělena dodatečná oprávnění odpovídající oblasti, za níž jejich tým odpovídá. Například právo schvalovat \PR nebo přiřazovat štítky. Jeden uživatel může být členem více týmů současně.
+
 \subsection{Bezpečnost}
 \label{subsec:rust_team_api:security}
 

@@ -5,7 +5,23 @@
 
 Systém zpřístupňuje nasbíraná data z~mnoha zdrojů prostřednictvím \REST \API. \API tohoto systému zpřístupňuje endpointy, které odpovídají na dotazy, jež si uživatelé mohou klást při sledování velkého repozitáře. Rozsah pokrytých dotazů sahá od stavu konkrétního~\PR po přehled souborů upravovaných konkrétním týmem.
 
+\section{Historická dostupnost dat}
+\label{sec:queries:historical_data}
+
+Část implementovaných dotazů pracuje s~historickým vývojem \PR a~issues, například rekonstrukce stavu \PR k~danému datu nebo sledování počtu \PR v~konkrétním stavu v~čase. Aby bylo možné tyto dotazy spolehlivě zodpovědět, musí mít systém v~databázi kompletní sekvenci událostí pro každý \PR a~issue, včetně změn štítků a~stavů. Nestačí tedy ukládat pouze aktuální stav. Je nutné uchovávat celou historii změn.
+
+Ke splnění tohoto požadavku existují v~prostředí GitHub dva přístupy:
+
+\begin{description}
+  \item[Webhooky] GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint~\cite{github_webhooks}. Tento přístup je vhodný pro reaktivní systémy pracující v~reálném čase, ale má zásadní omezení: vyžaduje veřejně dostupný endpoint a~neposkytuje historická data. Nelze jím zpětně získat události, ke kterým došlo před registrací webhooku nebo v~době, kdy aplikace nebyla dostupná.
+
+  \item[Timeline events \API] GitHub pro každý \PR nebo issue zpřístupňuje endpoint vracející úplný chronologický seznam všech zaznamenaných událostí~\cite{github_rest_api}. Tento přístup umožňuje jak počáteční naplnění historických dat, tak inkrementální doplňování nových událostí. Nevýhodou je vyšší počet \API požadavků při prvotní synchronizaci, avšak pro splnění požadavku na retroaktivní dostupnost dat je toto řešení nezbytné.
+\end{description}
+
+Systém proto používá timeline events \API jako primární zdroj historických dat. Implementační detaily jsou popsány v~\sectionref{subsec:implementation:gotchas:timeline_vs_webhooks}.
+
 \section{Přehled implementovaných dotazů}
+\label{sec:queries:overview}
 Následující část detailně specifikuje kompletní sadu analytických pohledů, které byly v rámci návrhu definovány a následně implementovány.
 
 Všechny dotazy sdílí jednotný přístup: jsou striktně čtecí (neprovádějí žádné modifikace dat), jsou parametrizovány identifikátorem repozitáře a~pracují s~daty uloženými při sběru v~databázi \sectionref{sec:database}, nikoli přímo s~externími \API v~době požadavku. Tím je zaručena nízká latence odpovědí i~při analytických dotazech nad velkým množstvím historických záznamů. Každý endpoint deklaruje možné \HTTP stavové kódy včetně 404 (nenalezeno) a~500 (vnitřní chyba), což usnadňuje integraci s~libovolnou prezentační vrstvou nebo dalším nástrojem pro vizualizaci dat.

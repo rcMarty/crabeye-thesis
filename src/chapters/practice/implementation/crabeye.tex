@@ -1,0 +1,56 @@
+\section{Popis aplikace}
+\label{sec:implementation:crabeye}
+
+Jedná se o serverovou aplikaci napsanou v~jazyce Rust (edice 2021)~\cite{klabnik2018rust}, jejímž účelem je sběr, uložení a~analýza dat z~GitHub repozitářů. Aplikace pracuje s~databází PostgreSQL a~vystavuje \REST \API, přes které jsou data zpřístupněna frontendové části. Architektura systému je podrobněji popsána v~\sectionref{sec:architecture}.
+
+Aplikace je taktéž rozdělena do modulů podle funkcionality a dá se zkompilovat i jako knihovna, která poskytuje jednotlivé funkcionality. Vysokoúrovňové funkcionality jsou synchronizace dat, poskytování \API a~zpracování dat pro analytické dotazy a veškerá funkcionalita jako je v aplikaci.
+
+Backendová část je kompilována do jednoho binárního souboru se třemi provozními režimy vybíranými pomocí \CLI podpříkazů. Frontendová část je webová \SPA aplikace postavená na frameworku Vue~3, která komunikuje s~\REST \API backendem a~zobrazuje data uživatelům v~podobě interaktivních grafů a~tabulek.
+
+\subsection{Technologie}
+\label{subsec:implementation:crabeye:techstack}
+
+Backend je postaven na asynchronním runtime \devTool{Tokio}{https://tokio.rs}, který zajišťuje souběžné zpracování \HTTP požadavků a~paralelní běh synchronizační smyčky v~pozadí. Jako \HTTP framework je použita knihovna \devTool{Axum}{https://github.com/tokio-rs/axum}, která je postavena nad Tokio a~ve spojení s~knihovnou \devTool{Aide}{https://docs.rs/aide/latest/aide/} automaticky generuje dokumentaci \API ve formátu \devTool{OpenAPI}{https://learn.openapis.org/}.
+
+Pro přístup k~databázi je použita knihovna \devTool{sqlx}{https://github.com/launchbadge/sqlx}, která umožňuje psát \SQL dotazy přímo v~kódu a~zároveň je ověřuje oproti databázovému schématu již při kompilaci. Tím je zajištěno, že typové nesrovnalosti mezi dotazem a~datovým modelem jsou odhaleny dříve, než je aplikace spuštěna.
+
+Přehled dalších klíčových závislostí je uveden v~\customref{Tabulce}{tab:implementation:crabeye:deps}.
+
+\begin{table}[H]
+  \centering
+  \caption{Klíčové závislosti backendu aplikace}
+  \label{tab:implementation:crabeye:deps}
+  \begin{tabular}{lll}
+    \hline
+    \textbf{Knihovna} & \textbf{Verze} & \textbf{Role v~systému} \\
+    \hline
+    tokio            & 1.48   & Asynchronní runtime (multi-vláknový) \\
+    axum             & 0.8    & \HTTP framework pro \REST \API \\
+    sqlx             & 0.8    & Asynchronní PostgreSQL driver, migrace \\
+    clap             & 4.5    & Parsování \CLI argumentů \\
+    octocrab         & 0.49   & Klient pro GitHub \REST \API \\
+    git2             & 0.20   & Lokální git operace \\
+    rust\_team\_data & --     & Data o~členech týmů Rust projektu~\cite{rust_team_docs} \\
+    aide             & 0.15   & Automatická generace OpenAPI dokumentace \\
+    backoff          & 0.4    & Exponenciální zpožděné opakování požadavků \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Jako databáze je použit PostgreSQL~14 (Alpine), spouštěný prostřednictvím Docker Compose na portu~5431. Schéma databáze je spravováno prostřednictvím migrací sqlx a~je podrobněji popsáno v~\sectionref{sec:implementation:db_scheme}.
+
+\subsection{Režimy spuštění}
+\label{subsec:implementation:crabeye:modes}
+
+Aplikace je ovládána přes \CLI a~rozlišuje tři provozní režimy, volené pomocí podpříkazů:
+
+\begin{description}
+  \item[\code{sync-all --sync <N|YYYY-MM-DD> [--full-history]}]
+    Provede počáteční nebo inkrementální načtení dat z~GitHub \API. Parametr \code{--sync N} načte posledních $N$ stránek výsledků (každá stránka obsahuje 100 záznamů). Parametr \code{--sync YYYY-MM-DD} načte všechny záznamy aktualizované od zadaného data. Příznak \code{--full-history} navíc pro každý \PR a~issue stáhne kompletní historii událostí (štítky, události, sloučení apod.) z~GitHub timeline \API.
+
+  \item[\code{backfill}]
+    Doplní historii událostí pro záznamy, které byly uloženy do databáze bez plné historie — například při prvotní synchronizaci bez příznaku \code{--full-history}. Podpříkaz vyhledá záznamy z tabulky \code{issues} bez záznamů v~tabulce \code{issue\_event\_history} a~pro každý z~nich zpětně stáhne celou historii z~GitHub \API. Podrobněji je tento mechanismus popsán v~\sectionref{subsec:implementation:gotchas:incremental}.
+
+  \item[\code{serve}]
+    Spustí \REST \API server naslouchající na konfigurovatelné adrese (výchozí nastavení \code{0.0.0.0:7878}). Zároveň je spuštěna synchronizační smyčka (\code{StateMonitor}), která v intervalu nakonfigurovaných sekund automaticky načte a~uloží záznamy aktualizované od posledního běhu — viz \sectionref{subsec:implementation:gotchas:incremental}. Dokumentace \API je dostupná na \URL \code{/docs} (Scalar), \code{/docs/redoc} (Redoc) a~\code{/docs/swagger} (Swagger UI). V~tomto režimu s~\API serverem komunikuje frontendová \SPA aplikace postavená na Vue~3.
+\end{description}
