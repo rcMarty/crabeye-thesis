@@ -7,47 +7,47 @@ Tato příloha obsahuje zdrojový kód analytických \SQL dotazů použitých p�
 \section{Analytické dotazy}
 \label{sec:appendix:sql:queries}
 
-\subsection*{Q1 — Počet \PR ve stavu (štítek) k~zadanému datu}
-\label{lst:appendix:sql:q1}
+\subsection*{S1 — Počet \PR ve stavu (štítek) k~zadanému datu}
+\label{lst:appendix:sql:s1}
 
 Dotaz pomocí dvou \CTE s~\code{DISTINCT ON} určí, kolik \PR je v~daném stavu ke zvolenému datu. První \CTE \code{latest\_labels} zachová pro každý \PR nejnovější labelovou událost pro cílový štítek \code{S-*}, druhá \CTE \code{latest\_state} nejnovější stavovou změnu (uzavření, sloučení nebo znovuotevření). Výsledný počet zahrnuje pouze \PR, jejichž poslední labelová událost je \code{ADDED} a~které jsou ke zvolenému datu stále otevřené.
 
 \begin{longlisting}
-  \caption{Q1 --- Počet \PR ve stavu (štítek) k~zadanému datu}
-  \label{lst:appendix:sql:q1:code}
+  \caption{S1 --- Počet \PR ve stavu (štítek) k~zadanému datu}
+  \label{lst:appendix:sql:s1:code}
   \inputminted{sql}{./code/sql/q1_pr_count_by_label.sql}
 \end{longlisting}
 
-\subsection*{Q2 — Kumulativní počet sloučených \PR k~zadanému datu}
-\label{lst:appendix:sql:q2}
+\subsection*{S2 — Kumulativní počet sloučených \PR k~zadanému datu}
+\label{lst:appendix:sql:s2}
 
-Na rozdíl od Q1 nevyžaduje tento dotaz sledování historických přechodů stavů. Stav „merged" je trvalý — jakmile je \PR sloučen, nelze jej vrátit do předchozího stavu. Stačí proto spočítat počet unikátních \PR, u~nichž existuje záznam události \code{merged} v~tabulce \code{issue\_event\_history} s~časovým razítkem před zadaným datem. Výsledkem je \code{COUNT(DISTINCT issue)} s~indexovatelným filtrem \code{event = 'merged'} a~časovým řezem.
+Na rozdíl od S1 nevyžaduje tento dotaz sledování historických přechodů stavů. Stav „merged" je trvalý — jakmile je \PR sloučen, nelze jej vrátit do předchozího stavu. Stačí proto spočítat počet unikátních \PR, u~nichž existuje záznam události \code{merged} v~tabulce \code{issue\_event\_history} s~časovým razítkem před zadaným datem. Výsledkem je \code{COUNT(DISTINCT issue)} s~indexovatelným filtrem \code{event = 'merged'} a~časovým řezem.
 
 \begin{longlisting}
-  \caption[Q2 --- Kumulativní počet sloučených \PR]{Q2 --- Kumulativní počet sloučených \PR k~zadanému datu}
-  \label{lst:appendix:sql:q2:code}
+  \caption[S2 --- Kumulativní počet sloučených \PR]{S2 --- Kumulativní počet sloučených \PR k~zadanému datu}
+  \label{lst:appendix:sql:s2:code}
   \inputminted{sql}{./code/sql/q2_merged_pr_count.sql}
 \end{longlisting}
 
-\subsection*{Q3 — Soubory upravené přispěvateli týmu v~zadaném období}
-\label{lst:appendix:sql:q3}
+\subsection*{S3 — Soubory upravené přispěvateli týmu v~zadaném období}
+\label{lst:appendix:sql:s3}
 
 Dotaz agreguje soubory upravené přispěvateli daného týmu (\code{contributors\_teams}) v~zadaném časovém rozsahu. Výsledek je seřazen sestupně podle počtu úprav.
 
 \begin{longlisting}
-  \caption{Q3 --- Soubory upravené přispěvateli týmu}
-  \label{lst:appendix:sql:q3:code}
+  \caption{S3 --- Soubory upravené přispěvateli týmu}
+  \label{lst:appendix:sql:s3:code}
   \inputminted{sql}{./code/sql/q3_files_by_team.sql}
 \end{longlisting}
 
-\subsection*{Q4 — Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu}
-\label{lst:appendix:sql:q4}
+\subsection*{S4 — Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu}
+\label{lst:appendix:sql:s4}
 
 Nejsložitější z~testovaných dotazů využívá delta-event přístup. \CTE \code{all\_transitions} sestaví pomocí \code{UNION ALL} seznam všech relevantních událostí (vznik \PR, uzavření, sloučení, znovuotevření). \CTE \code{ordered\_transitions} přiřadí každé události čas následující události přes okenní funkci \code{LEAD()}, čímž vzniknou neprotínající se intervaly otevřenosti (\code{open\_periods}). Stejným způsobem jsou konstruovány intervaly aktivního štítku (\code{label\_active\_periods}). Průnik obou typů intervalů operátorem \code{\&\&} a~\code{*} dá intervaly, kdy je \PR v~cílovém stavu (\code{in\_state\_periods}). Tyto intervaly jsou rozloženy na delta-události (+1 na začátku, $-1$ na konci), agregovány po dnech a~pak je nad nimi spočítán kumulativní součet. Složitost je $O(\text{events} + \text{days})$ místo naivního $O(\text{days} \times \text{events})$.
 
 \begin{longlisting}
-  \caption{Q4 --- Denní vývoj počtu \PR v~daném stavu}
-  \label{lst:appendix:sql:q4:code}
+  \caption{S4 --- Denní vývoj počtu \PR v~daném stavu}
+  \label{lst:appendix:sql:s4:code}
   \inputminted{sql}{./code/sql/q4_pr_state_over_time.sql}
 \end{longlisting}
 
@@ -105,86 +105,86 @@ Níže jsou uvedeny definice všech databázových indexů. Indexy jsou rozděle
 
 Níže jsou uvedeny výstupy příkazu \code{EXPLAIN (ANALYZE, BUFFERS)} pro každý testovaný dotaz, vždy bez indexů a~poté se zapnutými indexy. Měření proběhlo na databázi repozitáře \texttt{rust-lang/rust} s~přibližně 200\,000 \PR, 564\,000 záznamy v~\code{issue\_event\_history}, 355\,000 v~\code{issue\_labels\_history} a~525\,000 v~\code{file\_activity}.
 
-% ── Q1 ─────────────────────────────────────────────────────────────────────
-\subsection*{Q1 --- bez indexů}
+% ── S1 ─────────────────────────────────────────────────────────────────────
+\subsection*{S1 --- bez indexů}
 
-Bez indexů provádí plánovač dva sekvenční průchody (\ code{Seq Scan}) nad celými tabulkami \code{issue\_labels\_history} a~\code{issue\_event\_history}. Výsledky jsou následně řazeny na disku operací \code{Sort (external merge Disk)}, protože data se nevejdou do operační paměti. Odhadované náklady dosahují 54\,969 při celkové době vykonávání 226,6\,ms.
+Bez indexů provádí plánovač dva sekvenční průchody (\code{Seq Scan}) nad celými tabulkami \\ \code{issue\_labels\_history} a~\code{issue\_event\_history}. Výsledky jsou následně řazeny na disku operací \code{Sort (external merge Disk)}, protože data se nevejdou do operační paměti. Odhadované náklady dosahují 22\,258 při celkové době vykonávání 73,5\,ms.
 
 \begin{longlisting}
-  \caption{Q1: EXPLAIN ANALYZE bez indexů (Execution Time: 226,6 ms)}
-  \label{lst:appendix:explain:q1:no_idx}
+  \caption{S1: EXPLAIN ANALYZE bez indexů (Execution Time: 73,5 ms)}
+  \label{lst:appendix:explain:s1:no_idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_no_idx.txt}
 \end{longlisting}
 
-\subsection*{Q1 --- s~indexy}
+\subsection*{S1 --- s~indexy}
 
-Hlavní změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort (external merge Disk)} nahrazeny dvěma \code{Index Only Scan} s~\code{Heap Fetches: 0}, řazení probíhá přímo po indexu.
+Hlavní změny oproti variantě bez indexů: oba \code{Seq Scan} + \code{Sort (external merge Disk)} nahrazeny dvěma \code{Index Only Scan}, řazení probíhá přímo po indexu.
 
 \begin{longlisting}
-  \caption{Q1: EXPLAIN ANALYZE s~indexy (Execution Time: 84,2 ms)}
-  \label{lst:appendix:explain:q1:idx}
+  \caption{S1: EXPLAIN ANALYZE s~indexy (Execution Time: 20,0 ms)}
+  \label{lst:appendix:explain:s1:idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q1_idx.txt}
 \end{longlisting}
 
-% ── Q2 ─────────────────────────────────────────────────────────────────────
-\subsection*{Q2 --- bez indexů}
+% ── S2 ─────────────────────────────────────────────────────────────────────
+\subsection*{S2 --- bez indexů}
 
-Bez indexů plánovač zvolí \code{Parallel Seq Scan} přes celou tabulku \code{issue\_event\_history} a~záznamy filtruje průběžně. Paralelizace sice snižuje elapsed time, avšak všechny záznamy jsou čteny bez ohledu na hodnotu sloupce \code{event}. Odhadované náklady jsou 15\,249 při době vykonávání 31,7\,ms.
+Bez indexů plánovač zvolí \code{Parallel Seq Scan} přes celou tabulku \code{issue\_event\_history} a~záznamy filtruje průběžně. Paralelizace sice snižuje elapsed time, avšak všechny záznamy jsou čteny bez ohledu na hodnotu sloupce \code{event}. Odhadované náklady jsou 9\,598 při době vykonávání 18,8\,ms.
 
 \begin{longlisting}
-  \caption{Q2: EXPLAIN ANALYZE bez indexů (Execution Time: 31,7 ms)}
-  \label{lst:appendix:explain:q2:no_idx}
+  \caption{S2: EXPLAIN ANALYZE bez indexů (Execution Time: 18,8 ms)}
+  \label{lst:appendix:explain:s2:no_idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q2_no_idx.txt}
 \end{longlisting}
 
-\subsection*{Q2 --- s~indexy}
+\subsection*{S2 --- s~indexy}
 
-\code{Parallel Seq Scan} nahrazen přímým \code{Index Only Scan using idx\_pr\_event\_hist\_merged} s~\code{Heap Fetches: 0}. Paralelní scan zaniká, plán se zjednodušuje na jediný uzel.
+\code{Parallel Seq Scan} nahrazen přímým \code{Index Only Scan using idx\_pr\_event\_hist\_merged}. Paralelní scan zaniká, plán se zjednodušuje na jediný uzel.
 
 \begin{longlisting}
-  \caption{Q2: EXPLAIN ANALYZE s~indexy (Execution Time: 9,7 ms)}
-  \label{lst:appendix:explain:q2:idx}
+  \caption{S2: EXPLAIN ANALYZE s~indexy (Execution Time: 2,7 ms)}
+  \label{lst:appendix:explain:s2:idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q2_idx.txt}
 \end{longlisting}
 
-% ── Q3 ─────────────────────────────────────────────────────────────────────
-\subsection*{Q3 --- bez indexů}
+% ── S3 ─────────────────────────────────────────────────────────────────────
+\subsection*{S3 --- bez indexů}
 
-Bez indexů provede plánovač \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} a~záznamy nesouvisející s~daným týmem jsou čteny a~až poté filtrovány. Tabulka \code{contributors\_teams} je procházena sekvenčně a~výsledky jsou spojeny operací \code{Hash Join}. Odhadované náklady jsou 16\,741 při době vykonávání 18,7\,ms.
+Bez indexů provede plánovač \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} a~záznamy nesouvisející s~daným týmem jsou čteny a~až poté filtrovány. Tabulka \code{contributors\_teams} je procházena sekvenčně a~výsledky jsou spojeny operací \code{Hash Join}. Odhadované náklady jsou 16\,770 při době vykonávání 50,6\,ms.
 
 \begin{longlisting}
-  \caption{Q3: EXPLAIN ANALYZE bez indexů (Execution Time: 18,7 ms)}
-  \label{lst:appendix:explain:q3:no_idx}
+  \caption{S3: EXPLAIN ANALYZE bez indexů (Execution Time: 50,6 ms)}
+  \label{lst:appendix:explain:s3:no_idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q3_no_idx.txt}
 \end{longlisting}
 
-\subsection*{Q3 --- s~indexy}
+\subsection*{S3 --- s~indexy}
 
-\code{Parallel Seq Scan} na \code{file\_activity} nahrazen \code{Nested Loop} s~dvěma \code{Index Only Scan}: nejprve jsou načteni členové týmu z~primárního klíče \code{contributors\_teams} (72 řádků), poté jsou pro každého přispěvatele data čtena přímo z~pokrývajícího indexu \code{idx\_file\_activity\_repo\_contrib\_ts} s~\code{Heap Fetches: 0}. Zrychlení je způsobeno především eliminací paralelizace a~přeskočením desítek tisíc nesouvisejících řádků.
+\code{Parallel Seq Scan} na \code{file\_activity} nahrazen \code{Nested Loop} s~dvěma \code{Index Only Scan}: nejprve jsou načteni členové týmu z~primárního klíče \code{contributors\_teams} (73 řádků), poté jsou pro každého přispěvatele data čtena přímo z~pokrývajícího indexu \code{idx\_file\_activity\_repo\_contrib\_ts} s~\code{Heap Fetches: 0}. Zrychlení je způsobeno především eliminací paralelizace a~přeskočením desítek tisíc nesouvisejících řádků.
 
 \begin{longlisting}
-  \caption{Q3: EXPLAIN ANALYZE s~indexy (Execution Time: 0,8 ms)}
-  \label{lst:appendix:explain:q3:idx}
+  \caption{S3: EXPLAIN ANALYZE s~indexy (Execution Time: 41,0 ms)}
+  \label{lst:appendix:explain:s3:idx}
   \inputminted[fontsize=\footnotesize]{text}{./code/sql/explain_q3_idx.txt}
 \end{longlisting}
 
-% ── Q4 ─────────────────────────────────────────────────────────────────────
-\subsection*{Q4 --- bez indexů}
+% ── S4 ─────────────────────────────────────────────────────────────────────
+\subsection*{S4 --- bez indexů}
 
-Bez indexů jsou v plánu tři sekvenční průchody: \code{Seq Scan} nad \code{issue\_labels\_history},\\ \code{issue\_event\_history} a~\code{issues}. Řazení dat pro okenní funkce probíhá operací \\ \code{Sort (external merge Disk)}, protože mezivýsledky překračují limit operační paměti. Tato kombinace vede k~odhadovaným nákladům 91\,102 a~době vykonávání 653,9\,ms.
+Bez indexů jsou v~plánu dva sekvenční průchody: \code{Seq Scan} nad \code{issue\_labels\_history} \\ a~\code{Parallel Seq Scan} nad \code{issue\_event\_history} s~filtrací \code{is\_pr} a~příslušného repozitáře. Řazení mezivýsledků pro okenní funkce tabulky \code{issue\_labels\_history} probíhá operací \\ \code{Sort (external merge Disk: 1\,664\,kB)}, protože data se nevejdou do paměti. Odhadované náklady jsou 24\,958 a~doba vykonávání 111,4\,ms.
 
 \begin{longlisting}
-  \caption{Q4: EXPLAIN ANALYZE bez indexů (Execution Time: 653,9 ms)}
-  \label{lst:appendix:explain:q4:no_idx}
+  \caption{S4: EXPLAIN ANALYZE bez indexů (Execution Time: 111,4 ms)}
+  \label{lst:appendix:explain:s4:no_idx}
   \inputminted[fontsize=\scriptsize]{text}{./code/sql/explain_q4_no_idx.txt}
 \end{longlisting}
 
-\subsection*{Q4 --- s~indexy}
+\subsection*{S4 --- s~indexy}
 
-Oproti variantě bez indexů jsou hlavní změny: \code{Seq Scan} na \code{issue\_labels\_history} nahrazen \code{Index Only Scan using idx\_pr\_labels\_repo\_label\_issue\_ts} s~\code{Incremental Sort} (quicksort v~paměti místo external merge na disku), \code{Seq Scan} na \code{issue\_event\_history} nahrazen \code{Index Only Scan using idx\_pr\_event\_hist\_state\_changes}. \code{Seq Scan} na \code{issues} zůstává, protože tabulka \code{issues} neobsahuje optimalizovatelnou větev plánu. Výsledné zrychlení je limitováno právě touto částí.
+Oproti variantě bez indexů jsou hlavní změny: \code{Seq Scan} na \code{issue\_labels\_history} nahrazen \code{Index Only Scan using idx\_pr\_labels\_repo\_label\_issue\_ts} s~\code{Incremental Sort} (quick-\\sort v~paměti místo external merge na disku). \code{Parallel Seq Scan} na \code{issue\_event\_history} nahrazen \code{Bitmap Heap Scan} za použití indexu \code{idx\_issue\_event\_history\_repo\_evt\_pr\_only}, čímž odpadá paralelní průchod celou tabulkou. Dominantní náklady zůstávají v~\code{Merge Join} pro výpočet průniku intervalů, který není přímo indexovatelný.
 
 \begin{longlisting}
-  \caption{Q4: EXPLAIN ANALYZE s~indexy (Execution Time: 519,8 ms)}
-  \label{lst:appendix:explain:q4:idx}
+  \caption{S4: EXPLAIN ANALYZE s~indexy (Execution Time: 74,6 ms)}
+  \label{lst:appendix:explain:s4:idx}
   \inputminted[fontsize=\scriptsize]{text}{./code/sql/explain_q4_idx.txt}
 \end{longlisting}

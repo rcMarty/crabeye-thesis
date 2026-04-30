@@ -8,17 +8,14 @@ V~rámci evaluace bylo měřeno, jaký vliv mají databázové indexy na dobu vy
 \subsection{Testované dotazy}
 \label{subsec:evaluace:sql:dotazy}
 
-Byly testovány čtyři dotazy (Q1--Q4) pokrývající typické analytické scénáře. Dotazy jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručný popis každého dotazu:
+Byly testovány čtyři dotazy (S1--S4) pokrývající typické analytické scénáře. Dotazy jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručný popis každého dotazu:
 
 \begin{description}
-  \item[Q1] Počet \PR ve stavu \code{S-waiting-on-review} k~zadanému datu. Dotaz využívá dvě \CTE s~\code{DISTINCT ON}: jednu pro poslední label-event a~druhou pro poslední stavovou změnu, následované \code{LEFT JOIN} a~filtrací.
-  \item[Q2] Kumulativní počet sloučených \PR k~zadanému datu pomocí \code{COUNT(DISTINCT issue)} s~filtrem \code{event = 'merged'} nad tabulkou \code{issue\_event\_history}.
-  \item[Q3] Soubory upravené přispěvateli z~daného týmu v~zadaném časovém rozsahu, agregace přes \code{file\_activity} a~\code{contributors\_teams}.
-  \item[Q4] Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu. Nejsložitější dotaz využívá delta-event přístup: nejprve sestaví intervaly otevřenosti a~aktivity štítku a~vypočítá jejich průnik (operatory \code{\&\&} a~\code{*}). Intervaly jsou následně rozloženy na delta-události (+1/$-1$) a~nad nimi je spočtán kumulativní součet. Výsledná složitost je $O(\text{events} + \text{days})$ místo naivního range-joinu.
+  \item[S1] Počet \PR ve stavu \code{S-waiting-on-review} k~zadanému datu. Dotaz využívá dvě \CTE s~\code{DISTINCT ON}: jednu pro poslední label-event a~druhou pro poslední stavovou změnu, následované \code{LEFT JOIN} a~filtrací.
+  \item[S2] Kumulativní počet sloučených \PR k~zadanému datu pomocí \code{COUNT(DISTINCT issue)} s~filtrem \code{event = 'merged'} nad tabulkou \code{issue\_event\_history}.
+  \item[S3] Soubory upravené přispěvateli z~daného týmu v~zadaném časovém rozsahu, agregace přes \code{file\_activity} a~\code{contributors\_teams}.
+  \item[S4] Denní vývoj počtu \PR v~daném stavu v~časovém rozsahu. Nejsložitější dotaz využívá delta-event přístup: nejprve sestaví intervaly otevřenosti a~aktivity štítku a~vypočítá jejich průnik (operátory \code{\&\&} a~\code{*}). Intervaly jsou následně rozloženy na delta-události (+1/$-1$) a~nad nimi je spočtán kumulativní součet. Výsledná složitost je $O(\text{events} + \text{days})$ místo naivního range-joinu.
 \end{description}
-
-\todo{dát nový sql kod pro q4  dotaz}
-\todo{předělat identifikátory protože q1 až 8 už jsou zabrané z designu}
 
 \subsection{Vliv indexů}
 \label{subsec:evaluace:sql:indexy}
@@ -38,17 +35,16 @@ Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné d
 
 Výsledky měření jsou shrnuty v~\customref{Tabulce}{tab:evaluace:sql}, plné výstupy \code{EXPLAIN (ANALYZE, BUFFERS)} jsou k~dispozici \customref{v~příloze}{sec:appendix:sql:explain}.
 
-Nejvýraznější přínos měly indexy u~Q1 a~Q2. Bez indexů musel plánovač provést \code{Seq Scan} celé tabulky a~výsledky seřadit na disku (\code{external merge Disk}) \listingref{lst:appendix:explain:q1:no_idx}, \listingref{lst:appendix:explain:q2:no_idx}.
-Se~zavedením pokrývajících indexů přešel plán na \code{Index Only Scan} \listingref{lst:appendix:explain:q1:idx}, \listingref{lst:appendix:explain:q2:idx},
-přičemž hodnota \code{Heap Fetches: 0} potvrzuje, že k~datovým stránkám nebylo vůbec přistupováno a~třídění na disku zcela odpadlo.
-Výsledkem je 2,7$\times$, resp. 3,3$\times$ kratší čas vykonávání.
+Nejvýraznější přínos měly indexy u~S1 a~S2. Bez indexů musel plánovač provést \code{Seq Scan} celé tabulky a~výsledky seřadit na disku (\code{external merge Disk}) \listingref{lst:appendix:explain:s1:no_idx}, \listingref{lst:appendix:explain:s2:no_idx}.
+Se~zavedením pokrývajících indexů přešel plán na \code{Index Only Scan} \listingref{lst:appendix:explain:s1:idx}, \listingref{lst:appendix:explain:s2:idx} a~třídění na disku zcela odpadlo.
+Výsledkem je 3,7$\times$, resp. 7,0$\times$ kratší čas vykonávání.
 
-U~Q3 byl \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} nahrazen
-\code{Nested Loop} \listingref{lst:appendix:explain:q3:no_idx}, \listingref{lst:appendix:explain:q3:idx}. Ten pro každého člena týmu načítá záznamy přímo z~pokrývajícího indexu,
+U~S3 byl \code{Parallel Seq Scan} přes celou tabulku \code{file\_activity} nahrazen
+\code{Nested Loop} \listingref{lst:appendix:explain:s3:no_idx}, \listingref{lst:appendix:explain:s3:idx}. Ten pro každého člena týmu načítá záznamy přímo z~pokrývajícího indexu,
 tudíž odpadá přístup k~datovým stránkám (\code{Heap Fetches: 0}).
-Zrychlení je v~porovnání s~Q1 a~Q2 menší (1,6$\times$), protože agregace a~třídení výsledků tvoří větší podíl celkového času.
+Zrychlení je v~porovnání s~S1 a~S2 menší (1,2$\times$), protože agregace a~třídění výsledků tvoří větší podíl celkového času.
 
-Q4 zaznamenal nejmenší zlepšení (1,3$\times$) \listingref{lst:appendix:explain:q4:no_idx}, \listingref{lst:appendix:explain:q4:idx}. Dominantní náklady dotazu představuje \code{Merge Join} při výpočtu průniku intervalů otevřenosti a~aktivity štítku (\code{in\_state\_periods}), který není přímo indexovatelný. Indexy přesto přinesly měřitelnou úsporu, \code{Seq Scan} na \code{issue\_event\_history} byl nahrazen \code{Index Only Scan} a~řazení v~\CTE \code{label\_transitions} přešlo z~external merge na quicksort v~paměti.
+S4 zaznamenal zlepšení 1,5$\times$ \listingref{lst:appendix:explain:s4:no_idx}, \listingref{lst:appendix:explain:s4:idx}. Hlavní náklady tvoří \code{Merge Join} při výpočtu průniku intervalů (\code{in\_state\_periods}), který indexovat nelze. Přesto indexy přinesly úsporu: sekvenční průchody oběma tabulkami byly nahrazeny \code{Index Only Scan} \\a~\code{Bitmap Heap Scan} a~řazení pro okenní funkce přešlo z~external merge na quicksort v~paměti.
 
 \begin{table}[htbp]
   \centering
@@ -62,10 +58,10 @@ Q4 zaznamenal nejmenší zlepšení (1,3$\times$) \listingref{lst:appendix:expla
     \cmidrule(lr){3-4} \cmidrule(lr){5-6}
     \textbf{ID} & \textbf{Popis dotazu} & {\textbf{bez idx}} & {\textbf{s~idx}} & {\textbf{bez idx}} & {\textbf{s~idx}} & \textbf{Zrychl.} \\
     \midrule
-    Q1 & Počet \PR ve stavu (label) & 54969 & 16048 & 227 & 84 & 2,7$\times$ \\
-    Q2 & Počet sloučených \PR       & 15249 & 2123  & 32  & 10 & 3,3$\times$ \\
-    Q3 & Soubory upravené týmem     & 16741 & 2630  & 53  & 34 & 1,6$\times$ \\
-    Q4 & Vývoj počtu \PR v čase     & 91102 & 71398 & 654 & 520 & 1,3$\times$ \\
+    S1 & Počet \PR ve stavu (label) & 22258 & 5424  & 74  & 20 & 3,7$\times$ \\
+    S2 & Počet sloučených \PR       & 9598  & 852   & 19  & 3  & 7,0$\times$ \\
+    S3 & Soubory upravené týmem     & 16770 & 2653  & 51  & 41 & 1,2$\times$ \\
+    S4 & Vývoj počtu \PR v čase     & 24958 & 15120 & 111 & 75 & 1,5$\times$ \\
     \bottomrule
   \end{tabular}
 \end{table}
