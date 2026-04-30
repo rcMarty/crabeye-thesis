@@ -9,7 +9,7 @@ Pro interakci s~různými zdroji jsou využívány základní \HTTP metody~\cite
   \item \code{DELETE} pro odstranění zdrojů,
   \item \code{PATCH} pro částečnou aktualizaci zdrojů (např. změna stavu issue).
 \end{itemize}
-Každý endpoint je definován cestou. Cesta může obsahovat statické i~dynamické části. Například endpoint pro získání issues repozitáře je \code{GET /repos/\{owner\}/\{repo\}/issues}, kde \code{owner} a~\code{repo} představují dynamické části, které musí být nahrazeny konkrétními hodnotami~\cite{github_rest_api}. Ukázka takového požadavku je uvedena ve výpisu~\ref{lst:github_rest_example}.
+Každý endpoint je definován cestou. Cesta může obsahovat statické i~dynamické části. Například endpoint pro získání issues repozitáře je \code{GET /repos/\{owner\}/\{repo\}/issues}, kde \code{owner} a~\code{repo} představují dynamické části, které musí být nahrazeny konkrétními hodnotami~\cite{github_rest_api}. Ukázka takového požadavku je uvedena ve \customref{Výpisu}{lst:github_rest_example}.
 
 \begin{listing}[H]
 \begin{minted}{shell}
@@ -53,7 +53,7 @@ Content-Type: application/json; charset=utf-8
   }
 ]
 \end{minted}
-  \caption{Ukázka odpovědi \REST \API na požadavek ze výpisu~\ref{lst:github_rest_example} (zkráceno).}
+  \caption{Ukázka odpovědi \REST \API na požadavek z~\customref{Výpisu}{lst:github_rest_example} (zkráceno).}
   \label{lst:github_rest_response}
 \end{listing}
 

@@ -18,7 +18,7 @@ Měření výkonu synchronizace dat pro repozitář \texttt{rust-lang/rust} prob
 Počáteční synchronizace slouží k prvotnímu stažení všech dat z repozitáře za zvolené časové období.
 Měření bylo provedeno pro data od 1.\,1.\,2023, tedy za přibližně 3 roky a 4,5 měsíce.
 Celková doba počáteční synchronizace činila přibližně 49 minut.
-Podrobný přehled jednotlivých fází je uveden v tabulce~\ref{tab:evaluace:benchmarks:inicializace}.
+Podrobný přehled jednotlivých fází je uveden v~\customref{Tabulce}{tab:evaluace:benchmarks:inicializace}.
 
 \begin{table}[h]
   \centering
@@ -61,7 +61,7 @@ Při dosažení starších položek se procházení ukončí.
 Detailní historie událostí a změn štítků je potom stahována už jen pro takto vybrané změněné pull requesty a issues, přičemž i zde lze načítání ukončit po dosažení již dříve uložených událostí.
 
 Po dokončení počáteční synchronizace systém provádí inkrementální aktualizace, při nichž jsou z GitHub \API staženy pouze záznamy změněné od posledního běhu.
-Výpis~\ref{lst:evaluace:benchmarks:inkrementalni} zachycuje log inkrementální aktualizace v situaci, kdy nebyly nalezeny žádné nové záznamy.
+\customref{Výpis}{lst:evaluace:benchmarks:inkrementalni} zachycuje log inkrementální aktualizace v situaci, kdy nebyly nalezeny žádné nové záznamy.
 
 \begin{listing}[h]
 \begin{minted}[linenos=false]{text}
@@ -89,7 +89,7 @@ Při výchozím nastavení intervalu na 2 minuty je tato prodleva v nejhorším 
 \subsection{Spotřeba API požadavků}
 \label{sec:evaluace:benchmarks:api}
 
-GitHub omezuje počet \API požadavků na 5\,000 za hodinu pro autentizované požadavky~\cite{github_rate_limits} (viz \ref{subsec:github_api_limits}).
+GitHub omezuje počet \API požadavků na 5\,000 za hodinu pro autentizované požadavky~\cite{github_rate_limits} \subsectionref{subsec:github_api_limits}.
 Při standardním provozu spotřebuje systém minimálně 60 požadavků za hodinu, přičemž se vychází z přibližně 2 požadavků na jeden synchronizační cyklus (jeden pro \PR, jeden pro issues) při intervalu 2 minuty (30 cyklů za hodinu).
 K tomu je nutné připočítat průměrně 1,5 požadavku za každý nový \PR nebo issue potřebný k synchronizaci historie.
 Pro repozitář \texttt{rust-lang/rust} většinou přibývá v závislosti na denní době 0 až 5 nových záznamů za hodinu.

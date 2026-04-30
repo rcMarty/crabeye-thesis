@@ -1,34 +1,36 @@
-Sort  (cost=16741.18..16790.95 rows=19907 width=56) (actual time=49.119..51.041 rows=20831 loops=1)
+Sort  (cost=16769.91..16819.97 rows=20021 width=56) (actual time=46.547..48.687 rows=20892 loops=1)
   Sort Key: (count(*)) DESC
-  Sort Method: quicksort  Memory: 3238kB
-  Buffers: shared hit=57 read=8289
-  ->  Finalize HashAggregate  (cost=15120.66..15319.73 rows=19907 width=56) (actual time=42.348..45.478 rows=20831 loops=1)
+  Sort Method: quicksort  Memory: 3246kB
+  Buffers: shared hit=82 read=8288
+  ->  Finalize HashAggregate  (cost=15139.28..15339.49 rows=20021 width=56) (actual time=40.064..42.969 rows=20892 loops=1)
         Group Key: fa.file_path
         Batches: 1  Memory Usage: 3857kB
-        Buffers: shared hit=57 read=8289
-        ->  Gather  (cost=13295.76..15037.71 rows=16590 width=56) (actual time=27.453..32.015 rows=29684 loops=1)
+        Buffers: shared hit=82 read=8288
+        ->  Gather  (cost=13304.04..15055.86 rows=16684 width=56) (actual time=27.680..31.502 rows=29861 loops=1)
               Workers Planned: 2
               Workers Launched: 2
-              Buffers: shared hit=57 read=8289
-              ->  Partial HashAggregate  (cost=12295.76..12378.71 rows=8295 width=56) (actual time=23.686..25.466 rows=9895 loops=3)
+              Buffers: shared hit=82 read=8288
+              ->  Partial HashAggregate  (cost=12304.04..12387.46 rows=8342 width=56) (actual time=24.377..25.939 rows=9954 loops=3)
                     Group Key: fa.file_path
-                    Batches: 1  Memory Usage: 2193kB
-                    Buffers: shared hit=57 read=8289
-                    ->  Hash Join  (cost=26.52..12254.28 rows=8295 width=48) (actual time=0.168..18.903 rows=16404 loops=3)
+                    Batches: 1  Memory Usage: 2449kB
+                    Buffers: shared hit=82 read=8288
+                    Worker 0:  Batches: 1  Memory Usage: 1681kB
+                    Worker 1:  Batches: 1  Memory Usage: 1681kB
+                    ->  Hash Join  (cost=34.59..12262.33 rows=8342 width=48) (actual time=0.183..19.576 rows=16701 loops=3)
                           Hash Cond: (fa.contributor_id = ct.contributor_id)
-                          Buffers: shared hit=57 read=8289
-                          ->  Parallel Seq Scan on file_activity fa  (cost=0.00..12126.85 rows=37952 width=56) (actual time=0.030..15.839 rows=30536 loops=3)
-                                Filter: (("timestamp" >= '2025-06-01 00:00:00') AND ("timestamp" <= '2026-04-04 00:00:00') AND (repository = 'rust-lang/rust'))
+                          Buffers: shared hit=82 read=8288
+                          ->  Parallel Seq Scan on file_activity fa  (cost=0.00..12126.85 rows=37952 width=56) (actual time=0.021..16.745 rows=30536 loops=3)
+"                                Filter: ((""timestamp"" >= '2025-06-01 00:00:00'::timestamp without time zone) AND (""timestamp"" <= '2026-04-04 00:00:00'::timestamp without time zone) AND (repository = 'rust-lang/rust'::text))"
                                 Rows Removed by Filter: 144909
-                                Buffers: shared read=8289
-                          ->  Hash  (cost=25.62..25.62 rows=72 width=8) (actual time=0.081..0.082 rows=72 loops=3)
+                                Buffers: shared hit=1 read=8288
+                          ->  Hash  (cost=33.67..33.67 rows=73 width=8) (actual time=0.098..0.099 rows=73 loops=3)
                                 Buckets: 1024  Batches: 1  Memory Usage: 11kB
-                                Buffers: shared hit=27
-                                ->  Seq Scan on contributors_teams ct  (cost=0.00..25.62 rows=72 width=8) (actual time=0.021..0.065 rows=72 loops=3)
-                                      Filter: (team = 'compiler')
-                                      Rows Removed by Filter: 1258
-                                      Buffers: shared hit=27
+                                Buffers: shared hit=51
+                                ->  Seq Scan on contributors_teams ct  (cost=0.00..33.67 rows=73 width=8) (actual time=0.036..0.082 rows=73 loops=3)
+                                      Filter: (team = 'compiler'::text)
+                                      Rows Removed by Filter: 1261
+                                      Buffers: shared hit=51
 Planning:
-  Buffers: shared hit=23 dirtied=2
-Planning Time: 0.467 ms
-Execution Time: 53.343 ms
+  Buffers: shared hit=191 read=10 dirtied=1
+Planning Time: 1.721 ms
+Execution Time: 50.628 ms

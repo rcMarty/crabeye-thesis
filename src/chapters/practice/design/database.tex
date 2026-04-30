@@ -64,6 +64,8 @@ Při návrhu struktury databáze bylo klíčové zajistit, aby schéma efektivn�
 
 Každý \PR a~issue má dvě kategorie historických změn. První kategorií jsou \emph{události} -- akce jako sloučení, uzavření, znovuotevření, přidání komentáře a~podobně, které jsou reprezentovány typem události a~časovým razítkem. Druhou kategorií jsou \emph{štítky} -- metadata přiřazovaná k~\PR nebo issue (například \code{S-waiting-on-review}), u~nichž je nutné sledovat štítek, časové razítko a~zda byl štítek přidán nebo odebrán. Tyto štítky se sledují především kvůli sledování stavů \sectionref{sec:rust_labels}.
 
+Ukládání kompletní historie událostí a~štítků je nezbytné pro správné fungování dotazů Q1, Q2 a~Q4 \subsectionref{subsec:requirements:queries}, které rekonstruují historický stav~\PR a~issues k~zadanému datu. Bez těchto dat nelze přesně zpětně určit, v~jakém stavu se daný~\PR nacházel v~konkrétním okamžiku.
+
 Protože události a~štítky mají odlišné atributy a~slouží jiným analytickým účelům, jsou uloženy ve dvou samostatných tabulkách: \code{issue\_event\_history} a~\code{issue\_labels\_history}. Jejich sloučení do jedné tabulky by vyžadovalo volitelné sloupce pro atributy druhého typu, nebo by vedlo k~redundanci dat.
 
 \subsection{Diagram databáze}
@@ -82,8 +84,8 @@ Podrobnější ER diagram databáze je uveden v~příloze \imageref{fig:appendix
 
 Do historických entit jsou pouze přidávány nové události a~záznamy jsou neměnné. Ostatní záznamy v~tabulkách jsou aktualizovány podle posledního známého stavu.
 
-Data o~týmech jsou sice dostupná přes Team \API \sectionref{sec:rust_team_api} jako jednorázová \JSON odpověď, avšak pro analytické dotazy je nutné je mít v~databázi. Dotazy jako „soubory upravené členy daného týmu" vyžadují \SQL \code{JOIN} tabulky \code{file\_activity} s~přiřazením přispěvatelů do týmů. Bez lokálních dat by bylo nutné při každém dotazu volat Team \API a~filtrovat výsledky v~aplikační vrstvě. Data jsou proto uložena do tabulek \code{teams} a~\code{contributors\_teams} a~obnovována při každé synchronizaci, aby odrážela aktuální složení týmů.
+Data o~týmech jsou sice dostupná přes Team \API \sectionref{sec:rust_team_api} jako jednorázová \JSON odpověď, avšak pro analytické dotazy Q6 a~Q7 \subsectionref{subsec:requirements:queries} je nutné je mít v~databázi. Tyto dotazy vyžadují \SQL \code{JOIN} tabulky \code{file\_activity} s~přiřazením přispěvatelů do týmů. Bez lokálních dat by bylo nutné při každém dotazu volat Team \API a~filtrovat výsledky v~aplikační vrstvě. Data jsou proto uložena do tabulek \code{teams} a~\code{contributors\_teams} a~obnovována při každé synchronizaci, aby odrážela aktuální složení týmů.
 
 Vztah mezi týmem a~přispěvatelem je realizován jako vazba m:n přes spojovací tabulku \\ \code{contributors\_teams}, protože každý člen může být ve více týmech a~každý tým má více členů.
 
-Ohledně souborů je zaznamenáváno pouze to, kdo daný soubor upravil, konkrétní provedené změny se neukládají. To je dostačující, protože cílem je zjistit, na jakých částech projektu se daný přispěvatel podílel, nikoli sledovat konkrétní upravené funkcionality.
+Ohledně souborů je zaznamenáváno pouze to, kdo daný soubor upravil, konkrétní provedené změny se neukládají. Tabulka \code{file\_activity} slouží jako základ pro dotazy Q5, Q6 a~Q7 \subsectionref{subsec:requirements:queries}. Cílem těchto dotazů je zjistit, na jakých částech projektu se daný přispěvatel nebo tým podílel, nikoli sledovat konkrétní upravené funkcionality.

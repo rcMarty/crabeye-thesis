@@ -26,6 +26,9 @@
 \usepackage{amsmath}         % Nutné pro příkaz \text{...}
 \usepackage[autostyle=true,czech=quotes]{csquotes} % korektni sazba uvozovek, podpora pro balik biblatex
 
+\hfuzz=6pt % Ignoruje overfull \hbox, pokud je přesah menší než 6pt
+\hbadness=10000 % Ignoruje underfull \hbox
+\vbadness=10000 % Ignoruje underfull \vbox
 
 % Pozadovane vstupy pro generovani titulnich stran.
 \ThesisAuthor{Martin Korotwitschka}
