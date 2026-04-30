@@ -28,4 +28,6 @@ V~první řadě by bylo možné doplnit další typy analytických dotazů, nap�
 Druhým přirozeným rozšířením je obohacení sledovaných dat: v~současnosti databáze neobsahuje například komentáře k~\PR, výsledky \CI nebo závislosti mezi issues.
 Zahrnutí těchto informací by umožnilo hlubší analýzy a~otevřelo cestu k~prediktivním modelům, například k~odhadování rizika zanesení chyby při sloučení konkrétního \PR.
 
+Dalším prostorem pro optimalizaci je proces inkrementální synchronizace \PR a~issues \subsectionref{subsec:decisions:github_api}. Vzhledem k~omezením aktuálně využitého \REST \API, které při dotazování na issues vrací sdílený seznam obou entit, dochází k~nadbytečnému stahování a~následnému zahazování dat. Přechod na GraphQL \API pro tuto specifickou část synchronizace by umožnil striktně oddělené dotazování obou datových typů, čímž by se eliminovala nutnost klientské filtrace a~výrazně zefektivnilo stránkování.
+
 \endinput
