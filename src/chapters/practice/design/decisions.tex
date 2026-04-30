@@ -1,4 +1,4 @@
-\section{Klíčová návrhová rozhodnutí}
+\section{Hlavní návrhová rozhodnutí}
 \label{sec:design:decisions}
 
 Po vymezení požadavků je nutné rozhodnout, \emph{jakým způsobem} budou jednotlivé vlastnosti aplikace dosaženy. Tato sekce postupně rozebírá hlavní rozhodnutí, která ovlivnila podobu výsledné architektury. Formu nasazení aplikace, zdroje dat o~repozitáři, způsob získávání aktuálních dat společně se schopností doplnit chybějící historii a~volbu nástroje pro vizualizaci.
@@ -73,3 +73,14 @@ Ze specifikovaných analytických dotazů vyplývají dvě hlavní formy vizuali
 \end{description}
 
 \textbf{Zvolené řešení.} Vlastní frontendový klient ve formě jednostránkové webové aplikace. Hlavním důvodem je potřeba vizualizací, které hotové monitorovací nástroje nepodporují, zejména prostorová agregace souborových cest do treemap a~plná flexibilita při parametrizaci dotazů. Konkrétní pohledy a~jejich implementace jsou popsány v~\customref{Sekci}{sec:implementation:visualization}.
+
+\subsection{Volba rozhraní GitHub API}
+\label{subsec:decisions:github_api}
+
+GitHub nabízí dvě hlavní rozhraní pro přístup k~datům repozitáře: \REST \API \subsectionref{subsec:github_api_rest} a~GraphQL \API \subsectionref{subsec:github_api_graphql}. Pro stahování dat z~GitHubu bylo v~této práci zvoleno \REST \API.
+
+Jedním z~hlavních důvodů pro toto rozhodnutí byl způsob získávání událostí z~časové osy (Timeline events), který je pro rekonstrukci úplné historie stavů \PR a~issues důležitý \subsectionref{subsec:decisions:freshness}. Ačkoliv GraphQL umožňuje dotazování na tyto události, vyžaduje explicitní definici typů pro každou jednotlivou událost, což značně komplikuje flexibilní stahování kompletní historie. Dalším významným faktorem bylo využití knihovny \devTool{Octocrab}{[https://github.com/xampprocky/octocrab](https://github.com/xampprocky/octocrab)}. Ta poskytuje robustního \REST klienta pro GitHub s~předpřipravenými datovými strukturami pro všechny endpointy. Díky tomu zcela odpadla nutnost manuální implementace serializace a~deserializace \JSON odpovědí, což prokazatelně zjednodušilo implementaci synchronizační vrstvy.
+
+Zvolený přístup nicméně přináší nutný architektonický kompromis spojený s~datovým modelem GitHubu. V~něm je každý \PR vnitřně považován zároveň i~za Issue~\cite{github_rest_api}. Zatímco \REST \API poskytuje specializovaný endpoint pro načítání samotných \PR se všemi potřebnými detaily, endpoint určený pro issues vrací sdílený seznam obsahující obě entity.
+
+Při synchronizaci samotných issues je proto nutné načítat data z~tohoto endpointu a~záznamy představující \PR na úrovni aplikace dodatečně filtrovat a~ignorovat. Ačkoliv by nasazení GraphQL \API pro tuto konkrétní část synchronizace umožnilo dotazovat typy \code{Issue} a~\code{PullRequest} zcela odděleně, a~tím eliminovat stahování redundantních dat, bylo rozhodnuto zachovat jednotný přístup. Výhody plynoucí z~použití jedné technologie napříč celou aplikací a~využití robustních datových modelů knihovny Octocrab tuto mírně sníženou efektivitu při stránkování vyvažují.

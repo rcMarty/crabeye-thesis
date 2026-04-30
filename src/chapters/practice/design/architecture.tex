@@ -19,13 +19,6 @@ Vstupní vrstva zajišťuje komunikaci s~externími zdroji dat. Obsahuje moduly 
 
 Vrstva se stará o~načítání issues a~\PR z~\API GitHubu a~taktéž o~mapování změněných souborů k~\PR z~lokální kopie git repozitáře, pokud je daný \PR sloučen.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/architecture/overall_architecture.pdf}
-  \caption{Celková architektura systému}
-  \label{fig:architecture:overall_architecture}
-\end{figure}
-
 \subsection{Zpracování a~agregace}
 \label{subsec:architecture:processing}
 
@@ -39,6 +32,13 @@ Tato vrstva rovněž transformuje data pro vložení do databáze a~zajišťuje 
 Úložná vrstva zajišťuje ukládání normalizovaných dat do databáze. Poskytuje rozhraní pro ukládání a~načítání dat určené pro vrstvu zpracování a~prezentační vrstvu.
 
 Jsou zde využívány tzv.\ upserty pro zajištění konzistence dat a~jejich aktuálního stavu. Tato vrstva dále zajišťuje migrace schématu a~evoluci databáze a~indexů v~průběhu vývoje systému.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figures/architecture/overall_architecture.pdf}
+  \caption{Celková architektura systému}
+  \label{fig:architecture:overall_architecture}
+\end{figure}
 
 \subsection{Prezentační vrstva}
 \label{subsec:architecture:presentation_layer}
