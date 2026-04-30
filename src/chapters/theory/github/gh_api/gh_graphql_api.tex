@@ -20,7 +20,7 @@ Mezi časté problémy \REST \API patří nadměrné stahování dat (over-fetch
 
 GraphQL \API tyto problémy omezuje tím, že umožňuje získat pouze ta data, která jsou skutečně potřebná. Tím může být dosaženo výrazného snížení přeneseného objemu dat. Současně je však třeba počítat s~tím, že dotazy mohou být velmi komplexní a~náročné na zpracování~\cite{github_graphql_api}.
 
-Dotazy jsou v~GraphQL obvykle odesílány pomocí \HTTP metody \code{POST} na jediný endpoint. Operace, které mají být provedeny, i~požadovaná návratová data jsou definovány v~těle požadavku~\cite{github_graphql_api}. Ukázka dotazu a~odpovědi je uvedena ve výpisech~\ref{lst:graphql_request_example} a~\ref{lst:graphql_response_example}.
+Dotazy jsou v~GraphQL obvykle odesílány pomocí \HTTP metody \code{POST} na jediný endpoint. Operace, které mají být provedeny, i~požadovaná návratová data jsou definovány v~těle požadavku~\cite{github_graphql_api}. Ukázka dotazu a~odpovědi je uvedena ve \customref{Výpisech}{lst:graphql_request_example} a~\ref{lst:graphql_response_example}.
 
 \begin{listing}[H]
 \begin{minted}{graphql}
@@ -67,7 +67,7 @@ query {
   }
 }
 \end{minted}
-  \caption{Zkrácená odpověď na GraphQL dotaz z~výpisu~\ref{lst:graphql_request_example}.}
+  \caption{Zkrácená odpověď na GraphQL dotaz z~\customref{Výpisu}{lst:graphql_request_example}.}
   \label{lst:graphql_response_example}
 \end{listing}
 

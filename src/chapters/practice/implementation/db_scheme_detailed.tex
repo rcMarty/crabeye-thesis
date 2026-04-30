@@ -1,7 +1,7 @@
 \section{Implementace databázového schématu}
 \label{sec:implementation:db_scheme}
 
-Tato sekce popisuje konkrétní implementační rozhodnutí při tvorbě databázového schématu. Navazuje na návrh popsaný v~kapitole~\ref{sec:database} a~rozvádí detaily, které se týkají volby primárních klíčů, unikátních omezení, indexů a~dalších databázových entit.
+Tato sekce popisuje konkrétní implementační rozhodnutí při tvorbě databázového schématu. Navazuje na návrh popsaný v~\customref{Sekci}{sec:database} a~rozvádí detaily, které se týkají volby primárních klíčů, unikátních omezení, indexů a~dalších databázových entit.
 
 \subsection{Primární klíče}
 \label{subsec:implementation:db_scheme:primary_keys}
@@ -46,7 +46,7 @@ Tabulka \code{teams} obsahuje sloupec \code{subteam\_of}, který je cizím klí�
 \subsection{Indexy pro analytické dotazy}
 \label{subsec:implementation:db_scheme:indexes}
 
-Kromě podmíněných indexů nad sloupcem \code{is\_pr} v~tabulce \code{issues}, popsaných v~kapitole~\ref{sec:database}, jsou definovány další indexy optimalizující analytické dotazy.
+Kromě podmíněných indexů nad sloupcem \code{is\_pr} v~tabulce \code{issues}, popsaných v~\customref{Sekci}{sec:database}, jsou definovány další indexy optimalizující analytické dotazy.
 
 Na historických tabulkách jsou indexovány sloupce \code{timestamp} a~\code{repository}, protože analytické dotazy téměř vždy filtrují záznamy podle časového rozsahu nebo konkrétního repozitáře. Bez těchto indexů by databáze musela provádět sekvenční průchod celých tabulek.
 
