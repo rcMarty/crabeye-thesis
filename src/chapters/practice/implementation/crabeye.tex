@@ -1,7 +1,7 @@
 \section{Popis aplikace}
 \label{sec:implementation:crabeye}
 
-Jedná se o serverovou aplikaci napsanou v~jazyce Rust (edice 2021)~\cite{klabnik2018rust}, jejímž účelem je sběr, uložení a~analýza dat z~GitHub repozitářů. Aplikace pracuje s~databází PostgreSQL a~vystavuje \REST \API, přes které jsou data zpřístupněna frontendové části. Architektura systému je podrobněji popsána v~\sectionref{sec:architecture}.
+Jedná se o serverovou aplikaci napsanou v~jazyce Rust (edice 2021)~\cite{klabnik2018rust}, jejímž účelem je sběr, uložení a~analýza dat z~GitHub repozitářů. Aplikace pracuje s~databází PostgreSQL a~vystavuje \REST \API, přes které jsou data zpřístupněna frontendové části. Architektura systému je podrobněji popsána v~\customref{Sekci}{sec:architecture}.
 
 Aplikace je taktéž rozdělena do modulů podle funkcionality a dá se zkompilovat i jako knihovna, která poskytuje jednotlivé funkcionality. Vysokoúrovňové funkcionality jsou synchronizace dat, poskytování \API a~zpracování dat pro analytické dotazy a veškerá funkcionalita jako je v aplikaci.
 
@@ -37,7 +37,7 @@ Přehled dalších klíčových závislostí je uveden v~\customref{Tabulce}{tab
   \end{tabular}
 \end{table}
 
-Jako databáze je použit PostgreSQL~14 (Alpine), spouštěný prostřednictvím Docker Compose na portu~5431. Schéma databáze je spravováno prostřednictvím migrací sqlx a~je podrobněji popsáno v~\sectionref{sec:implementation:db_scheme}.
+Jako databáze je použit PostgreSQL~14 (Alpine), spouštěný prostřednictvím Docker Compose na portu~5431. Schéma databáze je spravováno prostřednictvím migrací sqlx a~je podrobněji popsáno v~\customref{Sekci}{sec:implementation:db_scheme}.
 
 \subsection{Režimy spuštění}
 \label{subsec:implementation:crabeye:modes}
@@ -49,8 +49,8 @@ Aplikace je ovládána přes \CLI a~rozlišuje tři provozní režimy, volené p
     Provede počáteční nebo inkrementální načtení dat z~GitHub \API. Parametr \code{--sync N} načte posledních $N$ stránek výsledků (každá stránka obsahuje 100 záznamů). Parametr \code{--sync YYYY-MM-DD} načte všechny záznamy aktualizované od zadaného data. Příznak \code{--full-history} navíc pro každý \PR a~issue stáhne kompletní historii událostí (štítky, události, sloučení apod.) z~GitHub timeline \API.
 
   \item[\code{backfill}]
-    Doplní historii událostí pro záznamy, které byly uloženy do databáze bez plné historie — například při prvotní synchronizaci bez příznaku \code{--full-history}. Podpříkaz vyhledá záznamy z tabulky \code{issues} bez záznamů v~tabulce \code{issue\_event\_history} a~pro každý z~nich zpětně stáhne celou historii z~GitHub \API. Podrobněji je tento mechanismus popsán v~\sectionref{subsec:implementation:gotchas:incremental}.
+    Doplní historii událostí pro záznamy, které byly uloženy do databáze bez plné historie — například při prvotní synchronizaci bez příznaku \code{--full-history}. Podpříkaz vyhledá záznamy z tabulky \code{issues} bez záznamů v~tabulce \code{issue\_event\_history} a~pro každý z~nich zpětně stáhne celou historii z~GitHub \API. Podrobněji je tento mechanismus popsán v~\customref{Podsekci}{subsec:implementation:gotchas:incremental}.
 
   \item[\code{serve}]
-    Spustí \REST \API server naslouchající na konfigurovatelné adrese (výchozí nastavení \code{0.0.0.0:7878}). Zároveň je spuštěna synchronizační smyčka (\code{StateMonitor}), která v intervalu nakonfigurovaných sekund automaticky načte a~uloží záznamy aktualizované od posledního běhu — viz \sectionref{subsec:implementation:gotchas:incremental}. Dokumentace \API je dostupná na \URL \code{/docs} (Scalar), \code{/docs/redoc} (Redoc) a~\code{/docs/swagger} (Swagger UI). V~tomto režimu s~\API serverem komunikuje frontendová \SPA aplikace postavená na Vue~3.
+    Spustí \REST \API server naslouchající na konfigurovatelné adrese (výchozí nastavení \code{0.0.0.0:7878}). Zároveň je spuštěna synchronizační smyčka (\code{StateMonitor}), která v intervalu nakonfigurovaných sekund automaticky načte a~uloží záznamy aktualizované od posledního běhu \sectionref{subsec:implementation:gotchas:incremental}. Dokumentace \API je dostupná na \URL \code{/docs} (Scalar), \code{/docs/redoc} (Redoc) a~\code{/docs/swagger} (Swagger UI). V~tomto režimu s~\API serverem komunikuje frontendová \SPA aplikace postavená na Vue~3.
 \end{description}

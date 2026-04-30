@@ -1,22 +1,22 @@
-Sort  (cost=2629.56..2679.33 rows=19907 width=56) (actual time=30.476..32.193 rows=20831 loops=1)
+Sort  (cost=2652.81..2702.86 rows=20021 width=56) (actual time=37.377..39.194 rows=20892 loops=1)
   Sort Key: (count(*)) DESC
-  Sort Method: quicksort  Memory: 3238kB
-  Buffers: shared hit=917
-  ->  HashAggregate  (cost=1009.03..1208.10 rows=19907 width=56) (actual time=23.387..26.738 rows=20831 loops=1)
+  Sort Method: quicksort  Memory: 3246kB
+  Buffers: shared hit=114 read=819
+  ->  HashAggregate  (cost=1022.17..1222.38 rows=20021 width=56) (actual time=30.170..33.664 rows=20892 loops=1)
         Group Key: fa.file_path
         Batches: 1  Memory Usage: 3857kB
-        Buffers: shared hit=917
-        ->  Nested Loop  (cost=0.70..909.50 rows=19907 width=48) (actual time=0.066..10.199 rows=49213 loops=1)
-              Buffers: shared hit=917
-              ->  Index Only Scan using contributors_teams_pkey on contributors_teams ct  (cost=0.28..5.54 rows=72 width=8) (actual time=0.037..0.051 rows=72 loops=1)
-                    Index Cond: (team = 'compiler')
+        Buffers: shared hit=114 read=819
+        ->  Nested Loop  (cost=0.70..922.07 rows=20021 width=48) (actual time=0.112..15.052 rows=50104 loops=1)
+              Buffers: shared hit=114 read=819
+              ->  Index Only Scan using contributors_teams_pkey on contributors_teams ct  (cost=0.28..5.55 rows=73 width=8) (actual time=0.042..0.063 rows=73 loops=1)
+                    Index Cond: (team = 'compiler'::text)
                     Heap Fetches: 0
                     Buffers: shared hit=4
-              ->  Index Only Scan using idx_file_activity_repo_contrib_ts on file_activity fa  (cost=0.42..11.38 rows=118 width=56) (actual time=0.007..0.102 rows=684 loops=72)
-                    Index Cond: ((repository = 'rust-lang/rust') AND (contributor_id = ct.contributor_id) AND ("timestamp" >= '2025-06-01 00:00:00') AND ("timestamp" <= '2026-04-04 00:00:00'))
+              ->  Index Only Scan using idx_file_activity_repo_contrib_ts on file_activity fa  (cost=0.42..11.38 rows=118 width=56) (actual time=0.014..0.164 rows=686 loops=73)
+"                    Index Cond: ((repository = 'rust-lang/rust'::text) AND (contributor_id = ct.contributor_id) AND (""timestamp"" >= '2025-06-01 00:00:00'::timestamp without time zone) AND (""timestamp"" <= '2026-04-04 00:00:00'::timestamp without time zone))"
                     Heap Fetches: 0
-                    Buffers: shared hit=913
+                    Buffers: shared hit=110 read=819
 Planning:
-  Buffers: shared hit=23
-Planning Time: 0.544 ms
-Execution Time: 33.896 ms
+  Buffers: shared hit=8
+Planning Time: 0.312 ms
+Execution Time: 40.965 ms

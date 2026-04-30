@@ -1,0 +1,86 @@
+\section{Hlavní návrhová rozhodnutí}
+\label{sec:design:decisions}
+
+Po vymezení požadavků je nutné rozhodnout, \emph{jakým způsobem} budou jednotlivé vlastnosti aplikace dosaženy. Tato sekce postupně rozebírá hlavní rozhodnutí, která ovlivnila podobu výsledné architektury. Formu nasazení aplikace, zdroje dat o~repozitáři, způsob získávání aktuálních dat společně se schopností doplnit chybějící historii a~volbu nástroje pro vizualizaci.
+
+Další úžeji zaměřené rozhodnutí, volba konkrétního databázového systému, je probíráno v~\customref{Sekci}{sec:implementation:db_choice}.
+
+\subsection{Forma nasazení aplikace}
+\label{subsec:decisions:deployment}
+
+Z~požadavku na webovou aplikaci s~jednoduchým deploymentem vyplývá otázka, jak má být aplikace strukturována jako celek. Zvažovány byly tři varianty.
+
+\begin{description}
+  \item[Statická jednostránková aplikace s~předgenerovaným datasetem]
+    Tímto způsobem je realizován například nástroj rustc-pr-tracking \sectionref{sec:rustc_pr_tracking}. Veškerá data jsou připravena dopředu a~poskytována jako statické soubory, které prohlížeč zpracovává lokálně. Výhodou je triviální nasazení (libovolný statický hosting, žádný server) a~nulová provozní režie. Nevýhodou je omezená velikost datasetu, neboť veškerá data musí být stažena do prohlížeče, a~nemožnost provádět nad daty dynamické dotazy s~uživatelskými parametry.
+
+  \item[Backend s~databází a~oddělený frontend]
+    Klient-serverová architektura, kde backend zpřístupňuje data uložená v~databázi přes \API a~frontend slouží pouze pro jejich zobrazení. Toto řešení umožňuje uchovávat data ve vysokém objemu a~efektivně se nad nimi dotazovat pomocí \SQL. Cenou je složitější nasazení (běžící server, databáze, případná kontejnerizace) a~nutnost provozovat backend nepřetržitě.
+
+  \item[Serverless funkce nad spravovanou databází]
+    Varianta, která odstraňuje potřebu vlastního serveru. Za to je ale aplikace vázána na konkrétního cloudového poskytovatele, je omezena na jím podporované databázové systémy a~lokální vývoj je složitější.
+\end{description}
+
+\textbf{Zvolené řešení.} Aplikace je realizována jako backend nad relační databází s~odděleným webovým frontendem. Hlavním důvodem je objem dat a~potřeba dynamických analytických dotazů, které ve statické variantě nejsou realizovatelné. Závislost na konkrétním cloudovém ekosystému u~serverless varianty by zároveň zhoršila přenositelnost a~znesnadnila lokální vývoj. Jednoduchost lokálního nasazení je řešena kontejnerizací.
+
+\subsection{Zdroje dat o~repozitáři}
+\label{subsec:decisions:data_sources}
+
+Analytické pohledy vyžadují data o~\PR, issues, jejich historii, změněných souborech a~příslušnosti přispěvatelů k~týmům. Otázkou je, odkud tato data získávat.
+
+\begin{description}
+  \item[Pouze GitHub \API]
+    GitHub by byl ideálním jediným zdrojem, ale pro tento projekt nestačí. Endpoint pro soubory změněné v~rámci \PR by bylo nutné volat pro každý z~tisíců \PR zvlášť, což by přineslo další výrazné navýšení počtu požadavků a~zpomalilo synchronizaci kvůli síťové latenci~\cite{github_rest_api}. Limity počtu požadavků \subsectionref{subsec:github_api_limits} by tak byly rychle překročeny. Informace o~příslušnosti přispěvatelů k~oficiálním týmům Rust projektu GitHub \API neposkytuje vůbec.
+
+  \item[Pouze lokální git repozitář]
+    Klon repozitáře poskytuje přímý přístup ke struktuře commitů a~jejich obsahu bez síťové režie. Sám o~sobě však neobsahuje metadata o~\PR a~issues (stavy, štítky, recenze, komentáře, časovou osu událostí), bez nichž nelze požadované analytické pohledy realizovat.
+
+  \item[Kombinace více zdrojů]
+    Každý zdroj poskytne část dat: GitHub \API poskytuje metadata o~\PR a~issues včetně jejich časové osy, lokální git repozitář slouží k~výpisu souborů změněných v~merge commitech a~Rust Team \API \sectionref{sec:rust_team_api} mapuje přispěvatele do týmů.
+\end{description}
+
+\textbf{Zvolené řešení.} Aplikace kombinuje všechny tři zdroje. Lokální git odbourává tisíce \API požadavků, které by jinak mohly narážet na rate limit. Team \API doplňuje informace o týmech a jejich přispěvatelích. GitHub \API zůstává primárním zdrojem metadat o~\PR a~issues a~jejich časové ose.
+
+\subsection{Aktuálnost dat a~self-healing}
+\label{subsec:decisions:freshness}
+
+Z~požadavků na vždy čerstvá data a~na schopnost doplnit data po výpadku vyplývá otázka, jakým mechanismem aplikace získává nové i~chybějící události z~GitHubu.
+
+\begin{description}
+  \item[Webhooky]
+    GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint~\cite{github_webhooks}. Přístup je vhodný pro reaktivní zpracování v~reálném čase, avšak má dvě podstatná omezení. Vyžaduje veřejně dostupný endpoint, což komplikuje lokální vývoj i~nasazení v~prostředích bez veřejné IP adresy. A~z~principu neposkytuje historická data události, ke kterým došlo před registrací webhooku nebo v~době výpadku aplikace, jsou nenávratně ztraceny.
+
+  \item[Pravidelný polling REST \API stavu \PR a~issues]
+    Aplikace by v~pravidelných intervalech načítala aktuální stav \PR a~issues a~detekovala změny. Implementačně jednoduché, ale nezachytí mezistavy mezi dvěma odečty (například krátkodobě přidaný a~odebraný štítek) a~neposkytuje úplnou časovou osu událostí.
+
+  \item[Timeline events \API]
+    GitHub pro každý \PR a~issue zpřístupňuje endpoint vracející úplný chronologický seznam zaznamenaných událostí~\cite{github_rest_api}. Tímto způsobem lze provést jak prvotní naplnění historických dat, tak inkrementální doplňování. Cenou je vysoký počet \API požadavků při prvotní synchronizaci.
+\end{description}
+
+\textbf{Zvolené řešení.} Aplikace používá Timeline events \API jako primární zdroj historie a~aktuálních událostí. Synchronizace je inkrementální a~opakovaně spustitelná, čímž je dosaženo požadované self-healing vlastnosti. Po libovolně dlouhém výpadku je při dalším spuštění historie automaticky doplněna. Webhooky byly zamítnuty kvůli závislosti na veřejném endpointu a~neschopnosti dohnat data zpětně. Polling není dostatečný pro rekonstrukci kompletní časové osy.
+
+\subsection{Vizualizace dat}
+\label{sec:design:visualization}
+
+Ze specifikovaných analytických dotazů vyplývají dvě hlavní formy vizualizace: časové řady stavů \PR (dotazy Q1 a~Q2) vyžadující interaktivní spojnicové grafy a~hierarchická data o~upravených souborech (dotaz Q7) vyžadující prostorovou agregaci stromové struktury. Otázkou je, jaký nástroj pro vizualizaci zvolit.
+
+\begin{description}
+  \item[Monitorovací platforma (Grafana)]
+    Grafana\footnote{\url{https://grafana.com}} je v~oblasti monitoringu zavedeným standardem s~přímou podporou PostgreSQL. Pro tento projekt se však ukázala jako nevhodná ze dvou důvodů. Integrace analytických \SQL dotazů obsahujících podmíněnou logiku a~vícenásobné klauzule \code{WITH} naráží na limity při předávání dynamických parametrů. A~vizualizace hierarchických textových dat (cesty k~souborům seskupené do adresářové struktury) není nativními panely Grafany podporována. Grafana nabízí pouze plochý tabulkový výpis, který u~stovek záznamů postrádá přehlednost.
+
+  \item[Vlastní frontendový klient]
+    Jednostránková webová aplikace komunikující s~backendem přes \REST \API. Poskytuje plnou kontrolu nad předáváním parametrů dotazů a~umožňuje implementovat libovolné vizualizace včetně treemap pro stromová data a~interaktivních grafů s~možností skrývat jednotlivé řady. Cenou je nutnost implementace a~údržby vlastního kódu.
+\end{description}
+
+\textbf{Zvolené řešení.} Vlastní frontendový klient ve formě jednostránkové webové aplikace. Hlavním důvodem je potřeba vizualizací, které hotové monitorovací nástroje nepodporují, zejména prostorová agregace souborových cest do treemap a~plná flexibilita při parametrizaci dotazů. Konkrétní pohledy a~jejich implementace jsou popsány v~\customref{Sekci}{sec:implementation:visualization}.
+
+\subsection{Volba rozhraní GitHub API}
+\label{subsec:decisions:github_api}
+
+GitHub nabízí dvě hlavní rozhraní pro přístup k~datům repozitáře: \REST \API \subsectionref{subsec:github_api_rest} a~GraphQL \API \subsectionref{subsec:github_api_graphql}. Pro stahování dat z~GitHubu bylo v~této práci zvoleno \REST \API.
+
+Jedním z~hlavních důvodů pro toto rozhodnutí byl způsob získávání událostí z~časové osy (Timeline events), který je pro rekonstrukci úplné historie stavů \PR a~issues důležitý \subsectionref{subsec:decisions:freshness}. Ačkoliv GraphQL umožňuje dotazování na tyto události, vyžaduje explicitní definici typů pro každou jednotlivou událost, což značně komplikuje flexibilní stahování kompletní historie. Dalším významným faktorem bylo využití knihovny \devTool{Octocrab}{[https://github.com/xampprocky/octocrab](https://github.com/xampprocky/octocrab)}. Ta poskytuje robustního \REST klienta pro GitHub s~předpřipravenými datovými strukturami pro všechny endpointy. Díky tomu zcela odpadla nutnost manuální implementace serializace a~deserializace \JSON odpovědí, což prokazatelně zjednodušilo implementaci synchronizační vrstvy.
+
+Zvolený přístup nicméně přináší nutný architektonický kompromis spojený s~datovým modelem GitHubu. V~něm je každý \PR vnitřně považován zároveň i~za Issue~\cite{github_rest_api}. Zatímco \REST \API poskytuje specializovaný endpoint pro načítání samotných \PR se všemi potřebnými detaily, endpoint určený pro issues vrací sdílený seznam obsahující obě entity.
+
+Při synchronizaci samotných issues je proto nutné načítat data z~tohoto endpointu a~záznamy představující \PR na úrovni aplikace dodatečně filtrovat a~ignorovat. Ačkoliv by nasazení GraphQL \API pro tuto konkrétní část synchronizace umožnilo dotazovat typy \code{Issue} a~\code{PullRequest} zcela odděleně, a~tím eliminovat stahování redundantních dat, bylo rozhodnuto zachovat jednotný přístup. Výhody plynoucí z~použití jedné technologie napříč celou aplikací a~využití robustních datových modelů knihovny Octocrab tuto mírně sníženou efektivitu při stránkování vyvažují.
