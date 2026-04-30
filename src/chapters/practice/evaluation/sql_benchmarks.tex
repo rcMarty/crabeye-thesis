@@ -8,7 +8,7 @@ V~rámci evaluace bylo měřeno, jaký vliv mají databázové indexy na dobu vy
 \subsection{Testované dotazy}
 \label{subsec:evaluace:sql:dotazy}
 
-Byly testovány čtyři dotazy (S1--S4) pokrývající typické analytické scénáře. Dotazy jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručný popis každého dotazu:
+Byly testovány čtyři dotazy (S1--S4) pokrývající typické analytické scénáře. Dotazy jsou uvedeny v~\customref{Příloze}{chap:appendix:sql}. Stručný popis každého dotazu:
 
 \begin{description}
   \item[S1] Počet \PR ve stavu \code{S-waiting-on-review} k~zadanému datu. Dotaz využívá dvě \CTE s~\code{DISTINCT ON}: jednu pro poslední label-event a~druhou pro poslední stavovou změnu, následované \code{LEFT JOIN} a~filtrací.
@@ -20,7 +20,7 @@ Byly testovány čtyři dotazy (S1--S4) pokrývající typické analytické scé
 \subsection{Vliv indexů}
 \label{subsec:evaluace:sql:indexy}
 
-Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné definice indexů jsou uvedeny v~příloze~\ref{chap:appendix:sql}. Stručně:
+Pro optimalizaci byly vytvořeny částečné a~pokrývající indexy. Úplné definice indexů jsou uvedeny v~\customref{Příloze}{chap:appendix:sql}. Stručně:
 
 \begin{itemize}
   \item \code{idx\_pr\_event\_hist\_state\_changes} -- částečný index na \code{issue\_event\_history} s~podmínkou \code{WHERE is\_pr = true AND event IN ('closed','merged','reopened')} a~klauzulí \code{INCLUDE (event)}.

@@ -1,53 +1,55 @@
 \section{Požadavky na systém}
 \label{sec:requirements}
 
-Před návrhem a~implementací systému je nutné vymezit, \emph{co} má systém poskytovat (funkční požadavky) a~\emph{jaké vlastnosti} má při provozu splňovat (nefunkční požadavky). Níže uvedené požadavky vycházejí z~cíle projektu: průběžně získávat, ukládat a~zpřístupňovat data o~vývoji velkého repozitáře, zejména data o~\PR, issues a~související aktivitě nad soubory.
+Před návrhem systému je nutné vymezit, \emph{co} má systém poskytovat (funkční požadavky) a~\emph{jaké vlastnosti} má při provozu splňovat (nefunkční požadavky).
 
 \subsection{Funkční požadavky}
 \label{subsec:requirements:functional}
 
 \begin{enumerate}
-  \item \textbf{Integrace dat z~více zdrojů}
+  \item \textbf{Webová aplikace s~jednoduchým přístupem}
     \begin{itemize}
-      \item Systém musí načítat data o~\PR a~issues z~\API GitHubu.
-      \item Systém musí načítat informace o~změněných souborech z~+ git repozitáře.
-      \item Systém musí načítat informace o~členech týmů a~přispěvatelích, které jsou potřebné pro analytické dotazy.
-      \item Systém musí korektně zpracovávat omezení počtu požadavků (\emph{rate limiting}) při komunikaci s~\API GitHubu.
+      \item Aplikace je dostupná v~prohlížeči, bez nutnosti instalace klientského software.
+      \item Aplikace je read-only a~nevyžaduje autentizaci uživatelů, aby ji mohl používat kdokoli ze zájemců o~vývoj sledovaného repozitáře.
     \end{itemize}
 
-  \item \textbf{Průběžná synchronizace dat}
+  \item \textbf{Vždy aktuální data o~sledovaném repozitáři}
     \begin{itemize}
-      \item Systém musí umožnit opakované spouštění synchronizace bez ztráty konzistence dat.
-      \item Systém musí aktualizovat již uložené záznamy (např.\ změny stavu \PR nebo issue) a~doplňovat nové události.
-      \item Systém musí podporovat inkrementální synchronizaci, aby nedocházelo ke zbytečnému opakovanému načítání již zpracovaných dat.
+      \item Aplikace průběžně získává nová data o~\PR, issues a~aktivitě nad soubory.
+      \item Aplikace umožňuje opakované spouštění synchronizace bez ztráty konzistence dat a~doplňuje nové i~změněné záznamy.
     \end{itemize}
 
-  \item \textbf{Historizace změn v~čase}
+  \item \textbf{Historizace stavů v~čase}
     \begin{itemize}
-      \item Systém musí ukládat časový vývoj stavů a~atributů \PR a~issues (např.\ změny stavů a~štítků).
-      \item Systém musí umožnit rekonstrukci historického stavu \PR a~issues i~zpětně pro záznamy vzniklé v~době, kdy aplikace nebyla spuštěna nebo synchronizace nebyla aktivní.
-      \item Systém musí podporovat doplnění chybějící historie (\emph{backfill}) pro již uložené záznamy.
+      \item Aplikace uchovává časový vývoj stavů a~atributů \PR a~issues, aby bylo možné rekonstruovat jejich historický stav.
+      \item Aplikace dokáže historii doplnit (\emph{backfill}) i~zpětně pro záznamy vzniklé v~době, kdy nebyla v~provozu.
     \end{itemize}
 
-  \item \textbf{Analytické zpracování}
+  \item \textbf{Analytické pohledy a~filtrování}
     \begin{itemize}
-      \item Systém musí podporovat filtrování podle repozitáře, časového rozsahu a~dalších parametrů dotazu.
-      \item Systém musí podporovat stránkování výsledků pro práci s~většími datovými sadami.
-      \item Systém musí poskytovat analytické pohledy uvedené \customref{v~Sekci}{subsec:requirements:queries}.
+      \item Aplikace umožňuje zobrazovat statistiky a~dotazy v~různých časových oknech.
+      \item Aplikace umožňuje filtrovat výsledky podle relevantních parametrů (např. týmu, cesty v~repozitáři, identifikátoru \PR či issue).
+      \item Pro práci s~většími datovými sadami je k~dispozici stránkování výsledků.
+      \item Konkrétní sada poskytovaných dotazů je vymezena \customref{v~Podsekci}{subsec:requirements:queries}.
     \end{itemize}
 
-  \item \textbf{Zpřístupnění dat přes \API}
+  \item \textbf{Self-healing po výpadku}
     \begin{itemize}
-      \item Systém musí poskytovat \REST \API endpointy pro dotazy nad \PR a~issues.
-      \item Systém musí vracet odpovídající \HTTP stavové kódy pro běžné i~chybové stavy (např.\ 200, 400, 404, 500).
-      \item Systém musí poskytovat strojově čitelnou dokumentaci \API ve formátu OpenAPI/Swagger.
+      \item Pokud aplikace nějakou dobu neběží nebo dojde k~chybě při synchronizaci, je schopna chybějící data doplnit při dalším spuštění.
+      \item Aplikace minimalizuje duplicitní záznamy a~udržuje konzistentní stav i~při opakovaném zpracování stejných vstupů.
+    \end{itemize}
+
+  \item \textbf{Jednoduchý deployment}
+    \begin{itemize}
+      \item Aplikaci je možné spustit v~lokálním i~serverovém prostředí bez náročné ruční konfigurace.
+      \item Citlivé údaje, jako například přístupové tokeny, jsou předávány externí konfigurací, nikoliv pevně zapsány v~kódu.
     \end{itemize}
 \end{enumerate}
 
 \subsection{Specifikace analytických dotazů}
 \label{subsec:requirements:queries}
 
-Funkční požadavek na analytické zpracování vyžaduje sadu konkrétních dotazů nad nasbíranými daty. Tato podsekce pro každý dotaz uvádí jeho účel, vstupní parametry a~očekávaný výstup. Návrh realizace jednotlivých dotazů je popsán v~\customref{v~Sekci}{sec:queries}.
+Funkční požadavek na analytické pohledy vyžaduje sadu konkrétních dotazů nad nasbíranými daty. Tato podsekce pro každý dotaz uvádí jeho účel, vstupní parametry a~očekávaný výstup. Návrh realizace jednotlivých dotazů je popsán v~\customref{Sekci}{sec:queries}.
 
 \begin{description}
   \item[Q1 -- Historický stav \PR k~danému datu]
@@ -92,6 +94,7 @@ Funkční požadavek na analytické zpracování vyžaduje sadu konkrétních do
 
     \textbf{Vstup:} název týmu, časové okno, počet úrovní hierarchie pro seskupení.\\
     \textbf{Výstup:} seznam souborů (plochý nebo hierarchický) seřazený podle počtu úprav.
+
 \end{description}
 
 \subsection{Nefunkční požadavky}
@@ -100,39 +103,31 @@ Funkční požadavek na analytické zpracování vyžaduje sadu konkrétních do
 \begin{enumerate}
   \item \textbf{Výkon}
     \begin{itemize}
-      \item Systém musí efektivně zpracovávat data z~rozsáhlého repozitáře s~velkým množstvím \PR a~issues.
-      \item Systém musí omezovat objem vracených dat pomocí stránkování a~limitů.
+      \item Aplikace musí efektivně zpracovávat data z~rozsáhlého repozitáře s~velkým množstvím \PR a~issues.
+      \item Odezva analytických dotazů musí zůstat únosná i~nad historickými daty v~řádu desítek tisíc \PR.
     \end{itemize}
 
   \item \textbf{Spolehlivost a~odolnost}
     \begin{itemize}
-      \item Systém musí korektně zpracovat i~neúplná data z~externích zdrojů.
-      \item Zápisy do databáze musí probíhat transakčně tam, kde je vyžadována konzistence.
-      \item Při dílčích chybách musí systém chybu zaznamenat a~umožnit opětovné spuštění synchronizace.
+      \item Aplikace musí korektně zpracovat i~neúplná data z~externích zdrojů.
+      \item Při dílčích chybách musí být chyba zaznamenána a~musí být možné synchronizaci zopakovat bez poškození již uložených dat.
     \end{itemize}
 
   \item \textbf{Konzistence a~kvalita dat}
     \begin{itemize}
-      \item Systém musí minimalizovat duplicitní záznamy (např.\ pomocí logiky upsert).
-      \item Systém musí uchovávat časové souvislosti událostí pro pozdější analýzu trendů.
+      \item Aplikace musí minimalizovat duplicitní záznamy a~udržovat konzistentní stav.
+      \item Aplikace musí uchovávat časové souvislosti událostí pro pozdější analýzu trendů.
     \end{itemize}
 
   \item \textbf{Provozovatelnost}
     \begin{itemize}
-      \item Systém musí být konfigurovatelný pomocí externí konfigurace (repozitář, tokeny, připojení k~databázi).
-      \item Systém musí poskytovat logování pro diagnostiku běhu a~chyb.
-      \item Systém musí být jednoduše spustitelný v~lokálním i~serverovém prostředí (např.\ pomocí Docker Compose).
-    \end{itemize}
-
-  \item \textbf{Udržovatelnost a~rozšiřitelnost}
-    \begin{itemize}
-      \item Systém musí být členěn do jasných modulů (\API, agregační logika, databázová vrstva, monitoring).
-      \item Rozhraní mezi vrstvami musí být navržena tak, aby bylo možné doplňovat nové endpointy a~dotazy bez zásahu do celého systému.
+      \item Aplikace musí být konfigurovatelná pomocí externí konfigurace (sledovaný repozitář, přístupové tokeny, připojení k~databázi).
+      \item Aplikace musí poskytovat logování pro diagnostiku běhu a~chyb.
     \end{itemize}
 
   \item \textbf{Bezpečnost}
     \begin{itemize}
       \item Přístupové tokeny k~externím službám nesmí být pevně zapsány v~kódu.
-      \item Systém musí validovat vstupní parametry \API a~bezpečně zpracovávat chybové stavy.
+      \item Vstupní parametry uživatelských dotazů musí být validovány a~chybové stavy bezpečně zpracovány.
     \end{itemize}
 \end{enumerate}

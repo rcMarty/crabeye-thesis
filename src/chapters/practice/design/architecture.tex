@@ -10,13 +10,6 @@ Tato kapitola popisuje, jak byla navržena architektura systému. Jsou zde pops�
 
 Celková architektura systému je znázorněna na \customref{Obrázku}{fig:architecture:overall_architecture}.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{figures/architecture/overall_architecture.pdf}
-  \caption{Celková architektura systému}
-  \label{fig:architecture:overall_architecture}
-\end{figure}
-
 Systém je navržen jako monolitická aplikace s~vrstvenou strukturou zahrnující vstupní vrstvu, aplikační a~integrační logiku a~prezentační vrstvu. Vrstvená struktura je dosažena za pomoci principu oddělení zodpovědností (SoC). Tento přístup umožňuje snadnou rozšiřitelnost a~vysokou udržovatelnost. Monolit je v~rámci klient-serverové architektury rozdělen na backendovou část implementovanou v~Rustu, která zajišťuje zpracování dat a~vystavení \API pro frontend, a~frontendovou část implementovanou ve Vue.js, která zobrazuje data uživatelům.
 
 \subsection{Vstupní vrstva}
@@ -24,9 +17,14 @@ Systém je navržen jako monolitická aplikace s~vrstvenou strukturou zahrnujíc
 
 Vstupní vrstva zajišťuje komunikaci s~externími zdroji dat. Obsahuje moduly pro komunikaci s~\API GitHubu, Team \API a~pro načítání dat z~git repozitáře.
 
-Vrstva se stará o~načítání issues a~\PR z~\API GitHubu a~taktéž o~mapování změněných souborů k~\PR z~git repozitáře, pokud je daný \PR sloučen.
+Vrstva se stará o~načítání issues a~\PR z~\API GitHubu a~taktéž o~mapování změněných souborů k~\PR z~lokální kopie git repozitáře, pokud je daný \PR sloučen.
 
-Informace o~souborech změněných v~rámci \PR jsou sice dostupné přes \API GitHubu prostřednictvím endpointu pro výpis souborů daného \PR~\cite{github_rest_api}, avšak jeho použití by při zpracování tisíců \PR vedlo k~tisícům síťových požadavků a~zbytečnému zatížení \API. Tím by se celý proces synchronizace výrazně prodloužil a~přiblížil limitům počtu požadavků \sectionref{subsec:implementation:gotchas:rate_limits}. Z~tohoto důvodu jsou informace o~změněných souborech načítány přímo z~lokální kopie git repozitáře, kde je každý sloučený \PR reprezentován merge commitem se svým rodičovským commitem. Tento přístup nevyžaduje žádné síťové požadavky a~je výrazně rychlejší.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/architecture/overall_architecture.pdf}
+  \caption{Celková architektura systému}
+  \label{fig:architecture:overall_architecture}
+\end{figure}
 
 \subsection{Zpracování a~agregace}
 \label{subsec:architecture:processing}

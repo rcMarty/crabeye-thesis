@@ -3,7 +3,7 @@
 \section{Návrh dotazů}
 \label{sec:queries}
 
-Tato sekce popisuje, jakým způsobem jsou analytické dotazy definované v~\customref{Subsekci}{subsec:requirements:queries} realizovány. Pro každý dotaz je uvedeno, z~jakých datových zdrojů čerpá a~které tabulky databáze využívá.
+Tato sekce popisuje, jakým způsobem jsou analytické dotazy definované v~\customref{Podsekci}{subsec:requirements:queries} realizovány. Pro každý dotaz je uvedeno, z~jakých datových zdrojů čerpá a~které tabulky databáze využívá.
 
 Všechny dotazy jsou striktně čtecí, parametrizované identifikátorem repozitáře a~pracují výhradně s~daty uloženými v~databázi \sectionref{sec:database}. Tím je zaručena nízká latence odpovědí i~nad velkým množstvím historických záznamů.
 
@@ -11,15 +11,6 @@ Všechny dotazy jsou striktně čtecí, parametrizované identifikátorem repozi
 \label{subsec:queries:historical_data}
 
 Dotazy Q1, Q2 a~Q4 pracují s~historickým vývojem \PR a~issues. Aby bylo možné tyto dotazy spolehlivě zodpovědět, musí mít systém v~databázi kompletní sekvenci událostí pro každý \PR a~issue, včetně změn štítků a~stavů. Nestačí tedy ukládat pouze aktuální stav, je nutné uchovávat celou historii změn.
-
-V~prostředí GitHub existují dva přístupy k~získání těchto dat:
-
-\begin{description}
-  \item[Webhooky] GitHub při každé relevantní události zašle \HTTP požadavek na předem registrovaný endpoint~\cite{github_webhooks}. Tento přístup je vhodný pro reaktivní systémy pracující v~reálném čase, ale má zásadní omezení: vyžaduje veřejně dostupný endpoint a~neposkytuje historická data. Nelze jím zpětně získat události, ke kterým došlo před registrací webhooku nebo v~době, kdy aplikace nebyla dostupná.
-  \item[Timeline events \API] GitHub pro každý \PR nebo issue zpřístupňuje endpoint vracející úplný chronologický seznam všech zaznamenaných událostí~\cite{github_rest_api}. Tento přístup umožňuje jak počáteční naplnění historických dat, tak inkrementální doplňování nových událostí. Nevýhodou je vyšší počet \API požadavků při prvotní synchronizaci, avšak pro splnění požadavku na retroaktivní dostupnost dat je toto řešení nezbytné.
-\end{description}
-
-Systém proto používá Timeline events \API jako primární zdroj historických dat. Implementační detaily jsou popsány v~\sectionref{subsec:implementation:gotchas:timeline_vs_webhooks}.
 
 \subsection{Realizace jednotlivých dotazů}
 \label{subsec:queries:design}
